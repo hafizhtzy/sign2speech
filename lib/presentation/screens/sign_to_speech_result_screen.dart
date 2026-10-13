@@ -1,0 +1,153 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+
+import '../../core/theme/app_colors.dart';
+import '../../core/widgets/app_button.dart';
+import '../../core/widgets/app_card.dart';
+import '../../core/widgets/status_badge.dart';
+import '../../features/history/controllers/history_controller.dart';
+import '../../features/history/models/history_item.dart';
+import '../../features/settings/controllers/settings_controller.dart';
+import '../../features/sign_language/controllers/bisindo_recognition_controller.dart';
+
+class SignToSpeechResultScreen extends StatelessWidget {
+  const SignToSpeechResultScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final recCtrl = Get.find<BisindoRecognitionController>();
+    final settings = Get.find<SettingsController>();
+    final history = Get.find<HistoryController>();
+
+    final text = recCtrl.fullTranscriptText.isEmpty
+        ? 'Halo, terima kasih. Saya mau bayar menggunakan QRIS.'
+        : recCtrl.fullTranscriptText;
+
+    return Scaffold(
+      backgroundColor: AppColors.canvas,
+      appBar: AppBar(
+        title: const Text('Hasil Sign to Speech'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Get.back(),
+        ),
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Result Card
+              AppCard(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        StatusBadge(
+                          label: settings.selectedSignLanguage.value,
+                          variant: BadgeVariant.active,
+                        ),
+                        const StatusBadge(
+                          label: 'Bahasa Indonesia (id-ID)',
+                          variant: BadgeVariant.neutral,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      text,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink,
+                        height: 1.35,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Audio Trigger Row
+                    Row(
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: () => recCtrl.replayLastOrFullTranscript(),
+                          icon: const Icon(Icons.volume_up_rounded, size: 20),
+                          label: const Text('Putar Suara'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.secondary,
+                            foregroundColor: AppColors.surface,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 10,
+                            ),
+                            minimumSize: const Size(0, 44),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            Clipboard.setData(ClipboardData(text: text));
+                            Get.snackbar(
+                              'Disalin',
+                              'Teks terjemahan berhasil disalin ke papan klip',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: AppColors.surface,
+                              colorText: AppColors.ink,
+                              margin: const EdgeInsets.all(16),
+                            );
+                          },
+                          icon: const Icon(Icons.copy_rounded, size: 18),
+                          label: const Text('Salin Teks'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            minimumSize: const Size(0, 44),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+
+              // Bottom Actions
+              AppSecondaryButton(
+                label: 'Simpan ke Riwayat',
+                icon: Icons.bookmark_border_rounded,
+                onPressed: () {
+                  history.addHistoryEntry(
+                    original: 'Gestur Kamera',
+                    translated: text,
+                    direction: TranslationDirection.signToSpeech,
+                    signLanguage: settings.selectedSignLanguage.value,
+                  );
+                  Get.snackbar(
+                    'Tersimpan',
+                    'Terjemahan berhasil disimpan ke Riwayat',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: AppColors.surface,
+                    colorText: AppColors.ink,
+                    margin: const EdgeInsets.all(16),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+              AppPrimaryButton(
+                label: 'Kembali ke Kamera',
+                icon: Icons.camera_alt_rounded,
+                onPressed: () => Get.back(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
