@@ -41,7 +41,7 @@ void main() {
   late SignLanguageRepository repository;
   late TextToSignController controller;
 
-  setUp(() {
+  setUp(() async {
     Get.testMode = true;
     mockSpeechService = MockSpeechService();
     repository = SignLanguageRepository(
@@ -51,6 +51,7 @@ void main() {
       speechService: mockSpeechService,
       repository: repository,
     );
+    await controller.loadAvailableVideos();
   });
 
   tearDown(() {
@@ -91,11 +92,11 @@ void main() {
         expect(controller.recognizedWords.value, equals('halo'));
 
         // New input increments session id
-        await controller.processVoiceInput('beli tiket');
+        await controller.processVoiceInput('beli obat');
         expect(controller.playSessionId.value, greaterThan(initialSession));
         expect(controller.playlist.length, equals(2));
         expect(controller.playlist[0].label, equals('Beli'));
-        expect(controller.playlist[1].label, equals('Tiket'));
+        expect(controller.playlist[1].label, equals('Obat'));
       },
     );
 
@@ -127,6 +128,51 @@ void main() {
       controller.isLooping.value = true;
       controller.onVideoFinished();
       expect(controller.activeWordIndex.value, equals(0));
+    });
+
+    test('Autocomplete suggestions filters candidate dictionary correctly', () {
+      controller.updateSearchQuery('bai');
+      expect(controller.searchSuggestions.isNotEmpty, isTrue);
+      expect(controller.searchSuggestions.any((s) => s.toLowerCase() == 'baik'), isTrue);
+      expect(controller.showSuggestions.value, isTrue);
+
+      controller.dismissSuggestions();
+      expect(controller.showSuggestions.value, isFalse);
+    });
+
+    test('selectSuggestion updates query and triggers search', () async {
+      controller.selectSuggestion('Baik');
+      await controller.searchSign('Baik', force: true);
+      expect(controller.currentQuery.value, equals('Baik'));
+      expect(controller.textController.text, equals('Baik'));
+      expect(controller.currentEntry.value, isNotNull);
+      expect(controller.currentEntry.value!.label, equals('Baik'));
+      expect(
+        controller.currentEntry.value!.remoteUrl,
+        equals('https://hajicare-sign.web.app/videos/bisindo/baik_v1.mp4'),
+      );
+    });
+
+    test('dynamicPackageCategories groups available videos into packages', () {
+      final packages = controller.dynamicPackageCategories;
+      expect(packages.isNotEmpty, isTrue);
+      expect(packages.any((p) => p.title.contains('Salam') || p.category == 'salam'), isTrue);
+    });
+
+    test('Vocabulary pagination divides into 5 items per page', () {
+      expect(TextToSignController.vocabPageSize, equals(5));
+      final paginated = controller.paginatedVocabulary;
+      expect(paginated.length, lessThanOrEqualTo(5));
+
+      final total = controller.totalVocabPages;
+      expect(total, greaterThanOrEqualTo(1));
+
+      if (total > 1) {
+        controller.nextVocabPage();
+        expect(controller.currentVocabPage.value, equals(2));
+        controller.previousVocabPage();
+        expect(controller.currentVocabPage.value, equals(1));
+      }
     });
   });
 }

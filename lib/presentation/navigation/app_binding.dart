@@ -12,6 +12,7 @@ import '../../features/sign_language/services/bisindo_classifier_service.dart';
 import '../../features/sign_language/services/bisindo_tts_service.dart';
 import '../../features/sign_language/services/sign_language_asset_registry.dart';
 import '../../features/sign_language/services/sign_language_cache_service.dart';
+import '../../features/sign_language/services/camera_feed_service.dart';
 import '../../features/sign_language/services/sign_language_config.dart';
 import '../../features/sign_language/services/sign_language_repository.dart';
 import '../../features/sign_language/services/sign_transcript_store.dart';
@@ -50,13 +51,23 @@ class AppBinding extends Bindings {
     final classifier = BisindoClassifierService();
     Get.put<BisindoClassifierService>(classifier, permanent: true);
 
-    // 3. Controllers
+    // 3. Camera Service
+    final cameraFeedService = CameraFeedService();
+    Get.put<CameraFeedService>(cameraFeedService, permanent: true);
+
+    // 4. Controllers
     Get.put<SettingsController>(SettingsController(), permanent: true);
     Get.put<HistoryController>(
       HistoryController(historyStore: historyStore),
       permanent: true,
     );
-    Get.put<SignLanguageController>(SignLanguageController(), permanent: true);
+    Get.put<SignLanguageController>(
+      SignLanguageController(
+        classifierService: classifier,
+        cameraFeedService: cameraFeedService,
+      ),
+      permanent: true,
+    );
 
     Get.put<BisindoRecognitionController>(
       BisindoRecognitionController(

@@ -29,7 +29,12 @@ class EmptyStateView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(imagePath, height: 160, fit: BoxFit.contain),
+            Image.asset(
+              imagePath,
+              height: 160,
+              fit: BoxFit.contain,
+              cacheHeight: 320,
+            ),
             const SizedBox(height: 24),
             Text(
               title,

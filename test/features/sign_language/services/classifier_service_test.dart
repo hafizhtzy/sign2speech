@@ -44,5 +44,37 @@ void main() {
       expect(pred.confidence, equals(0.85));
       expect(pred.margin, equals(0.60));
     });
+
+    test('SIBI Adaptive: Accepts prediction with confidence 0.62 and margin 0.10 for SIBI', () {
+      final pred = classifier.filterPrediction(
+        label: 'BANTU',
+        top1Confidence: 0.62,
+        top2Confidence: 0.52,
+        modelType: SignLanguageModelType.sibi,
+      );
+
+      expect(pred, isNotNull);
+      expect(pred!.cleanLabel, equals('Bantu'));
+      expect(pred.confidence, equals(0.62));
+      expect(pred.margin, closeTo(0.10, 0.001));
+    });
+
+    test('SIBI Adaptive: Rejects prediction when SIBI confidence < 0.58 or margin < 0.08', () {
+      final predLowConf = classifier.filterPrediction(
+        label: 'BANTU',
+        top1Confidence: 0.52,
+        top2Confidence: 0.20,
+        modelType: SignLanguageModelType.sibi,
+      );
+      expect(predLowConf, isNull);
+
+      final predLowMargin = classifier.filterPrediction(
+        label: 'BANTU',
+        top1Confidence: 0.65,
+        top2Confidence: 0.60,
+        modelType: SignLanguageModelType.sibi,
+      );
+      expect(predLowMargin, isNull);
+    });
   });
 }

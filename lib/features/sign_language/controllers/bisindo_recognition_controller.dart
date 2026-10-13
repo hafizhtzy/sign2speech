@@ -124,6 +124,50 @@ class BisindoRecognitionController extends GetxController {
     if (spellingBuffer.value.isNotEmpty) {
       commitSpellingBuffer();
     }
+    if (tokens.isNotEmpty && tokens.last.type != SignTokenType.space) {
+      tokens.add(
+        SignToken(
+          value: ' ',
+          type: SignTokenType.space,
+          timestamp: DateTime.now(),
+        ),
+      );
+      saveCurrentTranscript();
+    }
+  }
+
+  void deleteLast() {
+    if (spellingBuffer.value.isNotEmpty) {
+      final current = spellingBuffer.value;
+      spellingBuffer.value = current.substring(0, current.length - 1);
+    } else if (tokens.isNotEmpty) {
+      tokens.removeLast();
+      saveCurrentTranscript();
+    }
+  }
+
+  void commitWord(String word, {bool speak = true}) {
+    if (word.trim().isEmpty) return;
+    final clean = word.trim();
+    if (spellingBuffer.value.isNotEmpty) {
+      commitSpellingBuffer();
+    }
+    tokens.add(
+      SignToken(
+        value: clean,
+        type: SignTokenType.word,
+        timestamp: DateTime.now(),
+      ),
+    );
+    lastRecognizedWord.value = clean;
+    if (speak) {
+      ttsService.speak(clean);
+    }
+    saveCurrentTranscript();
+  }
+
+  Future<void> speakTranscript() async {
+    await replayLastOrFullTranscript();
   }
 
   Future<void> saveCurrentTranscript() async {

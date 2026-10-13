@@ -20,7 +20,7 @@ class BisindoSegmenter {
     this.minMotionEnergy = 0.05,
     this.minConsecutiveFrames = 3,
     this.absenceThresholdMs = 450,
-    this.stillnessThresholdMs = 750,
+    this.stillnessThresholdMs = 550,
     this.minDurationMs = 450,
     this.maxDurationMs = 3500,
   });

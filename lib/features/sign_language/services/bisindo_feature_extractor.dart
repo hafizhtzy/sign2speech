@@ -46,11 +46,19 @@ class BisindoFeatureExtractor {
     if (shoulderDist < 1e-4) shoulderDist = 1.0;
 
     // Left Hand: landmarks 33..53 (21 landmarks)
-    // Wrist: landmark 33, MCP Middle: landmark 42
+    // Wrist: landmark 33, 4 MCP joints: index(38), middle(42), ring(46), pinky(50)
     final lwX = getX(33), lwY = getY(33), lwZ = getZ(33);
-    final lmX = getX(42), lmY = getY(42), lmZ = getZ(42);
-    final ldx = lwX - lmX, ldy = lwY - lmY, ldz = lwZ - lmZ;
-    double lPalmScale = sqrt(ldx * ldx + ldy * ldy + ldz * ldz);
+    double lPalmDistSum = 0.0;
+    int lMcpCount = 0;
+    for (final mcpOffset in const [5, 9, 13, 17]) {
+      final mx = getX(33 + mcpOffset), my = getY(33 + mcpOffset), mz = getZ(33 + mcpOffset);
+      final dist = sqrt((lwX - mx) * (lwX - mx) + (lwY - my) * (lwY - my) + (lwZ - mz) * (lwZ - mz));
+      if (dist > 1e-4) {
+        lPalmDistSum += dist;
+        lMcpCount++;
+      }
+    }
+    double lPalmScale = lMcpCount > 0 ? (lPalmDistSum / lMcpCount) : 0.2;
     if (lPalmScale < 1e-4) lPalmScale = 0.2;
 
     for (int i = 0; i < 21; i++) {
@@ -70,11 +78,19 @@ class BisindoFeatureExtractor {
     }
 
     // Right Hand: landmarks 54..74 (21 landmarks)
-    // Wrist: landmark 54, MCP Middle: landmark 63
+    // Wrist: landmark 54, 4 MCP joints: index(59), middle(63), ring(67), pinky(71)
     final rwX = getX(54), rwY = getY(54), rwZ = getZ(54);
-    final rmX = getX(63), rmY = getY(63), rmZ = getZ(63);
-    final rdx = rwX - rmX, rdy = rwY - rmY, rdz = rwZ - rmZ;
-    double rPalmScale = sqrt(rdx * rdx + rdy * rdy + rdz * rdz);
+    double rPalmDistSum = 0.0;
+    int rMcpCount = 0;
+    for (final mcpOffset in const [5, 9, 13, 17]) {
+      final mx = getX(54 + mcpOffset), my = getY(54 + mcpOffset), mz = getZ(54 + mcpOffset);
+      final dist = sqrt((rwX - mx) * (rwX - mx) + (rwY - my) * (rwY - my) + (rwZ - mz) * (rwZ - mz));
+      if (dist > 1e-4) {
+        rPalmDistSum += dist;
+        rMcpCount++;
+      }
+    }
+    double rPalmScale = rMcpCount > 0 ? (rPalmDistSum / rMcpCount) : 0.2;
     if (rPalmScale < 1e-4) rPalmScale = 0.2;
 
     for (int i = 0; i < 21; i++) {

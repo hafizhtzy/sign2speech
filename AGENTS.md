@@ -41,18 +41,19 @@ Dokumen ini adalah aturan resmi tingkat proyek (*Project Rule*) untuk Google Ant
 
 ## 3. Pembagian Peran & Pemanggilan Skill
 
-Muat skill secara spesifik sesuai tugas (*progressive disclosure*), jangan memuat seluruh katalog sekaligus:
+Muat persona agent atau skill secara spesifik sesuai tugas (*progressive disclosure*), jangan memuat seluruh katalog sekaligus:
 
-| Kategori Tugas | Skill yang Digunakan | Panduan Penggunaan |
-| :--- | :--- | :--- |
-| **Desain UI/UX & Konsistensi Visual** | `ui-ux-pro-max`, `design-system`, `stitch-generate-design`, `stitch-manage-design-system` | Gunakan flag `--stack flutter` pada `ui-ux-pro-max/scripts/search.py`. Wajib selaraskan output dengan token di `DESIGN.md`. |
-| **Implementasi Flutter & Dart** | `flutter-apply-architecture-best-practices`, `flutter-build-responsive-layout`, `flutter-fix-layout-issues`, `flutter-implement-json-serialization`, `dart-*` | Terapkan pada pembuatan widget, binding, model data, dan isolasi isolate. Adaptasikan struktur MVVM/Clean Architecture ke GetX. |
-| **Eksekusi Rencana, TDD, Debugging & Verifikasi** | `executing-plans`, `subagent-driven-development`, `test-driven-development`, `systematic-debugging`, `verification-before-completion`, `requesting-code-review` | Jalankan alur TDD (tulis tes gagal $\rightarrow$ implementasi $\rightarrow$ verifikasi hijau). Ikuti checklist rencana langkah demi langkah. |
-| **Native Android (CameraX & MediaPipe)** | `android-dev`, `kotlin-coroutines-expert` | Terapkan pada bridging `EventChannel`, isolasi thread CameraX (`STRATEGY_KEEP_ONLY_LATEST`), dan sanitasi koordinat NaN/Infinity. |
-| **Performa & Suhu Perangkat** | `diagnose-android-overheating` | Pantau komputasi kamera dan TFLite agar tidak memicu thermal throttling atau frame drop di Main UI Thread. |
-| **State UI Tepi & Mode Offline** | `ui-states` | Pastikan seluruh state (loading, error, camera ready, light low, offline Tier 1-3, microphone permission) ter-handle sesuai PRD. |
-| **Audit Aksesibilitas Universal** | `accessibility-compliance-accessibility-audit` | Evaluasi keterbacaan kontras, touch target minimum 48 dp, haptic feedback, dan kompatibilitas screen reader. |
-| **Dokumentasi Library Eksternal** | `context7-mcp`, `context7-cli`, `find-docs` | Ambil dokumentasi library resmi versi terbaru untuk dependensi Flutter/Dart. |
+| Kategori Tugas | The Agency Agent (Persona) | Agentic Awesome Skill (Prosedur) | Panduan Penggunaan |
+| :--- | :--- | :--- | :--- |
+| **Arsitektur Sistem** | `agency-software-architect` | `flutter-apply-architecture-best-practices` | Kawal pemisahan Presentation, Domain, Data. Domain murni bebas GetX/UI; Controller bebas BuildContext. |
+| **Implementasi Flutter & Mobile** | `agency-mobile-app-builder` | `flutter-expert`, `mobile-developer`, `flutter-build-responsive-layout`, `flutter-fix-layout-issues` | Implementasi widget GetX, layout responsif, touch target >= 48 dp, dan bridging CameraX EventChannel. |
+| **Integrasi Voice AI (STT/TTS)** | `agency-voice-ai-integration-engineer` | `voice-ai-engine-development` | Kelola STT `id-ID`, antrean serial FIFO TTS, buffer ejaan alfabet 1500ms. Dilarang switch ke cloud/Whisper tanpa izin. |
+| **Desain UI/UX & Visual** | `agency-ui-designer`, `agency-ux-architect` | `ui-ux-pro-max`, `design-system` | Acuan mutlak `DESIGN.md` (Nordic Ocean), font Plus Jakarta Sans, dan aset `assets/komponen_img/`. |
+| **Aksesibilitas Universal** | `agency-accessibility-auditor` | `screen-reader-testing`, `accessibility-compliance-accessibility-audit` | Evaluasi kontras WCAG, touch target minimum 48 dp, dan uji screen reader. |
+| **Code Review & Mutu Kode** | `agency-code-reviewer` | `code-review-checklist`, `code-review-excellence`, `requesting-code-review` | Periksa disposal controller/stream di `onClose()`, race condition token `_playSessionId`, dan sanitasi numerik. |
+| **Testing & Otomasi QA** | `agency-test-automation-engineer` | `test-driven-development`, `flutter-add-widget-test`, `verification-before-completion` | Jalankan alur TDD, tulis tes gagal -> implementasi -> verifikasi hijau dengan mock fixtures. |
+| **Performa & Benchmark** | `agency-performance-benchmarker` | `performance-profiling`, `diagnose-android-overheating` | Pantau komputasi kamera/TFLite di background Isolate; dilarang membuat klaim metrik fiktif tanpa benchmark riil. |
+| **Dokumentasi & Platform** | `android-dev`, `kotlin-coroutines-expert` | `context7-mcp`, `context7-cli`, `find-docs` | Dokumentasi resmi dependency riil di `pubspec.yaml` dan bridging native CameraX non-blocking. |
 
 ---
 

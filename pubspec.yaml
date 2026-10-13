@@ -28,4 +28,9 @@ flutter:
   uses-material-design: true
   assets:
     - assets/komponen_img/
-    - assets/reference_design/
+    - assets/models/bisindo/
+    - assets/models/sibi/
+    - assets/sign_language/
+    - assets/sign_language/offline/bisindo/alfabet/
+    - assets/sign_language/offline/bisindo/kalimat/
+    - assets/sign_language/offline/sibi/kalimat/

@@ -43,6 +43,7 @@ class HomeScreen extends StatelessWidget {
                         child: Image.asset(
                           AppAssets.brandEmblem,
                           fit: BoxFit.contain,
+                          cacheWidth: 100,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -127,6 +128,7 @@ class HomeScreen extends StatelessWidget {
                         height: 70,
                         width: 90,
                         fit: BoxFit.contain,
+                        cacheWidth: 200,
                       ),
                     ),
                   ],

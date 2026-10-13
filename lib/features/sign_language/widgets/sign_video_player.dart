@@ -5,12 +5,15 @@ import 'package:video_player/video_player.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../models/sign_video_entry.dart';
+import '../services/sign_language_cache_service.dart';
 
 class SignVideoPlayer extends StatefulWidget {
   final List<SignVideoEntry> playlist;
   final int activeWordIndex;
   final String videoSource;
   final bool isLoading;
+  final bool isDownloading;
+  final double downloadProgress;
   final double playbackSpeed;
   final bool isLooping;
   final ValueChanged<int>? onWordSelected;
@@ -18,18 +21,24 @@ class SignVideoPlayer extends StatefulWidget {
   final VoidCallback? onToggleLoop;
   final VoidCallback? onReplay;
 
+  /// Pesan error dari controller (mis. video belum tersedia di server).
+  final String? errorMessage;
+
   const SignVideoPlayer({
     super.key,
     required this.playlist,
     required this.activeWordIndex,
     required this.videoSource,
     this.isLoading = false,
+    this.isDownloading = false,
+    this.downloadProgress = 0.0,
     this.playbackSpeed = 1.0,
     this.isLooping = true,
     this.onWordSelected,
     this.onSpeedChanged,
     this.onToggleLoop,
     this.onReplay,
+    this.errorMessage,
   });
 
   @override
@@ -39,6 +48,10 @@ class SignVideoPlayer extends StatefulWidget {
 class _SignVideoPlayerState extends State<SignVideoPlayer> {
   VideoPlayerController? _controller;
   bool _isInitialized = false;
+  String? _playerError;
+
+  /// Increments on every (re)initialization so stale async inits are dropped.
+  int _initToken = 0;
 
   @override
   void initState() {
@@ -51,48 +64,70 @@ class _SignVideoPlayerState extends State<SignVideoPlayer> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.videoSource != widget.videoSource) {
       _initializePlayer();
-    } else if (oldWidget.playbackSpeed != widget.playbackSpeed &&
-        _controller != null) {
-      _controller!.setPlaybackSpeed(widget.playbackSpeed);
+      return;
+    }
+    final c = _controller;
+    if (c == null || !_isInitialized) return;
+    if (oldWidget.playbackSpeed != widget.playbackSpeed) {
+      c.setPlaybackSpeed(widget.playbackSpeed);
+    }
+    if (oldWidget.isLooping != widget.isLooping) {
+      c.setLooping(widget.isLooping);
     }
   }
 
   Future<void> _initializePlayer() async {
-    await _controller?.dispose();
+    final token = ++_initToken;
+    final old = _controller;
+    // Dipanggil dari initState/didUpdateWidget yang selalu diikuti build,
+    // jadi cukup assign langsung (setState di initState memicu assert).
     _controller = null;
     _isInitialized = false;
+    _playerError = null;
+    await old?.dispose();
 
-    if (widget.videoSource.isEmpty) {
-      if (mounted) setState(() {});
-      return;
-    }
+    final source = widget.videoSource;
+    if (source.isEmpty || token != _initToken) return;
 
+    VideoPlayerController? controller;
     try {
-      if (widget.videoSource.startsWith('assets/')) {
-        _controller = VideoPlayerController.asset(widget.videoSource);
-      } else if (widget.videoSource.startsWith('http://') ||
-          widget.videoSource.startsWith('https://')) {
-        _controller = VideoPlayerController.networkUrl(
-          Uri.parse(widget.videoSource),
-        );
+      if (source.startsWith('assets/')) {
+        controller = VideoPlayerController.asset(source);
+      } else if (source.startsWith('http://') ||
+          source.startsWith('https://')) {
+        controller = VideoPlayerController.networkUrl(Uri.parse(source));
       } else {
-        _controller = VideoPlayerController.file(File(widget.videoSource));
+        final file = File(source);
+        if (!await SignLanguageCacheService.isValidMp4File(file)) {
+          throw const FileSystemException('File video rusak atau tidak ada');
+        }
+        controller = VideoPlayerController.file(file);
       }
 
-      await _controller!.initialize();
-      await _controller!.setPlaybackSpeed(widget.playbackSpeed);
-      await _controller!.setLooping(widget.isLooping);
-      await _controller!.play();
-
-      if (mounted) {
-        setState(() {
-          _isInitialized = true;
-        });
+      await controller.initialize();
+      if (token != _initToken || !mounted) {
+        await controller.dispose();
+        return;
       }
-    } catch (_) {
-      if (mounted) {
+      await controller.setPlaybackSpeed(widget.playbackSpeed);
+      await controller.setLooping(widget.isLooping);
+      await controller.play();
+
+      if (token != _initToken || !mounted) {
+        await controller.dispose();
+        return;
+      }
+      setState(() {
+        _controller = controller;
+        _isInitialized = true;
+      });
+    } catch (e) {
+      debugPrint('[SignVideoPlayer] init gagal ($source): $e');
+      await controller?.dispose();
+      if (token == _initToken && mounted) {
         setState(() {
           _isInitialized = false;
+          _playerError = 'Video tidak dapat diputar.';
         });
       }
     }
@@ -100,6 +135,7 @@ class _SignVideoPlayerState extends State<SignVideoPlayer> {
 
   @override
   void dispose() {
+    _initToken++;
     _controller?.dispose();
     super.dispose();
   }
@@ -111,6 +147,13 @@ class _SignVideoPlayerState extends State<SignVideoPlayer> {
             widget.activeWordIndex < widget.playlist.length)
         ? widget.playlist[widget.activeWordIndex]
         : null;
+
+    final isOfflineAsset = widget.videoSource.startsWith('assets/');
+    final isLocalCache =
+        !isOfflineAsset &&
+        !widget.videoSource.startsWith('http://') &&
+        !widget.videoSource.startsWith('https://') &&
+        widget.videoSource.isNotEmpty;
 
     return Container(
       decoration: BoxDecoration(
@@ -133,7 +176,74 @@ class _SignVideoPlayerState extends State<SignVideoPlayer> {
                   alignment: Alignment.center,
                   children: [
                     if (_isInitialized && _controller != null)
-                      VideoPlayer(_controller!)
+                      Center(
+                        child: AspectRatio(
+                          aspectRatio: _controller!.value.aspectRatio > 0
+                              ? _controller!.value.aspectRatio
+                              : 16 / 10,
+                          child: VideoPlayer(_controller!),
+                        ),
+                      )
+                    else if (widget.isDownloading)
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(
+                            width: 36,
+                            height: 36,
+                            child: CircularProgressIndicator(
+                              color: AppColors.secondary,
+                              strokeWidth: 3,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Mengunduh dari hajicare-sign.web.app...',
+                            style: TextStyle(
+                              color: AppColors.surface,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (widget.downloadProgress > 0) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              '${(widget.downloadProgress * 100).toInt()}%',
+                              style: TextStyle(
+                                color: AppColors.surface.withValues(alpha: 0.75),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ],
+                      )
+                    else if (widget.errorMessage != null ||
+                        _playerError != null)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.videocam_off_rounded,
+                              size: 44,
+                              color: AppColors.surface.withValues(alpha: 0.7),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              widget.errorMessage ?? _playerError!,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: AppColors.surface,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
                     else if (widget.isLoading)
                       const CircularProgressIndicator(color: AppColors.surface)
                     else
@@ -157,7 +267,7 @@ class _SignVideoPlayerState extends State<SignVideoPlayer> {
                         ],
                       ),
 
-                    // Offline / Source Badge (Top-Right)
+                    // Offline / Cache / Online Source Badge (Top-Right)
                     Positioned(
                       top: 12,
                       right: 12,
@@ -167,28 +277,39 @@ class _SignVideoPlayerState extends State<SignVideoPlayer> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.85),
+                          color: isOfflineAsset
+                              ? const Color(0xFF1B5E20).withValues(alpha: 0.85)
+                              : (isLocalCache
+                                  ? AppColors.secondary.withValues(alpha: 0.90)
+                                  : AppColors.primary.withValues(alpha: 0.85)),
                           borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: AppColors.surface.withValues(alpha: 0.25),
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              widget.videoSource.startsWith('assets/')
-                                  ? Icons.offline_pin
-                                  : Icons.cloud_done,
+                              isOfflineAsset
+                                  ? Icons.offline_pin_rounded
+                                  : (isLocalCache
+                                      ? Icons.folder_special_rounded
+                                      : Icons.cloud_download_rounded),
                               size: 14,
                               color: AppColors.surface,
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              widget.videoSource.startsWith('assets/')
-                                  ? 'Offline Tier 1'
-                                  : 'Tersedia',
+                              isOfflineAsset
+                                  ? 'Video Offline'
+                                  : (isLocalCache
+                                      ? 'Tersimpan di Cache'
+                                      : 'hajicare-sign.web.app'),
                               style: const TextStyle(
                                 color: AppColors.surface,
                                 fontSize: 11,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ],
@@ -325,7 +446,7 @@ class _SignVideoPlayerState extends State<SignVideoPlayer> {
                             ),
                           ),
                           child: Text(
-                            'x',
+                            '${speed}x',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: isSelected

@@ -1,0 +1,427 @@
+{
+  "schemaVersion": 1,
+  "catalogVersion": "1.1.0",
+  "updatedAt": "2026-10-06",
+  "videos": [
+    {
+      "id": "bisindo_baik",
+      "language": "bisindo",
+      "type": "word",
+      "label": "Baik",
+      "aliases": ["baik"],
+      "category": "general",
+      "version": 1,
+      "path": "videos/bisindo/baik_v1.mp4"
+    },
+    {
+      "id": "bisindo_berapa",
+      "language": "bisindo",
+      "type": "word",
+      "label": "Berapa",
+      "aliases": ["berapa"],
+      "category": "question",
+      "version": 1,
+      "path": "videos/bisindo/berapa_v1.mp4"
+    },
+    {
+      "id": "bisindo_berdiri",
+      "language": "bisindo",
+      "type": "word",
+      "label": "Berdiri",
+      "aliases": ["berdiri"],
+      "category": "movement",
+      "version": 1,
+      "path": "videos/bisindo/berdiri_v1.mp4"
+    },
+    {
+      "id": "bisindo_dia",
+      "language": "bisindo",
+      "type": "word",
+      "label": "Dia",
+      "aliases": ["dia"],
+      "category": "pronoun",
+      "version": 1,
+      "path": "videos/bisindo/dia_v1.mp4"
+    },
+    {
+      "id": "bisindo_duduk",
+      "language": "bisindo",
+      "type": "word",
+      "label": "Duduk",
+      "aliases": ["duduk"],
+      "category": "movement",
+      "version": 1,
+      "path": "videos/bisindo/duduk_v1.mp4"
+    },
+    {
+      "id": "bisindo_f",
+      "language": "bisindo",
+      "type": "letter",
+      "label": "F",
+      "aliases": ["f"],
+      "category": "alphabet",
+      "version": 1,
+      "path": "videos/bisindo/f_v1.mp4"
+    },
+    {
+      "id": "bisindo_g",
+      "language": "bisindo",
+      "type": "letter",
+      "label": "G",
+      "aliases": ["g"],
+      "category": "alphabet",
+      "version": 1,
+      "path": "videos/bisindo/g_v1.mp4"
+    },
+    {
+      "id": "bisindo_h",
+      "language": "bisindo",
+      "type": "letter",
+      "label": "H",
+      "aliases": ["h"],
+      "category": "alphabet",
+      "version": 1,
+      "path": "videos/bisindo/h_v1.mp4"
+    },
+    {
+      "id": "bisindo_i",
+      "language": "bisindo",
+      "type": "letter",
+      "label": "I",
+      "aliases": ["i"],
+      "category": "alphabet",
+      "version": 1,
+      "path": "videos/bisindo/i_v1.mp4"
+    },
+    {
+      "id": "bisindo_j",
+      "language": "bisindo",
+      "type": "letter",
+      "label": "J",
+      "aliases": ["j"],
+      "category": "alphabet",
+      "version": 1,
+      "path": "videos/bisindo/j_v1.mp4"
+    },
+    {
+      "id": "bisindo_k",
+      "language": "bisindo",
+      "type": "letter",
+      "label": "K",
+      "aliases": ["k"],
+      "category": "alphabet",
+      "version": 1,
+      "path": "videos/bisindo/k_v1.mp4"
+    },
+    {
+      "id": "bisindo_kalian",
+      "language": "bisindo",
+      "type": "word",
+      "label": "Kalian",
+      "aliases": ["kalian"],
+      "category": "pronoun",
+      "version": 1,
+      "path": "videos/bisindo/kalian_v1.mp4"
+    },
+    {
+      "id": "bisindo_kami",
+      "language": "bisindo",
+      "type": "word",
+      "label": "Kami",
+      "aliases": ["kami"],
+      "category": "pronoun",
+      "version": 1,
+      "path": "videos/bisindo/kami_v1.mp4"
+    },
+    {
+      "id": "bisindo_kamu",
+      "language": "bisindo",
+      "type": "word",
+      "label": "Kamu",
+      "aliases": ["kamu"],
+      "category": "pronoun",
+      "version": 1,
+      "path": "videos/bisindo/kamu_v1.mp4"
+    },
+    {
+      "id": "bisindo_kapan",
+      "language": "bisindo",
+      "type": "word",
+      "label": "Kapan",
+      "aliases": ["kapan"],
+      "category": "question",
+      "version": 1,
+      "path": "videos/bisindo/kapan_v1.mp4"
+    },
+    {
+      "id": "bisindo_kemana",
+      "language": "bisindo",
+      "type": "word",
+      "label": "Kemana",
+      "aliases": ["kemana"],
+      "category": "question",
+      "version": 1,
+      "path": "videos/bisindo/kemana_v1.mp4"
+    },
+    {
+      "id": "bisindo_kita",
+      "language": "bisindo",
+      "type": "word",
+      "label": "Kita",
+      "aliases": ["kita"],
+      "category": "pronoun",
+      "version": 1,
+      "path": "videos/bisindo/kita_v1.mp4"
+    },
+    {
+      "id": "bisindo_kopi",
+      "language": "bisindo",
+      "type": "word",
+      "label": "Kopi",
+      "aliases": ["kopi", "minum kopi", "coffee"],
+      "category": "activity",
+      "version": 1,
+      "path": "videos/bisindo/kopi_v1.mp4"
+    },
+    {
+      "id": "bisindo_l",
+      "language": "bisindo",
+      "type": "letter",
+      "label": "L",
+      "aliases": ["l"],
+      "category": "alphabet",
+      "version": 1,
+      "path": "videos/bisindo/l_v1.mp4"
+    },
+    {
+      "id": "bisindo_m",
+      "language": "bisindo",
+      "type": "letter",
+      "label": "M",
+      "aliases": ["m"],
+      "category": "alphabet",
+      "version": 1,
+      "path": "videos/bisindo/m_v1.mp4"
+    },
+    {
+      "id": "bisindo_mandi",
+      "language": "bisindo",
+      "type": "word",
+      "label": "Mandi",
+      "aliases": ["mandi"],
+      "category": "activity",
+      "version": 1,
+      "path": "videos/bisindo/mandi_v1.mp4"
+    },
+    {
+      "id": "bisindo_n",
+      "language": "bisindo",
+      "type": "letter",
+      "label": "N",
+      "aliases": ["n"],
+      "category": "alphabet",
+      "version": 1,
+      "path": "videos/bisindo/n_v1.mp4"
+    },
+    {
+      "id": "bisindo_o",
+      "language": "bisindo",
+      "type": "letter",
+      "label": "O",
+      "aliases": ["o"],
+      "category": "alphabet",
+      "version": 1,
+      "path": "videos/bisindo/o_v1.mp4"
+    },
+    {
+      "id": "bisindo_p",
+      "language": "bisindo",
+      "type": "letter",
+      "label": "P",
+      "aliases": ["p"],
+      "category": "alphabet",
+      "version": 1,
+      "path": "videos/bisindo/p_v1.mp4"
+    },
+    {
+      "id": "bisindo_q",
+      "language": "bisindo",
+      "type": "letter",
+      "label": "Q",
+      "aliases": ["q"],
+      "category": "alphabet",
+      "version": 1,
+      "path": "videos/bisindo/q_v1.mp4"
+    },
+    {
+      "id": "bisindo_r",
+      "language": "bisindo",
+      "type": "letter",
+      "label": "R",
+      "aliases": ["r"],
+      "category": "alphabet",
+      "version": 1,
+      "path": "videos/bisindo/r_v1.mp4"
+    },
+    {
+      "id": "bisindo_s",
+      "language": "bisindo",
+      "type": "letter",
+      "label": "S",
+      "aliases": ["s"],
+      "category": "alphabet",
+      "version": 1,
+      "path": "videos/bisindo/s_v1.mp4"
+    },
+    {
+      "id": "bisindo_siapa",
+      "language": "bisindo",
+      "type": "word",
+      "label": "Siapa",
+      "aliases": ["siapa"],
+      "category": "question",
+      "version": 1,
+      "path": "videos/bisindo/siapa_v1.mp4"
+    },
+    {
+      "id": "bisindo_t",
+      "language": "bisindo",
+      "type": "letter",
+      "label": "T",
+      "aliases": ["t"],
+      "category": "alphabet",
+      "version": 1,
+      "path": "videos/bisindo/t_v1.mp4"
+    },
+    {
+      "id": "bisindo_u",
+      "language": "bisindo",
+      "type": "letter",
+      "label": "U",
+      "aliases": ["u"],
+      "category": "alphabet",
+      "version": 1,
+      "path": "videos/bisindo/u_v1.mp4"
+    },
+    {
+      "id": "bisindo_v",
+      "language": "bisindo",
+      "type": "letter",
+      "label": "V",
+      "aliases": ["v"],
+      "category": "alphabet",
+      "version": 1,
+      "path": "videos/bisindo/v_v1.mp4"
+    },
+    {
+      "id": "bisindo_w",
+      "language": "bisindo",
+      "type": "letter",
+      "label": "W",
+      "aliases": ["w"],
+      "category": "alphabet",
+      "version": 1,
+      "path": "videos/bisindo/w_v1.mp4"
+    },
+    {
+      "id": "bisindo_x",
+      "language": "bisindo",
+      "type": "letter",
+      "label": "X",
+      "aliases": ["x"],
+      "category": "alphabet",
+      "version": 1,
+      "path": "videos/bisindo/x_v1.mp4"
+    },
+    {
+      "id": "bisindo_y",
+      "language": "bisindo",
+      "type": "letter",
+      "label": "Y",
+      "aliases": ["y"],
+      "category": "alphabet",
+      "version": 1,
+      "path": "videos/bisindo/y_v1.mp4"
+    },
+    {
+      "id": "bisindo_z",
+      "language": "bisindo",
+      "type": "letter",
+      "label": "Z",
+      "aliases": ["z"],
+      "category": "alphabet",
+      "version": 1,
+      "path": "videos/bisindo/z_v1.mp4"
+    },
+    {
+      "id": "sibi_beli",
+      "language": "sibi",
+      "type": "word",
+      "label": "Beli",
+      "aliases": ["beli"],
+      "category": "general",
+      "version": 1,
+      "path": "videos/sibi/beli_v1.mp4"
+    },
+    {
+      "id": "sibi_dokter",
+      "language": "sibi",
+      "type": "word",
+      "label": "Dokter",
+      "aliases": ["dokter"],
+      "category": "health",
+      "version": 1,
+      "path": "videos/sibi/dokter_v1.mp4"
+    },
+    {
+      "id": "sibi_hilang",
+      "language": "sibi",
+      "type": "word",
+      "label": "Hilang",
+      "aliases": ["hilang"],
+      "category": "general",
+      "version": 1,
+      "path": "videos/sibi/hilang_v1.mp4"
+    },
+    {
+      "id": "sibi_mana",
+      "language": "sibi",
+      "type": "word",
+      "label": "Mana",
+      "aliases": ["mana"],
+      "category": "question",
+      "version": 1,
+      "path": "videos/sibi/mana_v1.mp4"
+    },
+    {
+      "id": "sibi_obat",
+      "language": "sibi",
+      "type": "word",
+      "label": "Obat",
+      "aliases": ["obat"],
+      "category": "health",
+      "version": 1,
+      "path": "videos/sibi/obat_v1.mp4"
+    },
+    {
+      "id": "sibi_segera",
+      "language": "sibi",
+      "type": "word",
+      "label": "Segera",
+      "aliases": ["segera"],
+      "category": "general",
+      "version": 1,
+      "path": "videos/sibi/segera_v1.mp4"
+    },
+    {
+      "id": "sibi_sesat",
+      "language": "sibi",
+      "type": "word",
+      "label": "Sesat",
+      "aliases": ["sesat"],
+      "category": "general",
+      "version": 1,
+      "path": "videos/sibi/sesat_v1.mp4"
+    }
+  ]
+}

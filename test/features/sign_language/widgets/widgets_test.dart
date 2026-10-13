@@ -4,6 +4,7 @@ import 'package:speech2sign/core/widgets/app_card.dart';
 import 'package:speech2sign/core/widgets/status_badge.dart';
 import 'package:speech2sign/features/sign_language/widgets/hold_confirm_ring.dart';
 import 'package:speech2sign/features/sign_language/widgets/sign_speech_card.dart';
+import 'package:speech2sign/features/sign_language/widgets/widget_previews.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -84,6 +85,32 @@ void main() {
 
       await tester.tap(find.byIcon(Icons.mic_none));
       expect(toggled, isTrue);
+    });
+
+    testWidgets('SignLanguageWidgetPreviews renders preview instances cleanly', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        SignLanguageWidgetPreviews.previewGestureCandidateLoaderSigning(),
+      );
+      expect(find.text('HALO'), findsOneWidget);
+
+      await tester.pumpWidget(
+        SignLanguageWidgetPreviews.previewGestureCandidateLoaderConfirmed(),
+      );
+      expect(find.text('TERIMA KASIH'), findsOneWidget);
+      expect(find.byIcon(Icons.check_circle_rounded), findsOneWidget);
+
+      await tester.pumpWidget(
+        SignLanguageWidgetPreviews.previewSignVideoPlayerOnline(),
+      );
+      expect(find.text('Baik'), findsWidgets);
+
+      await tester.pumpWidget(
+        SignLanguageWidgetPreviews.previewSignVideoPlayerDownloading(),
+      );
+      expect(find.text('Mengunduh dari hajicare-sign.web.app...'), findsOneWidget);
+      expect(find.text('65%'), findsOneWidget);
     });
   });
 }

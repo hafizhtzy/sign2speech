@@ -2,6 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Aplikasi Sign2Speech membutuhkan akses kamera untuk mendeteksi gerakan bahasa isyarat secara langsung.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Aplikasi Sign2Speech membutuhkan akses mikrofon untuk fitur penerjemahan suara ke isyarat.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Aplikasi Sign2Speech membutuhkan pengenalan ucapan untuk mengubah suara ke isyarat.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
