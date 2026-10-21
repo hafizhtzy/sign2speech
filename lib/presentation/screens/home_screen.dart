@@ -8,14 +8,23 @@ import '../../core/widgets/app_card.dart';
 import '../../core/widgets/status_badge.dart';
 import '../../features/history/controllers/history_controller.dart';
 import '../../features/settings/controllers/settings_controller.dart';
+import '../../features/sign_language/services/bisindo_tts_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String? _activeQuickPhrase;
 
   @override
   Widget build(BuildContext context) {
     final settings = Get.find<SettingsController>();
     final history = Get.find<HistoryController>();
+    final tts = Get.find<BisindoTtsService>();
 
     return Scaffold(
       backgroundColor: AppColors.canvas,
@@ -35,7 +44,7 @@ class HomeScreen extends StatelessWidget {
                         width: 44,
                         height: 44,
                         decoration: BoxDecoration(
-                          color: AppColors.surface,
+                          color: AppColors.bgSurface,
                           shape: BoxShape.circle,
                           border: Border.all(color: AppColors.border),
                         ),
@@ -59,7 +68,7 @@ class HomeScreen extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            'Aksesibilitas Dua Arah',
+                            'Aksesibilitas Kasir & Kafe',
                             style: TextStyle(
                               fontSize: 12,
                               color: AppColors.muted,
@@ -89,53 +98,165 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // Editorial Welcome Banner
-              AppCard(
-                backgroundColor: AppColors.paleMist,
-                border: const BorderSide(color: AppColors.borderSoft),
-                padding: const EdgeInsets.all(18),
-                child: Row(
-                  children: [
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Siap Berkomunikasi Hari Ini?',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.ink,
-                            ),
-                          ),
-                          SizedBox(height: 6),
-                          Text(
-                            'Pilih mode terjemahan di bawah untuk memulai percakapan ramah dan inklusif.',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppColors.muted,
-                              height: 1.4,
-                            ),
-                          ),
-                        ],
+              // Greeting Banner with Left Accent Line
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.bgSurface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.border),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Container(
+                        width: 4,
+                        color: AppColors.secondary,
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.asset(
-                        AppAssets.bannerWide,
-                        height: 70,
-                        width: 90,
-                        fit: BoxFit.contain,
-                        cacheWidth: 200,
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(18),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const Flexible(
+                                          child: Text(
+                                            'Mau Pesan Apa Hari Ini?',
+                                            style: TextStyle(
+                                              fontSize: 17,
+                                              fontWeight: FontWeight.w800,
+                                              color: AppColors.ink,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Obx(
+                                          () => Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.primary,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Text(
+                                              settings
+                                                  .selectedSignLanguage
+                                                  .value,
+                                              style: const TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w700,
+                                                color: AppColors.textOnDark,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
+                                    const Text(
+                                      'Pilih mode terjemahan atau pintasan kasir di bawah untuk mulai komunikasi ramah dan inklusif di kafe.',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: AppColors.muted,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.asset(
+                                  AppAssets.bannerWide,
+                                  height: 70,
+                                  width: 85,
+                                  fit: BoxFit.contain,
+                                  cacheWidth: 200,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
 
+              // ── New Section: Pintasan Kalimat Kasir (Quick Chips) ────────
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Pintasan Kalimat Kasir',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                  Text(
+                    'Sentuh untuk bersuara',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.muted.withValues(alpha: 0.9),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildQuickOrderChip(
+                      tts: tts,
+                      chipLabel: '☕ Pesan Kopi',
+                      spokenPhrase: 'Saya mau pesan kopi',
+                    ),
+                    const SizedBox(width: 8),
+                    _buildQuickOrderChip(
+                      tts: tts,
+                      chipLabel: '🧊 Less Ice',
+                      spokenPhrase: 'Tolong esnya sedikit saja ya',
+                    ),
+                    const SizedBox(width: 8),
+                    _buildQuickOrderChip(
+                      tts: tts,
+                      chipLabel: '🍯 Kurang Gula',
+                      spokenPhrase: 'Tolong kurangi gulanya ya',
+                    ),
+                    const SizedBox(width: 8),
+                    _buildQuickOrderChip(
+                      tts: tts,
+                      chipLabel: '💳 Bayar QRIS',
+                      spokenPhrase: 'Saya ingin bayar menggunakan QRIS',
+                    ),
+                    const SizedBox(width: 8),
+                    _buildQuickOrderChip(
+                      tts: tts,
+                      chipLabel: '🛍️ Bawa Pulang',
+                      spokenPhrase: 'Tolong dibungkus untuk dibawa pulang',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 22),
+
+              // ── Mode Penerjemah Utama ────────────────────────────────────
               const Text(
                 'Mode Penerjemah Utama',
                 style: TextStyle(
@@ -146,36 +267,42 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // 1. Sign to Speech Card (Mineral Ocean #1B3B4B)
+              // 1. Sign to Speech Card (Rich Espresso #2C1E18)
               _buildFeatureCard(
                 title: 'Sign to Speech',
-                subtitle: 'Arahkan kamera ke gerakan isyarat untuk diterjemahkan menjadi suara lisan Bahasa Indonesia secara langsung.',
+                subtitle:
+                    'Arahkan kamera ke gerakan isyarat untuk diterjemahkan menjadi suara lisan Bahasa Indonesia secara langsung.',
                 tag: 'Kamera AI + Suara',
                 color: AppColors.primary,
-                textColor: AppColors.surface,
+                textColor: AppColors.textOnDark,
+                tagBgColor: AppColors.textOnDark.withValues(alpha: 0.14),
+                dividerColor: AppColors.textOnDark.withValues(alpha: 0.20),
                 icon: Icons.camera_alt_rounded,
                 onTap: () => Get.toNamed(AppRoutes.signToSpeechCamera),
               ),
               const SizedBox(height: 14),
 
-              // 2. Speech to Sign Card (Fjord Blue #38687D)
+              // 2. Speech to Sign Card (Warm Caramel #8C5A3C)
               _buildFeatureCard(
                 title: 'Speech to Sign',
-                subtitle: 'Bicara lewat mikrofon untuk menampilkan rangkaian video peragaan isyarat kata-demi-kata secara berurutan.',
+                subtitle:
+                    'Bicara lewat mikrofon untuk menampilkan rangkaian video peragaan isyarat kata-demi-kata secara berurutan.',
                 tag: 'Mikrofon + Video',
                 color: AppColors.secondary,
-                textColor: AppColors.surface,
+                textColor: AppColors.textOnDark,
+                tagBgColor: AppColors.textOnDark.withValues(alpha: 0.16),
+                dividerColor: AppColors.textOnDark.withValues(alpha: 0.25),
                 icon: Icons.mic_rounded,
                 onTap: () => Get.toNamed(AppRoutes.speechToSignMic),
               ),
               const SizedBox(height: 24),
 
-              // Quick Categories Shortcut
+              // Quick Categories Shortcut (Katalog Isyarat Kafe)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Katalog Isyarat Cepat',
+                    'Katalog Isyarat Kafe',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -188,7 +315,7 @@ class HomeScreen extends StatelessWidget {
                       'Lihat Semua',
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                         color: AppColors.secondary,
                       ),
                     ),
@@ -202,22 +329,27 @@ class HomeScreen extends StatelessWidget {
                 child: Row(
                   children: [
                     _buildCategoryPill(
-                      'Salam & Sapaan',
+                      'Minuman & Menu',
+                      Icons.coffee_rounded,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildCategoryPill(
+                      'Takaran (Es/Gula)',
+                      Icons.tune_rounded,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildCategoryPill(
+                      'Kasir & Bayar',
+                      Icons.point_of_sale_rounded,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildCategoryPill(
+                      'Sapaan Kafe',
                       Icons.waving_hand_outlined,
                     ),
                     const SizedBox(width: 8),
                     _buildCategoryPill(
-                      'Layanan Publik',
-                      Icons.account_balance_outlined,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildCategoryPill(
-                      'Kesehatan',
-                      Icons.local_hospital_outlined,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildCategoryPill(
-                      'Belanja Harian',
+                      'Bawa Pulang',
                       Icons.shopping_bag_outlined,
                     ),
                   ],
@@ -250,7 +382,7 @@ class HomeScreen extends StatelessWidget {
                             'Riwayat',
                             style: TextStyle(
                               fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
                               color: AppColors.secondary,
                             ),
                           ),
@@ -269,12 +401,20 @@ class HomeScreen extends StatelessWidget {
                           onTap: () => Get.toNamed(AppRoutes.history),
                           child: Row(
                             children: [
-                              Icon(
-                                item.direction.index == 0
-                                    ? Icons.sign_language_rounded
-                                    : Icons.record_voice_over_rounded,
-                                color: AppColors.secondary,
-                                size: 20,
+                              Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: AppColors.bgSurface,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(
+                                  item.direction.index == 0
+                                      ? Icons.sign_language_rounded
+                                      : Icons.record_voice_over_rounded,
+                                  color: AppColors.secondary,
+                                  size: 18,
+                                ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -284,7 +424,7 @@ class HomeScreen extends StatelessWidget {
                                     Text(
                                       item.translatedContent,
                                       style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
+                                        fontWeight: FontWeight.w700,
                                         fontSize: 14,
                                         color: AppColors.ink,
                                       ),
@@ -301,7 +441,7 @@ class HomeScreen extends StatelessWidget {
                               ),
                               const Icon(
                                 Icons.chevron_right,
-                                color: AppColors.muted,
+                                color: AppColors.textMuted,
                                 size: 20,
                               ),
                             ],
@@ -320,18 +460,81 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildQuickOrderChip({
+    required BisindoTtsService tts,
+    required String chipLabel,
+    required String spokenPhrase,
+  }) {
+    final isActive = _activeQuickPhrase == chipLabel;
+
+    return GestureDetector(
+      onTap: () async {
+        setState(() {
+          _activeQuickPhrase = chipLabel;
+        });
+        await tts.speak(spokenPhrase);
+        Get.snackbar(
+          'Suara Diucapkan',
+          spokenPhrase,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: AppColors.primary,
+          colorText: AppColors.textOnDark,
+          margin: const EdgeInsets.all(16),
+          duration: const Duration(seconds: 2),
+        );
+        await Future.delayed(const Duration(milliseconds: 600));
+        if (mounted) {
+          setState(() {
+            _activeQuickPhrase = null;
+          });
+        }
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.secondary : AppColors.bgSurface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive ? AppColors.secondary : AppColors.border,
+          ),
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: AppColors.secondary.withValues(alpha: 0.25),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          chipLabel,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: isActive ? AppColors.textOnDark : AppColors.ink,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildFeatureCard({
     required String title,
     required String subtitle,
     required String tag,
     required Color color,
     required Color textColor,
+    required Color tagBgColor,
+    required Color dividerColor,
     required IconData icon,
     required VoidCallback onTap,
   }) {
     return Material(
       color: color,
       borderRadius: BorderRadius.circular(24),
+      elevation: 0,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(24),
@@ -345,11 +548,11 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
+                      horizontal: 12,
+                      vertical: 5,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.surface.withValues(alpha: 0.18),
+                      color: tagBgColor,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -357,7 +560,7 @@ class HomeScreen extends StatelessWidget {
                       style: TextStyle(
                         color: textColor,
                         fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -365,7 +568,7 @@ class HomeScreen extends StatelessWidget {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: AppColors.surface.withValues(alpha: 0.2),
+                      color: tagBgColor,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(icon, color: textColor, size: 22),
@@ -391,7 +594,31 @@ class HomeScreen extends StatelessWidget {
                   height: 1.45,
                 ),
               ),
-              const SizedBox(height: 14),
+              // Cafe Ticket Dashed Divider Detail
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final boxWidth = constraints.maxWidth;
+                  const dashWidth = 5.0;
+                  const dashSpace = 4.0;
+                  final dashCount =
+                      (boxWidth / (dashWidth + dashSpace)).floor();
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: List.generate(dashCount, (_) {
+                        return SizedBox(
+                          width: dashWidth,
+                          height: 1,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(color: dividerColor),
+                          ),
+                        );
+                      }),
+                    ),
+                  );
+                },
+              ),
               Row(
                 children: [
                   Text(

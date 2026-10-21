@@ -88,6 +88,8 @@ class SettingsScreen extends StatelessWidget {
                         divisions: 4,
                         label: '${settings.ttsSpeed.value}x',
                         activeColor: AppColors.secondary,
+                        inactiveColor: AppColors.border,
+                        thumbColor: AppColors.secondary,
                         onChanged: (val) => settings.setTtsSpeed(val),
                       ),
                     ),
@@ -101,7 +103,7 @@ class SettingsScreen extends StatelessWidget {
                       label: const Text('Uji Coba Suara'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.secondary,
-                        foregroundColor: AppColors.surface,
+                        foregroundColor: AppColors.textOnDark,
                         minimumSize: const Size(double.infinity, 42),
                       ),
                     ),
@@ -153,8 +155,8 @@ class SettingsScreen extends StatelessWidget {
                           'Tier 1 + Tier 2 Aktif',
                           style: TextStyle(
                             fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.secondary,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.matcha,
                           ),
                         ),
                       ],
@@ -180,6 +182,9 @@ class SettingsScreen extends StatelessWidget {
                       icon: const Icon(Icons.delete_outline, size: 18),
                       label: const Text('Bersihkan Cache Video Lokal'),
                       style: OutlinedButton.styleFrom(
+                        backgroundColor: AppColors.surface,
+                        foregroundColor: AppColors.ink,
+                        side: const BorderSide(color: AppColors.border),
                         minimumSize: const Size(double.infinity, 42),
                       ),
                     ),
@@ -206,10 +211,11 @@ class SettingsScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'v2.1.0 (Nordic Ocean)',
+                          'v2.2.0 (Inclusive Cafe Edition)',
                           style: TextStyle(
                             fontSize: 13,
-                            color: AppColors.muted,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.secondary,
                           ),
                         ),
                       ],
@@ -229,6 +235,9 @@ class SettingsScreen extends StatelessWidget {
                         Get.offAllNamed(AppRoutes.onboarding1);
                       },
                       style: OutlinedButton.styleFrom(
+                        backgroundColor: AppColors.surface,
+                        foregroundColor: AppColors.ink,
+                        side: const BorderSide(color: AppColors.border),
                         minimumSize: const Size(double.infinity, 42),
                       ),
                       child: const Text('Buka Ulang Panduan Onboarding'),

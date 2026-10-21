@@ -334,7 +334,7 @@ class _SignVideoPlayerState extends State<SignVideoPlayer> {
                           child: Text(
                             activeEntry.label,
                             style: const TextStyle(
-                              color: AppColors.surface,
+                              color: AppColors.textOnDark,
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
                             ),
@@ -366,7 +366,8 @@ class _SignVideoPlayerState extends State<SignVideoPlayer> {
                         selectedColor: AppColors.secondary,
                         backgroundColor: AppColors.paleMist,
                         labelStyle: TextStyle(
-                          color: isActive ? AppColors.surface : AppColors.ink,
+                          color:
+                              isActive ? AppColors.textOnDark : AppColors.ink,
                           fontWeight: isActive
                               ? FontWeight.w700
                               : FontWeight.w500,

@@ -29,7 +29,7 @@ class AppPrimaryButton extends StatelessWidget {
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.surface,
+          foregroundColor: AppColors.textOnDark,
           elevation: 0,
           shape: const StadiumBorder(),
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -40,7 +40,7 @@ class AppPrimaryButton extends StatelessWidget {
                 height: 22,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
-                  color: AppColors.surface,
+                  color: AppColors.textOnDark,
                 ),
               )
             : Row(
@@ -55,13 +55,13 @@ class AppPrimaryButton extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.surface,
+                        color: AppColors.textOnDark,
                       ),
                     ),
                   ),
                   if (icon != null) ...[
                     const SizedBox(width: 8),
-                    Icon(icon, size: 20, color: AppColors.surface),
+                    Icon(icon, size: 20, color: AppColors.textOnDark),
                   ],
                 ],
               ),

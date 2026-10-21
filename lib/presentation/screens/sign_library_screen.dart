@@ -33,11 +33,11 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
   final List<String> _categories = const [
     'Semua',
     'Harian',
+    'Minuman & Menu',
+    'Takaran (Es/Gula)',
+    'Kasir & Bayar',
+    'Sapaan',
     'Kesehatan',
-    'Pertanyaan',
-    'Kata Ganti',
-    'Gerakan & Aktivitas',
-    'Salam',
     'Alfabet',
   ];
 
@@ -50,21 +50,49 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
   bool _matchesCategory(SignVideoEntry entry, String selectedCategory) {
     if (selectedCategory == 'Semua') return true;
     final cat = entry.category.toLowerCase().trim();
+    final label = entry.label.toLowerCase().trim();
     switch (selectedCategory) {
+      case 'Minuman & Menu':
+        return cat == 'drink' ||
+            cat == 'food' ||
+            cat == 'menu' ||
+            label.contains('kopi') ||
+            label.contains('air') ||
+            label.contains('minum') ||
+            label.contains('teh') ||
+            label.contains('makan');
+      case 'Takaran (Es/Gula)':
+        return cat == 'measurement' ||
+            label.contains('es') ||
+            label.contains('gula') ||
+            label.contains('sedikit') ||
+            label.contains('banyak') ||
+            label.contains('kurang');
+      case 'Kasir & Bayar':
+        return cat == 'finance' ||
+            cat == 'payment' ||
+            label.contains('bayar') ||
+            label.contains('uang') ||
+            label.contains('qris') ||
+            label.contains('harga') ||
+            label.contains('kasir') ||
+            label.contains('beli');
+      case 'Sapaan':
+        return cat == 'salam' ||
+            label.contains('halo') ||
+            label.contains('terima kasih') ||
+            label.contains('selamat') ||
+            label.contains('permisi') ||
+            label.contains('tolong');
       case 'Alfabet':
         return cat == 'alphabet' || cat == 'alfabet';
       case 'Harian':
-        return cat == 'general' || cat == 'harian';
+        return cat == 'general' ||
+            cat == 'harian' ||
+            cat == 'pronoun' ||
+            cat == 'question';
       case 'Kesehatan':
         return cat == 'health' || cat == 'kesehatan';
-      case 'Pertanyaan':
-        return cat == 'question';
-      case 'Kata Ganti':
-        return cat == 'pronoun';
-      case 'Gerakan & Aktivitas':
-        return cat == 'movement' || cat == 'activity';
-      case 'Salam':
-        return cat == 'salam';
       default:
         return cat == selectedCategory.toLowerCase();
     }
@@ -100,7 +128,7 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
       case 'activity':
         return 'Aktivitas';
       case 'salam':
-        return 'Salam';
+        return 'Sapaan';
       case 'alphabet':
       case 'alfabet':
         return 'Alfabet';
@@ -220,11 +248,19 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                 controller: _searchController,
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
-                  hintText: 'Cari kata, huruf, atau sinonim...',
-                  prefixIcon: const Icon(Icons.search, color: AppColors.muted),
+                  hintText: 'Cari menu, kata, huruf, atau sinonim...',
+                  hintStyle: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 14,
+                  ),
+                  prefixIcon:
+                      const Icon(Icons.search, color: AppColors.textMuted),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear, color: AppColors.muted),
+                          icon: const Icon(
+                            Icons.clear,
+                            color: AppColors.textMuted,
+                          ),
                           onPressed: () {
                             _searchController.clear();
                             setState(() {});
@@ -248,7 +284,7 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: const BorderSide(
-                      color: AppColors.secondary,
+                      color: AppColors.primary,
                       width: 2,
                     ),
                   ),
@@ -262,9 +298,9 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
               child: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: AppColors.paleMist,
+                  color: AppColors.bgSurface,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.borderSoft),
+                  border: Border.all(color: AppColors.border),
                 ),
                 child: Row(
                   children: _languages.map((lang) {
@@ -306,7 +342,7 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                                     ? FontWeight.w700
                                     : FontWeight.w600,
                                 color: isSelected
-                                    ? AppColors.surface
+                                    ? AppColors.textOnDark
                                     : AppColors.muted,
                               ),
                             ),
@@ -340,10 +376,11 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                       selectedColor: AppColors.secondary,
                       backgroundColor: AppColors.surface,
                       labelStyle: TextStyle(
-                        color: isSelected ? AppColors.surface : AppColors.ink,
+                        color:
+                            isSelected ? AppColors.textOnDark : AppColors.ink,
                         fontWeight: isSelected
                             ? FontWeight.w700
-                            : FontWeight.w500,
+                            : FontWeight.w600,
                         fontSize: 12.5,
                       ),
                       shape: RoundedRectangleBorder(
@@ -365,20 +402,28 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: AppCard(
-                backgroundColor: AppColors.paleMist,
-                border: const BorderSide(color: AppColors.borderSoft),
+                backgroundColor: AppColors.bgSurface,
+                border: const BorderSide(color: AppColors.border),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
                   vertical: 10,
                 ),
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons.download_for_offline_rounded,
-                      color: AppColors.secondary,
-                      size: 26,
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: const BoxDecoration(
+                        color: AppColors.secondary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.download_for_offline_rounded,
+                        color: AppColors.textOnDark,
+                        size: 22,
+                      ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -498,12 +543,12 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                                 width: 42,
                                 height: 42,
                                 decoration: BoxDecoration(
-                                  color: AppColors.paleMist,
+                                  color: AppColors.bgSurface,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Icon(
                                   Icons.play_circle_fill_rounded,
-                                  color: AppColors.secondary,
+                                  color: AppColors.primary,
                                   size: 26,
                                 ),
                               ),
@@ -530,24 +575,21 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                                             vertical: 2,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: isSibi
-                                                ? AppColors.secondary
-                                                    .withValues(alpha: 0.12)
-                                                : AppColors.primary.withValues(
-                                                    alpha: 0.12,
-                                                  ),
+                                            color: AppColors.bgSurface,
                                             borderRadius: BorderRadius.circular(
                                               6,
+                                            ),
+                                            border: Border.all(
+                                              color: AppColors.border,
+                                              width: 0.8,
                                             ),
                                           ),
                                           child: Text(
                                             isSibi ? 'SIBI' : 'BISINDO',
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               fontSize: 10,
                                               fontWeight: FontWeight.w700,
-                                              color: isSibi
-                                                ? AppColors.secondary
-                                                : AppColors.primary,
+                                              color: AppColors.secondary,
                                             ),
                                           ),
                                         ),
@@ -581,7 +623,7 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                                       vertical: 3,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: AppColors.surfaceHigh,
+                                      color: AppColors.bgSurface,
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
@@ -601,19 +643,19 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                                         isBundled
                                             ? Icons.check_circle_outline_rounded
                                             : Icons.cloud_outlined,
-                                        size: 12,
+                                        size: 13,
                                         color: isBundled
-                                            ? AppColors.success
+                                            ? AppColors.matcha
                                             : AppColors.secondary,
                                       ),
                                       const SizedBox(width: 3),
                                       Text(
                                         isBundled ? 'Offline' : 'Cloud',
                                         style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w600,
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.w700,
                                           color: isBundled
-                                              ? AppColors.success
+                                              ? AppColors.matcha
                                               : AppColors.secondary,
                                         ),
                                       ),

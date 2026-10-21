@@ -314,6 +314,7 @@ class _RemoteVideoDownloadCard extends StatelessWidget {
                   onPressed: onDownload,
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.secondary,
+                    foregroundColor: AppColors.textOnDark,
                     padding: const EdgeInsets.symmetric(vertical: 13),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),

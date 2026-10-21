@@ -132,14 +132,14 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? AppColors.secondary : AppColors.border,
-            width: isSelected ? 2.5 : 1,
+            color: isSelected ? AppColors.primary : AppColors.border,
+            width: isSelected ? 2.0 : 1.0,
           ),
           boxShadow: [
             BoxShadow(
               color: isSelected
-                  ? AppColors.secondary.withValues(alpha: 0.12)
-                  : AppColors.ink.withValues(alpha: 0.03),
+                  ? AppColors.primary.withValues(alpha: 0.10)
+                  : AppColors.primary.withValues(alpha: 0.04),
               blurRadius: isSelected ? 12 : 6,
               offset: const Offset(0, 4),
             ),
@@ -153,8 +153,9 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: AppColors.paleMist,
+                color: AppColors.bgSurface,
                 borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.border, width: 1),
               ),
               padding: const EdgeInsets.all(8),
               child: Image.asset(badgeAsset, fit: BoxFit.contain),
@@ -181,14 +182,15 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
                           vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.paleMist,
+                          color: AppColors.bgSurface,
                           borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.border, width: 0.8),
                         ),
                         child: Text(
                           vocabCount,
                           style: const TextStyle(
                             fontSize: 11,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                             color: AppColors.secondary,
                           ),
                         ),
@@ -219,7 +221,7 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
             const SizedBox(width: 8),
             Icon(
               isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-              color: isSelected ? AppColors.secondary : AppColors.border,
+              color: isSelected ? AppColors.primary : AppColors.border,
             ),
           ],
         ),

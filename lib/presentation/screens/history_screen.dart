@@ -99,12 +99,20 @@ class HistoryScreen extends StatelessWidget {
                             children: [
                               Row(
                                 children: [
-                                  Icon(
-                                    isS2S
-                                        ? Icons.sign_language_rounded
-                                        : Icons.record_voice_over_rounded,
-                                    size: 18,
-                                    color: AppColors.secondary,
+                                  Container(
+                                    width: 32,
+                                    height: 32,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.bgSurface,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Icon(
+                                      isS2S
+                                          ? Icons.sign_language_rounded
+                                          : Icons.record_voice_over_rounded,
+                                      size: 18,
+                                      color: AppColors.secondary,
+                                    ),
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
@@ -122,8 +130,12 @@ class HistoryScreen extends StatelessWidget {
                                       vertical: 2,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: AppColors.paleMist,
-                                      borderRadius: BorderRadius.circular(10),
+                                      color: AppColors.bgSurface,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: AppColors.border,
+                                        width: 0.8,
+                                      ),
                                     ),
                                     child: Text(
                                       item.signLanguageType,
@@ -246,10 +258,10 @@ class HistoryScreen extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.secondary : AppColors.surface,
+            color: isSelected ? AppColors.primary : AppColors.surface,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: isSelected ? AppColors.secondary : AppColors.border,
+              color: isSelected ? AppColors.primary : AppColors.border,
             ),
           ),
           child: Text(
@@ -257,8 +269,8 @@ class HistoryScreen extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 12,
-              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-              color: isSelected ? AppColors.surface : AppColors.ink,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+              color: isSelected ? AppColors.textOnDark : AppColors.muted,
             ),
           ),
         ),

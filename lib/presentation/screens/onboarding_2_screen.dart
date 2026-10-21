@@ -64,8 +64,9 @@ class Onboarding2Screen extends StatelessWidget {
                 child: Container(
                   constraints: const BoxConstraints(maxHeight: 240),
                   decoration: BoxDecoration(
-                    color: AppColors.softFjord.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(32),
+                    color: AppColors.bgSurface,
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(color: AppColors.border, width: 1),
                   ),
                   padding: const EdgeInsets.all(16),
                   child: Image.asset(
@@ -88,7 +89,7 @@ class Onboarding2Screen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               const Text(
-                'Dapat diandalkan di loket pelayanan publik, fasilitas kesehatan, transaksi harian belanja, hingga sekolah dan pergaulan sehari-hari.',
+                'Memudahkan pelanggan dan barista Teman Tuli berkomunikasi saat memesan menu, memilih takaran gula/es, hingga pembayaran di kasir.',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w400,
@@ -131,7 +132,7 @@ class Onboarding2Screen extends StatelessWidget {
 
   Widget _buildFeatureChip(String label, IconData icon) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
@@ -140,8 +141,8 @@ class Onboarding2Screen extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: AppColors.secondary),
-          const SizedBox(width: 6),
+          Icon(icon, size: 16, color: AppColors.matcha),
+          const SizedBox(width: 8),
           Text(
             label,
             style: const TextStyle(

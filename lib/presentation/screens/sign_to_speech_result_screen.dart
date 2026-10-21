@@ -79,7 +79,7 @@ class SignToSpeechResultScreen extends StatelessWidget {
                           label: const Text('Putar Suara'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.secondary,
-                            foregroundColor: AppColors.surface,
+                            foregroundColor: AppColors.textOnDark,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 18,
                               vertical: 10,

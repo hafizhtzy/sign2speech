@@ -13,11 +13,11 @@ class AppTheme {
       colorScheme: const ColorScheme(
         brightness: Brightness.light,
         primary: AppColors.primary,
-        onPrimary: AppColors.surface,
+        onPrimary: AppColors.textOnDark,
         secondary: AppColors.secondary,
-        onSecondary: AppColors.surface,
+        onSecondary: AppColors.textOnDark,
         error: AppColors.error,
-        onError: AppColors.surface,
+        onError: AppColors.textOnDark,
         surface: AppColors.surface,
         onSurface: AppColors.ink,
       ),
@@ -63,7 +63,7 @@ class AppTheme {
           fontSize: 12,
           fontWeight: FontWeight.w600,
           height: 1.4,
-          color: AppColors.muted,
+          color: AppColors.textMuted,
         ),
       ),
       appBarTheme: AppBarTheme(
@@ -90,7 +90,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.surface,
+          foregroundColor: AppColors.textOnDark,
           minimumSize: const Size(double.infinity, 50),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: const StadiumBorder(),
@@ -117,9 +117,9 @@ class AppTheme {
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.surface,
         selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.muted,
+        unselectedItemColor: AppColors.textMuted,
         selectedLabelStyle: TextStyle(
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
           fontSize: 12,
         ),
         unselectedLabelStyle: TextStyle(

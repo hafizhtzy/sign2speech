@@ -64,8 +64,9 @@ class Onboarding1Screen extends StatelessWidget {
                 child: Container(
                   constraints: const BoxConstraints(maxHeight: 240),
                   decoration: BoxDecoration(
-                    color: AppColors.paleMist.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(32),
+                    color: AppColors.bgSurface,
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(color: AppColors.border, width: 1),
                   ),
                   padding: const EdgeInsets.all(16),
                   child: Image.asset(
@@ -88,7 +89,7 @@ class Onboarding1Screen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               const Text(
-                'Jembatan dua arah cerdas antara bahasa isyarat ke suara lisan, dan suara lisan ke video isyarat berurutan secara langsung.',
+                'Jembatan dua arah cerdas antara bahasa isyarat ke suara lisan, dan suara lisan ke video isyarat saat memesan di kafe.',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w400,
@@ -131,7 +132,7 @@ class Onboarding1Screen extends StatelessWidget {
 
   Widget _buildFeatureChip(String label, IconData icon) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
@@ -141,7 +142,7 @@ class Onboarding1Screen extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 16, color: AppColors.secondary),
-          const SizedBox(width: 6),
+          const SizedBox(width: 8),
           Text(
             label,
             style: const TextStyle(
