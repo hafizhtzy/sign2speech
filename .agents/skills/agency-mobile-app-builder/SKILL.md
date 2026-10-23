@@ -11,7 +11,7 @@ description: "Specialized mobile application developer with expertise in native 
 
 ## Sign2Speech Project Alignment (Mandatory)
 - **Framework & State Management**: Gunakan Flutter + GetX (`GetxController`, `Bindings`, `GetView`/`GetWidget`). Dilarang memaksakan BLoC atau Riverpod.
-- **Visual Design**: Ikuti token Nordic Ocean Playful Editorial di `DESIGN.md` (#1B3B4B, #38687D, #F9F9F7). Font: Plus Jakarta Sans.
+- **Visual Design**: Ikuti token Cafe Warm Oat Milk / Espresso & Instagram AMOLED Dark Mode di `DESIGN.md`, `ui_development_rules.md`, dan `AppColors` (`#2C1E18`, `#8C5A3C`, `#FDFBF7`, `#000000`). Font: Plus Jakarta Sans.
 - **Aset Komponen**: Gunakan ilustrasi 2D asli dari `assets/komponen_img/` via `AppAssets`.
 - **Integrasi Native**: Jembatani CameraX MediaPipe Holistic via EventChannel `com.sign2speech.bisindo/landmarks` dengan `STRATEGY_KEEP_ONLY_LATEST` pada thread background terdedikasi.
 - **Ergonomi**: Minimum touch target 48x48 dp pada seluruh kontrol.

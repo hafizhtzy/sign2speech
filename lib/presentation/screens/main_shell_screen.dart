@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../../core/constants/app_assets.dart';
 import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
@@ -23,23 +21,27 @@ class MainShellScreen extends StatefulWidget {
 class _MainShellScreenState extends State<MainShellScreen> {
   int _currentIndex = 0;
 
-  List<Widget> _getScreens() => [
-    const HomeScreen(),
-    const HistoryScreen(),
-    const SignLibraryScreen(),
-    const SettingsScreen(),
+  List<Widget> _getScreens(String dynamicKey) => [
+    HomeScreen(key: ValueKey('home_$dynamicKey')),
+    HistoryScreen(key: ValueKey('history_$dynamicKey')),
+    SignLibraryScreen(key: ValueKey('library_$dynamicKey')),
+    SettingsScreen(key: ValueKey('settings_$dynamicKey')),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      // Rebuild dynamically when themeMode changes
-      if (Get.isRegistered<SettingsController>()) {
-        Get.find<SettingsController>().themeMode.value;
-      }
+      final settings = Get.isRegistered<SettingsController>()
+          ? Get.find<SettingsController>()
+          : null;
+      final isDark = settings?.isDarkMode ?? false;
+      final themeKey = '${settings?.themeMode.value.name}_$isDark';
+      final langKey = settings?.selectedAppLanguage.value ?? 'id';
+      final dynamicKey = '${themeKey}_$langKey';
+
       final isLarge = context.isLargeScreen;
       final isExpanded = context.isExpanded;
-      final screens = _getScreens();
+      final screens = _getScreens(dynamicKey);
 
       if (isLarge) {
         return Scaffold(
@@ -56,6 +58,9 @@ class _MainShellScreenState extends State<MainShellScreen> {
                 });
               },
               extended: isExpanded,
+              labelType: isExpanded
+                  ? NavigationRailLabelType.none
+                  : NavigationRailLabelType.all,
               minWidth: 80,
               minExtendedWidth: 210,
               indicatorColor: AppColors.secondary.withValues(alpha: 0.16),
@@ -84,15 +89,18 @@ class _MainShellScreenState extends State<MainShellScreen> {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: AppColors.bgSurface,
+                        color: AppColors.secondary.withValues(alpha: 0.12),
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(
+                          color: AppColors.secondary.withValues(alpha: 0.3),
+                        ),
                       ),
-                      padding: const EdgeInsets.all(8),
-                      child: Image.asset(
-                        AppAssets.brandEmblem,
-                        fit: BoxFit.contain,
-                        cacheWidth: 100,
+                      child: Center(
+                        child: Icon(
+                          Icons.sign_language_rounded,
+                          size: 22,
+                          color: AppColors.secondary,
+                        ),
                       ),
                     ),
                     if (isExpanded) ...[
@@ -137,7 +145,11 @@ class _MainShellScreenState extends State<MainShellScreen> {
             ),
             VerticalDivider(width: 1, thickness: 1, color: AppColors.border),
             Expanded(
-              child: IndexedStack(index: _currentIndex, children: screens),
+              child: IndexedStack(
+                key: ValueKey('rail_stack_$dynamicKey'),
+                index: _currentIndex,
+                children: screens,
+              ),
             ),
           ],
         ),
@@ -147,7 +159,11 @@ class _MainShellScreenState extends State<MainShellScreen> {
     return Scaffold(
       backgroundColor: AppColors.canvas,
       floatingActionButton: const CashierFab(),
-      body: IndexedStack(index: _currentIndex, children: screens),
+      body: IndexedStack(
+        key: ValueKey('shell_stack_$dynamicKey'),
+        index: _currentIndex,
+        children: screens,
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: AppColors.surface,

@@ -6,22 +6,56 @@ Dokumen ini adalah aturan resmi tingkat proyek (*Project Rule*) untuk Google Ant
 
 ## 1. Acuan Visual & Design System
 
-1. **Sumber Kebenaran Visual:**
-   - [DESIGN.md](file:///c:/speech2sign/DESIGN.md) adalah satu-satunya acuan desain visual utama aplikasi.
-   - **Palet Warna "Nordic Ocean Playful Editorial":**
-     - Primary: Mineral Ocean Blue (`#1B3B4B`)
-     - Secondary / Active: Fjord Blue (`#38687D`)
-     - Canvas Background: Warm Alabaster (`#F9F9F7`)
-     - Card / Surfaces: Pure White (`#FFFFFF`)
-     - Chips / Badges: Pale Mist (`#EAF0F2`)
-     - Ink / Linework: Deep Graphite (`#192328`) — hindari hitam murni (`#000000`)
-     - Muted Text: Stone Slate (`#6B7B83`)
-     - Borders: Structural Blue-Gray (`#D1DCE0`)
-   - **Tipografi:** Plus Jakarta Sans untuk seluruh heading, body, label tombol, dan angka (jangan ganti dengan Inter atau Roboto default).
-   - **Bahasa Copywriting UI:** Seluruh copy antarmuka menggunakan **Bahasa Indonesia** baku yang ramah, kecuali nama merek dan istilah teknis resmi (Sign2Speech, BISINDO, SIBI, Sign-to-Speech, Speech-to-Sign).
-   - **Ilustrasi Karakter:** Karakter editorial 2D hitam-putih dengan garis Deep Graphite (`#192328`) dan fill putih hangat (karakter wanita muda berambut ikal cepol dan pria muda berambut pendek). Ilustrasi tangan bersifat kontekstual/edukatif, bukan representasi BISINDO/SIBI yang diverifikasi.
-2. **Integritas Desain Layar:**
-   - Pertahankan desain 12 layar yang telah disetujui dalam storyboard / rancangan desain. Dilarang merombak layout yang sudah disetujui tanpa instruksi eksplisit.
+1. **Sumber Kebenaran Visual (Single Source of Truth):**
+   - **Acuan Utama:** [DESIGN.md](file:///c:/fadli/project/sign2speech/DESIGN.md), [ui_development_rules.md](file:///c:/fadli/project/sign2speech/.agents/rules/ui_development_rules.md), dan [AppColors](file:///c:/fadli/project/sign2speech/lib/core/theme/app_colors.dart).
+   - **Palet Warna "Cafe Warm Oat Milk / Espresso" (Light Mode):**
+     - Primary: Rich Espresso Brown (`#2C1E18` / `AppColors.primary`)
+     - Secondary / Active: Warm Caramel / Cinnamon (`#8C5A3C` / `AppColors.secondary`)
+     - Canvas Background: Warm Oat Milk / Cream (`#FDFBF7` / `AppColors.canvas`)
+     - Card / Surfaces: Pure White (`#FFFFFF` / `AppColors.surface`) & Latte Foam (`#F4EFE6` / `AppColors.bgSurface`)
+     - Chips / Badges: Soft Latte Foam (`#F4EFE6` / `AppColors.paleMist`)
+     - Ink / Headings: Deep Espresso (`#2C1E18` / `AppColors.ink`)
+     - Muted Text: Roasted Mocha (`#6E5A4F` / `AppColors.muted`)
+     - Borders: Warm Sand Border (`#E6DCD2` / `AppColors.border`)
+     - Semantic Accents: Matcha Sage (`#4A6B53` / `AppColors.matcha` untuk offline & success), Amber Gold (`#D97724` / `AppColors.amber` untuk warning & highlight), Deep Espresso Dark (`#191210` / `AppColors.cameraDark` untuk kamera).
+   - **Palet Warna "Instagram AMOLED Minimalist" (Dark Mode):**
+     - Canvas Background: True Black (`#000000` / `AppColors.darkCanvas`)
+     - Elevated Surface / Chips: Deep Charcoal (`#1E1E1E` / `AppColors.darkBgSurface`)
+     - Card Surface: Elevated Dark (`#121212` / `AppColors.darkSurface`)
+     - Borders & Outlines: Subtle Dark Grey (`#262626` & `#2E2E2E` / `AppColors.darkBorder`)
+     - Action & Text Primary: Crisp Action White (`#F5F5F5` / `AppColors.darkPrimary`, `AppColors.darkInk`)
+     - Accent Secondary: Luminous Warm Caramel (`#D49B78` / `AppColors.darkSecondary`)
+     - Muted Text: Instagram Neutral Grey (`#A8A8A8` & `#737373` / `AppColors.darkMuted`)
+   - **DILARANG KERAS MENGGUNAKAN RAW HEX / COLOR:** Seluruh warna di widget wajib menggunakan `AppColors.<token>` dinamis. Dilarang menggunakan hex kuno (Nordic Ocean `#1B3B4B`, `#38687D`) atau hardcoded `Color(...)`.
+   - **Tipografi Dinamis ([AppTypography](file:///c:/fadli/project/sign2speech/lib/core/theme/app_typography.dart)):** 
+     - Google Fonts Plus Jakarta Sans untuk seluruh peran teks (Display, Headline, Title, Body, Label). Dilarang membuat `TextStyle(...)` tanpa melalui `AppTypography`.
+   - **Multi-Bahasa Dinamis (Mandatory Dynamic Localization):**
+     - Dilarang hardcode string teks antarmuka di widget! Seluruh teks antarmuka wajib didaftarkan di [AppStrings](file:///c:/fadli/project/sign2speech/lib/core/localization/app_strings.dart) dan diterjemahkan dalam dua bahasa di [AppTranslations](file:///c:/fadli/project/sign2speech/lib/core/localization/app_translations.dart) (`id_ID` & `en_US`).
+     - Gunakan getter `.tr` reaktif di dalam `Obx(() => ...)` agar UI langsung berganti bahasa tanpa restart aplikasi saat diubah di Pengaturan.
+   - **Ilustrasi Karakter:** Karakter editorial 2D dengan garis Deep Espresso (`#2C1E18`) dan fill putih hangat.
+
+2. **Aturan Baku Responsif Multi-Device (Mandatory Responsive Rule):**
+   > **ATURAN MUTLAK ANTIGRAVITY:** Setiap kali memperbaiki, memodifikasi, merombak, atau membuat halaman (*page*), widget, dialog, bottom sheet, atau komponen antarmuka baru, Antigravity dan seluruh agen **WAJIB membuatnya responsif di berbagai perangkat** (Smartphone/Compact, Foldable & Tablet Portrait/Medium, Tablet Landscape & Desktop/Expanded).
+   - **Standar Breakpoint Window (Material 3 & Flutter Official):**
+     - **Compact (`< 600 dp`):** Smartphone portrait. Gunakan tata letak single column, bottom bars/sheets, padding horizontal 16-20 dp.
+     - **Medium (`600 - 839 dp`):** Tablet portrait & foldable. Gunakan 2 kolom grid/flow atau tata letak berimbang, navigation rail/drawer samping, padding horizontal 24-32 dp.
+     - **Expanded (`≥ 840 dp`):** Tablet landscape & desktop. Gunakan master-detail split views, multi-column grid, dialog/card terpusat dengan batasan lebar maksimal.
+   - **Pemberian Batasan Lebar Maksimal (Large Screen Readability):**
+     - Dilarang membiarkan formulir, card, atau teks meregang selebar layar tablet/desktop.
+     - Wajib menggunakan `ResponsiveContentWrapper` atau `ConstrainedBox(constraints: BoxConstraints(maxWidth: ...))` dengan konstanta `ResponsiveBreakpoints`:
+       - `ResponsiveBreakpoints.maxFormWidth` (580 dp): Untuk formulir, dialog, dan halaman onboarding.
+       - `ResponsiveBreakpoints.maxContentWidth` (960 dp): Untuk halaman detail, bacaan, dan pengaturan.
+       - `ResponsiveBreakpoints.maxDashboardWidth` (1140 dp): Untuk dashboard utama dan list grid.
+   - **Pencegahan RenderFlex Overflow (Defensive Anti-Overflow):**
+     - Setiap layar atau konten vertikal yang berpotensi melebihi ketinggian layar atau tertutup keyboard virtual **wajib dibungkus dengan `SingleChildScrollView(physics: const BouncingScrollPhysics())`**.
+     - Dilarang menggunakan `Spacer()` tanpa batas ketinggian di dalam `Column` scrollable.
+     - Setiap `Text` dinamis di dalam `Row` atau flex container **wajib dibungkus `Expanded` atau `Flexible`** serta dilengkapi `overflow: TextOverflow.ellipsis` dan `maxLines`.
+   - **Grid Adaptif Dinamis:**
+     - Dilarang hardcode `crossAxisCount: 2` pada list/grid umum. Gunakan `SliverGridDelegateWithMaxCrossAxisExtent` (misal `maxCrossAxisExtent: 280-340 dp`) agar jumlah kolom bertambah secara alami saat aplikasi dibuka di tablet atau desktop.
+   - **Standar Aksesibilitas Touch Target:**
+     - Semua elemen interaktif (`AppPrimaryButton`, `IconButton`, `InkWell`, gesture chips) wajib memiliki touch target minimum **$\ge 48\times 48$ dp** di seluruh ukuran layar.
+   - **Kelengkapan State UI (UI States Rule):**
+     - Setiap komponen/layar data wajib menangani 6 state utama: First Use/Onboarding, Empty State (menggunakan `EmptyStateView`), Loading Skeleton/Spinner, Error State dengan retry action, Offline Indicator (`AppColors.matcha`), dan Long Content handling.
 
 ---
 
@@ -48,7 +82,7 @@ Muat persona agent atau skill secara spesifik sesuai tugas (*progressive disclos
 | **Arsitektur Sistem** | `agency-software-architect` | `flutter-apply-architecture-best-practices` | Kawal pemisahan Presentation, Domain, Data. Domain murni bebas GetX/UI; Controller bebas BuildContext. |
 | **Implementasi Flutter & Mobile** | `agency-mobile-app-builder` | `flutter-expert`, `mobile-developer`, `flutter-build-responsive-layout`, `flutter-fix-layout-issues` | Implementasi widget GetX, layout responsif, touch target >= 48 dp, dan bridging CameraX EventChannel. |
 | **Integrasi Voice AI (STT/TTS)** | `agency-voice-ai-integration-engineer` | `voice-ai-engine-development` | Kelola STT `id-ID`, antrean serial FIFO TTS, buffer ejaan alfabet 1500ms. Dilarang switch ke cloud/Whisper tanpa izin. |
-| **Desain UI/UX & Visual** | `agency-ui-designer`, `agency-ux-architect` | `ui-ux-pro-max`, `design-system` | Acuan mutlak `DESIGN.md` (Nordic Ocean), font Plus Jakarta Sans, dan aset `assets/komponen_img/`. |
+| **Desain UI/UX & Visual** | `agency-ui-designer`, `agency-ux-architect` | `ui-ux-pro-max`, `design-system` | Acuan mutlak `DESIGN.md` (Cafe Warm Oat Milk / Espresso & Instagram AMOLED Dark Mode), font Plus Jakarta Sans, dan aset `assets/komponen_img/`. |
 | **Aksesibilitas Universal** | `agency-accessibility-auditor` | `screen-reader-testing`, `accessibility-compliance-accessibility-audit` | Evaluasi kontras WCAG, touch target minimum 48 dp, dan uji screen reader. |
 | **Code Review & Mutu Kode** | `agency-code-reviewer` | `code-review-checklist`, `code-review-excellence`, `requesting-code-review` | Periksa disposal controller/stream di `onClose()`, race condition token `_playSessionId`, dan sanitasi numerik. |
 | **Testing & Otomasi QA** | `agency-test-automation-engineer` | `test-driven-development`, `flutter-add-widget-test`, `verification-before-completion` | Jalankan alur TDD, tulis tes gagal -> implementasi -> verifikasi hijau dengan mock fixtures. |

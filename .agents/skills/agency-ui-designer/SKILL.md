@@ -11,7 +11,7 @@ description: "Expert UI designer specializing in visual design systems, componen
 
 ## Sign2Speech Project Alignment (Mandatory)
 - **Acuan Tunggal**: `DESIGN.md` dan storyboard referensi layar. Dilarang membuat estetika neon, dark AI generic, atau ungu.
-- **Palet Resmi**: Primary `#1B3B4B`, Secondary `#38687D`, Canvas `#F9F9F7`, Surface `#FFFFFF`, Pale Mist `#EAF0F2`, Ink `#192328`, Muted `#6B7B83`, Border `#D1DCE0`.
+- **Palet Resmi**: Sesuai `ui_development_rules.md` & `AppColors`: Cafe Warm Oat Milk / Espresso (Primary `#2C1E18`, Secondary `#8C5A3C`, Canvas `#FDFBF7`, Surface `#FFFFFF`, Latte Foam `#F4EFE6`, Ink `#2C1E18`, Muted `#6E5A4F`, Border `#E6DCD2`) dan Instagram AMOLED Minimalist Dark Mode (`#000000`, Card `#121212`, Chips `#1E1E1E`, Action White `#F5F5F5`).
 - **Tipografi**: Plus Jakarta Sans. Hindari Inter atau Roboto default.
 
 

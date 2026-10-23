@@ -17,7 +17,9 @@ Dokumen ini adalah aturan resmi tingkat proyek (*Project Rule*) untuk Google Ant
      - Muted Text: Roasted Mocha (`#6E5A4F` / `AppColors.muted`)
      - Borders: Warm Sand Border (`#E6DCD2` / `AppColors.border`)
      - Semantic Accents: Matcha Sage (`#4A6B53` / `AppColors.matcha` untuk offline & success), Amber Gold (`#D97724` / `AppColors.amber` untuk warning & highlight), Deep Espresso Dark (`#191210` / `AppColors.cameraDark` untuk kamera).
-     - **Dilarang Keras Menulis Raw Hex / Color:** Seluruh warna di widget wajib menggunakan `AppColors`.
+   - **Palet Warna "Instagram AMOLED Minimalist" (Dark Mode):**
+     - True Black (`#000000` / `AppColors.darkCanvas`), Elevated Surface (`#1E1E1E` / `AppColors.darkBgSurface`), Card Surface (`#121212` / `AppColors.darkSurface`), Dark Border (`#262626` & `#2E2E2E`), Action White (`#F5F5F5`), Warm Caramel (`#D49B78`), Subtitle Grey (`#A8A8A8` & `#737373`).
+     - **Dilarang Keras Menulis Raw Hex / Color:** Seluruh warna di widget wajib menggunakan `AppColors.<token>` dinamis.
    - **Tipografi Dinamis ([AppTypography](file:///c:/fadli/project/sign2speech/lib/core/theme/app_typography.dart)):** 
      - Google Fonts Plus Jakarta Sans untuk seluruh peran teks (Display, Headline, Title, Body, Label). Dilarang membuat `TextStyle(...)` tanpa melalui `AppTypography`.
    - **Multi-Bahasa Dinamis (Mandatory Dynamic Localization):**
@@ -25,10 +27,13 @@ Dokumen ini adalah aturan resmi tingkat proyek (*Project Rule*) untuk Google Ant
      - Gunakan getter `.tr` reaktif di dalam `Obx(() => ...)` agar UI langsung berganti bahasa tanpa restart aplikasi saat diubah di Pengaturan.
    - **Aturan Lengkap:** Wajib patuhi panduan terstruktur di [.agents/rules/ui_development_rules.md](file:///c:/fadli/project/sign2speech/.agents/rules/ui_development_rules.md).
    - **Ilustrasi Karakter:** Karakter editorial 2D dengan garis Espresso (`#2C1E18`) dan fill putih hangat.
-2. **Integritas Desain Layar & Responsif:**
-   - Pertahankan desain alur 12 layar yang telah disetujui.
-   - Setiap layar scrollable wajib menggunakan `SingleChildScrollView(physics: BouncingScrollPhysics())` untuk mencegah *RenderFlex overflow*.
-   - Seluruh elemen interaktif wajib memenuhi standar touch target minimum **$\ge 48$ dp**.
+2. **Aturan Baku Responsif Multi-Device (Mandatory Multi-Device Responsiveness):**
+   - **Wajib Responsif di Setiap Pembuatan/Perbaikan Komponen:** Setiap kali memperbaiki, memodifikasi, atau membuat halaman (*page*), widget, dialog, bottom sheet, atau komponen baru, Antigravity **WAJIB membuatnya responsif di berbagai perangkat** (Smartphone/Compact `< 600 dp`, Tablet/Foldable/Medium `600-839 dp`, Desktop/Expanded `≥ 840 dp`).
+   - **Batasan Lebar Maksimal:** Gunakan `ResponsiveContentWrapper` / `ConstrainedBox` (`maxFormWidth: 580 dp`, `maxContentWidth: 960 dp`, `maxDashboardWidth: 1140 dp`) agar konten tidak melebar abnormal di tablet/desktop.
+   - **Proteksi Overflow:** Setiap layar scrollable wajib menggunakan `SingleChildScrollView(physics: BouncingScrollPhysics())` untuk mencegah *RenderFlex overflow*.
+   - **Teks Dinamis:** Wajib dibungkus `Expanded`/`Flexible` dengan `overflow: TextOverflow.ellipsis` di dalam `Row`.
+   - **Grid Adaptif:** Gunakan `SliverGridDelegateWithMaxCrossAxisExtent` (hindari fixed `crossAxisCount`).
+   - **Touch Target:** Seluruh elemen interaktif wajib memenuhi standar touch target minimum **$\ge 48\times 48$ dp**.
 
 ---
 

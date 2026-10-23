@@ -25,8 +25,10 @@ class HistoryScreen extends StatelessWidget {
     final settings = Get.find<SettingsController>();
     final translationService = Get.find<SignTranslationService>();
 
-    return Scaffold(
-      backgroundColor: AppColors.canvas,
+    return Obx(() {
+      settings.themeMode.value;
+      return Scaffold(
+        backgroundColor: AppColors.canvas,
       appBar: AppBar(
         title: Text(
           AppStrings.historyTitle.tr,
@@ -84,6 +86,7 @@ class HistoryScreen extends StatelessWidget {
                     return EmptyStateView(
                       title: AppStrings.historyEmptyTitle.tr,
                       subtitle: AppStrings.historyEmptyDesc.tr,
+                      icon: Icons.history_toggle_off_rounded,
                       actionLabel: AppStrings.historyStartTranslation.tr,
                       onAction: () => Get.toNamed(AppRoutes.mainShell),
                     );
@@ -139,6 +142,7 @@ class HistoryScreen extends StatelessWidget {
         ),
       ),
     );
+    });
   }
 
   Widget _buildHistoryCard(

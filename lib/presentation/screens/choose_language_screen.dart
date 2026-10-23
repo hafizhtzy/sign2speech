@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
@@ -74,7 +72,7 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
                 fullName: 'Bahasa Isyarat Indonesia',
                 description:
                     'Isyarat alami dua tangan yang lazim digunakan komunitas Tuli Indonesia sehari-hari.',
-                badgeAsset: AppAssets.badgeBisindo,
+                icon: Icons.front_hand_rounded,
                 vocabCount: '47 Kosakata Inti',
                 langKey: 'BISINDO',
               ),
@@ -86,7 +84,7 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
                 fullName: 'Sistem Isyarat Bahasa Indonesia',
                 description:
                     'Sistem isyarat formal berbasis tata bahasa baku Indonesia dan alfabet jari.',
-                badgeAsset: AppAssets.badgeSibi,
+                icon: Icons.back_hand_rounded,
                 vocabCount: '72 Kosakata Formal',
                 langKey: 'SIBI',
               ),
@@ -123,7 +121,7 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
     required String title,
     required String fullName,
     required String description,
-    required String badgeAsset,
+    required IconData icon,
     required String vocabCount,
     required String langKey,
   }) {
@@ -162,12 +160,24 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: AppColors.bgSurface,
+                color: isSelected
+                    ? AppColors.secondary.withValues(alpha: 0.15)
+                    : AppColors.bgSurface,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border, width: 1),
+                border: Border.all(
+                  color: isSelected
+                      ? AppColors.secondary.withValues(alpha: 0.3)
+                      : AppColors.border,
+                  width: 1,
+                ),
               ),
-              padding: const EdgeInsets.all(8),
-              child: Image.asset(badgeAsset, fit: BoxFit.contain),
+              child: Center(
+                child: Icon(
+                  icon,
+                  size: 26,
+                  color: isSelected ? AppColors.secondary : AppColors.muted,
+                ),
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(

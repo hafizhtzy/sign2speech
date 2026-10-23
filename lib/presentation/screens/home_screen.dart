@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
@@ -56,15 +54,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: AppColors.bgSurface,
+                            color: AppColors.secondary.withValues(alpha: 0.12),
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.border),
+                            border: Border.all(
+                              color: AppColors.secondary.withValues(alpha: 0.3),
+                            ),
                           ),
-                          padding: const EdgeInsets.all(8),
-                          child: Image.asset(
-                            AppAssets.brandEmblem,
-                            fit: BoxFit.contain,
-                            cacheWidth: 100,
+                          child: Center(
+                            child: Icon(
+                              Icons.sign_language_rounded,
+                              size: 22,
+                              color: AppColors.secondary,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -113,66 +114,67 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Greeting Banner with Left Accent Line
+              // Greeting Banner with Left Accent Border
               Container(
                 decoration: BoxDecoration(
                   color: AppColors.bgSurface,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.border),
                 ),
-                clipBehavior: Clip.antiAlias,
-                child: IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Container(
-                        width: 4,
+                padding: const EdgeInsets.all(18),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 4,
+                      height: 48,
+                      decoration: BoxDecoration(
                         color: AppColors.secondary,
+                        borderRadius: BorderRadius.circular(2),
                       ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(18),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      AppStrings.homeGreeting.tr,
-                                      style: AppTypography.titleLarge.copyWith(
-                                        fontWeight: FontWeight.w800,
-                                        color: AppColors.ink,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      AppStrings.homeGreetingDesc.tr,
-                                      style: AppTypography.bodySmall.copyWith(
-                                        color: AppColors.muted,
-                                        height: 1.4,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.asset(
-                                  AppAssets.bannerWide,
-                                  height: 70,
-                                  width: 85,
-                                  fit: BoxFit.contain,
-                                  cacheWidth: 200,
-                                ),
-                              ),
-                            ],
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppStrings.homeGreeting.tr,
+                            style: AppTypography.titleLarge.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.ink,
+                            ),
                           ),
+                          const SizedBox(height: 6),
+                          Text(
+                            AppStrings.homeGreetingDesc.tr,
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.muted,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Container(
+                      width: 54,
+                      height: 54,
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: AppColors.secondary.withValues(alpha: 0.25),
                         ),
                       ),
-                    ],
-                  ),
+                      child: Center(
+                        child: Icon(
+                          Icons.waving_hand_rounded,
+                          size: 28,
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 20),
@@ -181,13 +183,18 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    AppStrings.homeCashierShortcuts.tr,
-                    style: AppTypography.titleMedium.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.ink,
+                  Expanded(
+                    child: Text(
+                      AppStrings.homeCashierShortcuts.tr,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.titleMedium.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink,
+                      ),
                     ),
                   ),
+                  const SizedBox(width: 8),
                   Text(
                     AppStrings.homeTapToSpeak.tr,
                     style: AppTypography.bodySmall.copyWith(
@@ -680,31 +687,36 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: tagBgColor,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      tag,
-                      style: AppTypography.labelSmall.copyWith(
-                        color: textColor,
-                        fontWeight: FontWeight.w700,
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: tagBgColor,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        tag,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.labelSmall.copyWith(
+                          color: textColor,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
+                  const SizedBox(width: 8),
                   Container(
-                    width: 44,
-                    height: 44,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
                       color: tagBgColor,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(icon, color: textColor, size: 22),
+                    child: Icon(icon, color: textColor, size: 20),
                   ),
                 ],
               ),

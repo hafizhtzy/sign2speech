@@ -34,7 +34,7 @@ Obx(() => Text(AppStrings.startNow.tr))
 1. **Dilarang Menggunakan Hex/Color Sembarangan:**
    - Dilarang menulis `Color(0xFF...)` atau `Colors.red`, `Colors.blue` langsung di widget.
 2. **Acuan Tunggal [AppColors](file:///c:/fadli/project/sign2speech/lib/core/theme/app_colors.dart):**
-   - Gunakan palet resmi **"Cafe Warm Oat Milk / Espresso"**:
+   - **Mode Terang (Light Mode) — "Cafe Warm Oat Milk / Espresso":**
      - `AppColors.canvas` (`#FDFBF7`): Background utama aplikasi (Warm Oat Milk / Cream).
      - `AppColors.bgSurface` (`#F4EFE6`): Background kartu sekunder & chips (Latte Foam).
      - `AppColors.surface` (`#FFFFFF`): Kartu elevated putih bersih.
@@ -46,6 +46,15 @@ Obx(() => Text(AppStrings.startNow.tr))
      - `AppColors.cameraDark` (`#191210`): Espresso Dark untuk viewport kamera & viewfinder.
      - `AppColors.ink` (`#2C1E18`): Teks judul utama.
      - `AppColors.muted` (`#6E5A4F`): Teks deskripsi & subtitle.
+   - **Mode Gelap (Dark Mode) — "Instagram AMOLED Minimalist":**
+     - `AppColors.darkCanvas` (`#000000`): Pure AMOLED True Black.
+     - `AppColors.darkBgSurface` (`#1E1E1E`): Elevated container & chips.
+     - `AppColors.darkSurface` (`#121212`): Instagram Dark card surface.
+     - `AppColors.darkBorder` (`#262626` & `#2E2E2E`): Subtle dark boundary.
+     - `AppColors.darkPrimary` / `darkInk` (`#F5F5F5`): Instagram Action White typography.
+     - `AppColors.darkSecondary` (`#D49B78`): Luminous Warm Caramel contrast (>= 7:1).
+     - `AppColors.darkMuted` (`#A8A8A8` & `#737373`): Neutral subtitle grey.
+   - Getter dinamis `AppColors.<token>` otomatis beralih antara Light dan Dark mode secara reaktif.
 
 ```dart
 // CONTOH SALAH:
@@ -80,9 +89,24 @@ Text('Title', style: AppTypography.titleMedium.copyWith(color: AppColors.ink))
 
 ---
 
-## 4. Layout Responsif & Bebas RenderFlex Overflow
+## 4. Aturan Wajib Responsif Multi-Device & Bebas RenderFlex Overflow
 
-1. **Proteksi Layar Kecil:**
+> **ATURAN MUTLAK PENGEMBANGAN UI:** Setiap kali memperbaiki, memodifikasi, atau membuat halaman (*page*), widget, dialog, bottom sheet, atau komponen antarmuka baru, Antigravity **WAJIB membuatnya responsif di berbagai perangkat** (Smartphone/Compact, Foldable & Tablet Portrait/Medium, Tablet Landscape & Desktop/Expanded).
+
+1. **Standar Window Breakpoint (Material 3 & Flutter Official):**
+   - **Compact (`< 600 dp`):** Smartphone portrait. Gunakan tata letak single column, bottom sheet modal, padding horizontal 16-20 dp.
+   - **Medium (`600 - 839 dp`):** Tablet portrait & foldable. Gunakan 2 kolom grid/flow atau split view, navigation rail/drawer samping, padding horizontal 24-32 dp.
+   - **Expanded (`≥ 840 dp`):** Tablet landscape & desktop. Gunakan master-detail split views, multi-column grid terdistribusi, dialog/card terpusat dengan batasan lebar maksimal.
+   - Manfaatkan extension helper: `context.isCompact`, `context.isMedium`, `context.isExpanded`, `context.isLargeScreen` dari `lib/core/widgets/responsive_layout.dart`.
+
+2. **Pembatasan Lebar Maksimal (Large Screen Readability):**
+   - Dilarang membiarkan formulir, dialog, kartu, atau blok teks meregang selebar layar tablet/desktop tanpa pembatas.
+   - Wajib menggunakan `ResponsiveContentWrapper` atau `ConstrainedBox` dengan konstanta `ResponsiveBreakpoints`:
+     - `ResponsiveBreakpoints.maxFormWidth` (580 dp): Untuk formulir, dialog, dan halaman onboarding.
+     - `ResponsiveBreakpoints.maxContentWidth` (960 dp): Untuk halaman detail, bacaan, dan pengaturan.
+     - `ResponsiveBreakpoints.maxDashboardWidth` (1140 dp): Untuk dashboard utama dan list grid.
+
+3. **Pencegahan RenderFlex Overflow (Defensive Anti-Overflow):**
    - Setiap halaman yang berisi formulir, tombol panjang, atau konten vertikal wajib dibungkus dengan:
      ```dart
      SingleChildScrollView(
@@ -90,13 +114,32 @@ Text('Title', style: AppTypography.titleMedium.copyWith(color: AppColors.ink))
        child: ...
      )
      ```
-   - Hindari penggunaan `Spacer()` di dalam `Column` tanpa pembatas ketinggian.
-2. **Teks Dinamis Fleksibel:**
-   - Gunakan `Flexible` atau `Expanded` di dalam `Row` saat teks berpotensi panjang agar tidak overflow.
-3. **Standar Aksesibilitas Touch Target:**
-   - Semua elemen yang dapat diklik (`AppPrimaryButton`, `IconButton`, `InkWell`, chip) wajib memiliki touch target minimum **$\ge 48\times 48$ dp**.
-4. **Proteksi Skala Font:**
+   - Hindari penggunaan `Spacer()` di dalam `Column` tanpa pembatas ketinggian pasti.
+   - Gunakan `Flexible` atau `Expanded` di dalam `Row` saat teks berpotensi panjang agar tidak overflow, sertakan `overflow: TextOverflow.ellipsis` dan `maxLines`.
+
+4. **Grid Adaptif Dinamis:**
+   - Dilarang keras meng-hardcode `crossAxisCount: 2` pada grid atau daftar kartu umum.
+   - Gunakan selalu `SliverGridDelegateWithMaxCrossAxisExtent` (misal `maxCrossAxisExtent: 280-320 dp`) agar jumlah kolom bertambah secara alami saat ukuran window membesar:
+     ```dart
+     GridView.builder(
+       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+         maxCrossAxisExtent: 320,
+         mainAxisSpacing: 16,
+         crossAxisSpacing: 16,
+         childAspectRatio: 0.85,
+       ),
+       ...
+     )
+     ```
+
+5. **Standar Aksesibilitas Touch Target:**
+   - Semua elemen interaktif (`AppPrimaryButton`, `IconButton`, `InkWell`, gesture chips) wajib memiliki touch target minimum **$\ge 48\times 48$ dp** di semua device form factor.
+
+6. **Proteksi Skala Font:**
    - Pertahankan clamping `MediaQuery.textScaler.clamp(maxScaleFactor: 1.25)` pada level root aplikasi.
+
+7. **Kelengkapan UI States (Edge-Cases Coverage):**
+   - Setiap layar data wajib menangani status: First Use, Empty State (`EmptyStateView`), Loading Skeleton/Progress, Error State dengan retry callback, Offline State (`AppColors.matcha`), dan Long Content handling.
 
 ---
 

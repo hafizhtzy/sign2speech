@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../constants/app_assets.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import 'app_button.dart';
@@ -10,7 +9,8 @@ class EmptyStateView extends StatelessWidget {
   final String subtitle;
   final String? actionLabel;
   final VoidCallback? onAction;
-  final String imagePath;
+  final String? imagePath;
+  final IconData? icon;
 
   const EmptyStateView({
     super.key,
@@ -18,7 +18,8 @@ class EmptyStateView extends StatelessWidget {
     required this.subtitle,
     this.actionLabel,
     this.onAction,
-    this.imagePath = AppAssets.editorialFeature,
+    this.imagePath,
+    this.icon,
   });
 
   @override
@@ -30,12 +31,30 @@ class EmptyStateView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              imagePath,
-              height: 160,
-              fit: BoxFit.contain,
-              cacheHeight: 320,
-            ),
+            if (imagePath != null && imagePath!.isNotEmpty)
+              Image.asset(
+                imagePath!,
+                height: 140,
+                fit: BoxFit.contain,
+                cacheHeight: 280,
+              )
+            else
+              Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  color: AppColors.bgSurface,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.border, width: 1.5),
+                ),
+                child: Center(
+                  child: Icon(
+                    icon ?? Icons.inbox_outlined,
+                    size: 44,
+                    color: AppColors.secondary,
+                  ),
+                ),
+              ),
             const SizedBox(height: 24),
             Text(
               title,

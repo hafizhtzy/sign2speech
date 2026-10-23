@@ -2,8 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
@@ -96,9 +94,12 @@ class _SplashScreenState extends State<SplashScreen>
                     ],
                   ),
                   padding: const EdgeInsets.all(24),
-                  child: Image.asset(
-                    AppAssets.brandEmblem,
-                    fit: BoxFit.contain,
+                  child: Center(
+                    child: Icon(
+                      Icons.sign_language_rounded,
+                      size: 64,
+                      color: AppColors.secondary,
+                    ),
                   ),
                 ),
               ),

@@ -176,7 +176,72 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
 
                     // Slide 3: Smart Cashier & 180 Flip Display
                     _buildSlide(
-                      imageAsset: AppAssets.editorialFeature,
+                      customIllustration: Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 24,
+                          horizontal: 16,
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.amber.withValues(alpha: 0.15),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.point_of_sale_rounded,
+                                    size: 40,
+                                    color: AppColors.amber,
+                                  ),
+                                ),
+                                const SizedBox(width: 18),
+                                Icon(
+                                  Icons.sync_alt_rounded,
+                                  size: 26,
+                                  color: AppColors.muted,
+                                ),
+                                const SizedBox(width: 18),
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.secondary.withValues(alpha: 0.15),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.screen_rotation_rounded,
+                                    size: 40,
+                                    color: AppColors.secondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 18),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.surface,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: AppColors.border),
+                              ),
+                              child: Text(
+                                'Smart Cashier & 180° Flip Display',
+                                style: AppTypography.labelMedium.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.ink,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       title: AppStrings.onboarding3Title.tr,
                       description: AppStrings.onboarding3Desc.tr,
                       chips: [
@@ -286,7 +351,8 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
   }
 
   Widget _buildSlide({
-    required String imageAsset,
+    String? imageAsset,
+    Widget? customIllustration,
     required String title,
     required String description,
     required List<_FeatureChipData> chips,
@@ -314,11 +380,14 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                 ],
               ),
               padding: const EdgeInsets.all(16),
-              child: Image.asset(
-                imageAsset,
-                fit: BoxFit.contain,
-                cacheWidth: 500,
-              ),
+              child: customIllustration ??
+                  (imageAsset != null
+                      ? Image.asset(
+                          imageAsset,
+                          fit: BoxFit.contain,
+                          cacheWidth: 500,
+                        )
+                      : const SizedBox.shrink()),
             ),
           ),
           const SizedBox(height: 24),
