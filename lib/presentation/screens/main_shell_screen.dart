@@ -41,6 +41,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
       final size = MediaQuery.sizeOf(context);
       final isShortLandscape = size.height < 520;
+      final orientation = MediaQuery.orientationOf(context);
+      final isLandscape = orientation == Orientation.landscape;
       final isLarge = context.isLargeScreen;
       final shouldExtendRail = context.isExpanded && !isShortLandscape;
       final screens = _getScreens(dynamicKey);
@@ -51,117 +53,136 @@ class _MainShellScreenState extends State<MainShellScreen> {
           floatingActionButton: const CashierFab(extended: true),
           body: Row(
             children: [
-              NavigationRail(
-                backgroundColor: AppColors.surface,
-                selectedIndex: _currentIndex,
-                onDestinationSelected: (index) {
-                  setState(() {
-                    _currentIndex = index;
-                  });
-                },
-                extended: shouldExtendRail,
-                labelType: shouldExtendRail
-                    ? NavigationRailLabelType.none
-                    : (isShortLandscape
-                        ? NavigationRailLabelType.selected
-                        : NavigationRailLabelType.all),
-                minWidth: isShortLandscape ? 68 : 80,
-                minExtendedWidth: 210,
-                indicatorColor: AppColors.secondary.withValues(alpha: 0.16),
-                selectedIconTheme: IconThemeData(
-                  color: AppColors.primary,
-                  size: isShortLandscape ? 22 : 24,
-                ),
-                unselectedIconTheme: IconThemeData(
-                  color: AppColors.muted,
-                  size: isShortLandscape ? 20 : 22,
-                ),
-                selectedLabelTextStyle: AppTypography.labelMedium.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
-                ),
-                unselectedLabelTextStyle: AppTypography.labelMedium.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.muted,
-                ),
-                leading: Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical: isShortLandscape ? 8 : 20,
-                    horizontal: 12,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: isShortLandscape ? 36 : 44,
-                        height: isShortLandscape ? 36 : 44,
-                        decoration: BoxDecoration(
-                          color: AppColors.secondary.withValues(alpha: 0.12),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.secondary.withValues(alpha: 0.3),
-                          ),
+              Container(
+                color: AppColors.surface,
+                child: SafeArea(
+                  top: false,
+                  bottom: false,
+                  right: false,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      left: isLandscape ? 12.0 : 4.0,
+                      right: isLandscape ? 6.0 : 0.0,
+                    ),
+                    child: NavigationRail(
+                      backgroundColor: AppColors.surface,
+                      selectedIndex: _currentIndex,
+                      onDestinationSelected: (index) {
+                        setState(() {
+                          _currentIndex = index;
+                        });
+                      },
+                      extended: shouldExtendRail,
+                      labelType: shouldExtendRail
+                          ? NavigationRailLabelType.none
+                          : (isShortLandscape
+                              ? NavigationRailLabelType.selected
+                              : NavigationRailLabelType.all),
+                      minWidth: isShortLandscape ? 72 : 80,
+                      minExtendedWidth: 210,
+                      indicatorColor: AppColors.secondary.withValues(alpha: 0.16),
+                      selectedIconTheme: IconThemeData(
+                        color: AppColors.primary,
+                        size: isShortLandscape ? 22 : 24,
+                      ),
+                      unselectedIconTheme: IconThemeData(
+                        color: AppColors.muted,
+                        size: isShortLandscape ? 20 : 22,
+                      ),
+                      selectedLabelTextStyle: AppTypography.labelMedium.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primary,
+                      ),
+                      unselectedLabelTextStyle: AppTypography.labelMedium.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.muted,
+                      ),
+                      leading: Padding(
+                        padding: EdgeInsets.symmetric(
+                          vertical: isShortLandscape ? 8 : 20,
+                          horizontal: isLandscape ? 8 : 12,
                         ),
-                        child: Center(
-                          child: Icon(
-                            Icons.sign_language_rounded,
-                            size: isShortLandscape ? 18 : 22,
-                            color: AppColors.secondary,
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: isShortLandscape ? 36 : 44,
+                              height: isShortLandscape ? 36 : 44,
+                              decoration: BoxDecoration(
+                                color: AppColors.secondary.withValues(alpha: 0.12),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppColors.secondary.withValues(alpha: 0.3),
+                                ),
+                              ),
+                              child: Center(
+                                child: Icon(
+                                  Icons.sign_language_rounded,
+                                  size: isShortLandscape ? 18 : 22,
+                                  color: AppColors.secondary,
+                                ),
+                              ),
+                            ),
+                            if (shouldExtendRail) ...[
+                              const SizedBox(width: 12),
+                              Flexible(
+                                child: Text(
+                                  AppStrings.appTitle.tr,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTypography.titleMedium.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.ink,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
-                      if (shouldExtendRail) ...[
-                        const SizedBox(width: 12),
-                        Flexible(
-                          child: Text(
-                            AppStrings.appTitle.tr,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTypography.titleMedium.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.ink,
-                            ),
-                          ),
+                      destinations: [
+                        NavigationRailDestination(
+                          icon: const Icon(Icons.home_outlined),
+                          selectedIcon: const Icon(Icons.home_rounded),
+                          label: Text(AppStrings.navHome.tr),
+                        ),
+                        NavigationRailDestination(
+                          icon: const Icon(Icons.history_outlined),
+                          selectedIcon: const Icon(Icons.history_rounded),
+                          label: Text(AppStrings.navHistory.tr),
+                        ),
+                        NavigationRailDestination(
+                          icon: const Icon(Icons.menu_book_outlined),
+                          selectedIcon: const Icon(Icons.menu_book_rounded),
+                          label: Text(AppStrings.navLibrary.tr),
+                        ),
+                        NavigationRailDestination(
+                          icon: const Icon(Icons.settings_outlined),
+                          selectedIcon: const Icon(Icons.settings_rounded),
+                          label: Text(AppStrings.navSettings.tr),
                         ),
                       ],
-                    ],
+                    ),
                   ),
                 ),
-              destinations: [
-                NavigationRailDestination(
-                  icon: const Icon(Icons.home_outlined),
-                  selectedIcon: const Icon(Icons.home_rounded),
-                  label: Text(AppStrings.navHome.tr),
-                ),
-                NavigationRailDestination(
-                  icon: const Icon(Icons.history_outlined),
-                  selectedIcon: const Icon(Icons.history_rounded),
-                  label: Text(AppStrings.navHistory.tr),
-                ),
-                NavigationRailDestination(
-                  icon: const Icon(Icons.menu_book_outlined),
-                  selectedIcon: const Icon(Icons.menu_book_rounded),
-                  label: Text(AppStrings.navLibrary.tr),
-                ),
-                NavigationRailDestination(
-                  icon: const Icon(Icons.settings_outlined),
-                  selectedIcon: const Icon(Icons.settings_rounded),
-                  label: Text(AppStrings.navSettings.tr),
-                ),
-              ],
-            ),
-            VerticalDivider(width: 1, thickness: 1, color: AppColors.border),
-            Expanded(
-              child: IndexedStack(
-                key: ValueKey('rail_stack_$dynamicKey'),
-                index: _currentIndex,
-                children: screens,
               ),
-            ),
-          ],
-        ),
-      );
-    }
+              VerticalDivider(width: 1, thickness: 1, color: AppColors.border),
+              Expanded(
+                child: SafeArea(
+                  left: false,
+                  top: false,
+                  bottom: false,
+                  child: IndexedStack(
+                    key: ValueKey('rail_stack_$dynamicKey'),
+                    index: _currentIndex,
+                    children: screens,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
 
     return Scaffold(
       backgroundColor: AppColors.canvas,

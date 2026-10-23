@@ -12,10 +12,13 @@ class CafeOrderTicket {
   final int amountPaid;
   final DateTime createdAt;
 
+  final String customerNotes;
+
   const CafeOrderTicket({
     required this.orderId,
     required this.queueNumber,
     this.customerName = '',
+    this.customerNotes = '',
     required this.items,
     this.status = OrderStatus.draft,
     this.paymentMethod = OrderPaymentMethod.qris,
@@ -54,6 +57,7 @@ class CafeOrderTicket {
     String? orderId,
     String? queueNumber,
     String? customerName,
+    String? customerNotes,
     List<ParsedCafeOrderSlot>? items,
     OrderStatus? status,
     OrderPaymentMethod? paymentMethod,
@@ -64,6 +68,7 @@ class CafeOrderTicket {
       orderId: orderId ?? this.orderId,
       queueNumber: queueNumber ?? this.queueNumber,
       customerName: customerName ?? this.customerName,
+      customerNotes: customerNotes ?? this.customerNotes,
       items: items ?? this.items,
       status: status ?? this.status,
       paymentMethod: paymentMethod ?? this.paymentMethod,
@@ -71,4 +76,46 @@ class CafeOrderTicket {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'orderId': orderId,
+      'queueNumber': queueNumber,
+      'customerName': customerName,
+      'customerNotes': customerNotes,
+      'items': items.map((e) => e.toMap()).toList(),
+      'status': status.name,
+      'paymentMethod': paymentMethod.name,
+      'amountPaid': amountPaid,
+      'createdAt': createdAt.toIso8601String(),
+    };
+  }
+
+  factory CafeOrderTicket.fromMap(Map<String, dynamic> map) {
+    return CafeOrderTicket(
+      orderId: map['orderId'] as String? ?? '',
+      queueNumber: map['queueNumber'] as String? ?? 'A-108',
+      customerName: map['customerName'] as String? ?? '',
+      customerNotes: map['customerNotes'] as String? ?? '',
+      items: (map['items'] as List<dynamic>?)
+              ?.map(
+                (e) => ParsedCafeOrderSlot.fromMap(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          const [],
+      status: OrderStatus.values.firstWhere(
+        (e) => e.name == map['status'],
+        orElse: () => OrderStatus.draft,
+      ),
+      paymentMethod: OrderPaymentMethod.values.firstWhere(
+        (e) => e.name == map['paymentMethod'],
+        orElse: () => OrderPaymentMethod.qris,
+      ),
+      amountPaid: (map['amountPaid'] as num?)?.toInt() ?? 0,
+      createdAt: map['createdAt'] != null
+          ? DateTime.tryParse(map['createdAt'] as String) ?? DateTime.now()
+          : DateTime.now(),
+    );
+  }
 }
+

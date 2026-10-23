@@ -12,7 +12,7 @@
     <uses-feature android:name="android.hardware.camera.front" android:required="false" />
 
     <application
-        android:label="speech2sign"
+        android:label="Sign2Speech"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

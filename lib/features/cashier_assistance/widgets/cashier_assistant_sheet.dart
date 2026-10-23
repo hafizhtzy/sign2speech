@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/currency_formatter.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../settings/controllers/settings_controller.dart';
@@ -34,30 +35,20 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
   int _currentAmount = 0;
 
   // Customer-Facing Display State
-  String _facingDisplayText = 'Halo! Mau pesan apa hari ini?';
+  late String _facingDisplayText;
   bool _isScreenFlipped = false;
   String _activeSpokenPhrase = '';
 
   // Preset categories filter
   String _selectedCategory = 'all';
 
-  String _formatCurrency(int amount) {
-    if (amount == 0) return 'Rp 0';
-    final str = amount.toString();
-    final buffer = StringBuffer();
-    for (int i = 0; i < str.length; i++) {
-      if (i > 0 && (str.length - i) % 3 == 0) {
-        buffer.write('.');
-      }
-      buffer.write(str[i]);
-    }
-    return 'Rp ${buffer.toString()}';
-  }
+  String _formatCurrency(int amount) => formatRupiah(amount);
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _facingDisplayText = AppStrings.cashierGreetingPrompt.tr;
   }
 
   @override
@@ -85,7 +76,7 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
     HapticFeedback.selectionClick();
     setState(() {
       _currentAmount = (_currentAmount + addition).clamp(0, 99999999);
-      _facingDisplayText = 'Total: ${_formatCurrency(_currentAmount)}';
+      _facingDisplayText = '${AppStrings.cafeGrandTotal.tr}: ${_formatCurrency(_currentAmount)}';
     });
   }
 
@@ -100,7 +91,7 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
           _currentAmount = int.tryParse(newStr) ?? _currentAmount;
         }
       }
-      _facingDisplayText = 'Total: ${_formatCurrency(_currentAmount)}';
+      _facingDisplayText = '${AppStrings.cafeGrandTotal.tr}: ${_formatCurrency(_currentAmount)}';
     });
   }
 
@@ -113,7 +104,7 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
           _currentAmount = int.tryParse(newStr) ?? _currentAmount;
         }
       }
-      _facingDisplayText = 'Total: ${_formatCurrency(_currentAmount)}';
+      _facingDisplayText = '${AppStrings.cafeGrandTotal.tr}: ${_formatCurrency(_currentAmount)}';
     });
   }
 
@@ -127,8 +118,8 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
         _currentAmount = int.tryParse(str.substring(0, str.length - 1)) ?? 0;
       }
       _facingDisplayText = _currentAmount > 0
-          ? 'Total: ${_formatCurrency(_currentAmount)}'
-          : 'Halo! Mau pesan apa hari ini?';
+          ? '${AppStrings.cafeGrandTotal.tr}: ${_formatCurrency(_currentAmount)}'
+          : AppStrings.cashierGreetingPrompt.tr;
     });
   }
 
@@ -136,7 +127,7 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
     HapticFeedback.mediumImpact();
     setState(() {
       _currentAmount = 0;
-      _facingDisplayText = 'Halo! Mau pesan apa hari ini?';
+      _facingDisplayText = AppStrings.cashierGreetingPrompt.tr;
     });
   }
 
@@ -326,13 +317,13 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
             physics: const BouncingScrollPhysics(),
             child: Row(
               children: [
-                _buildCategoryPill('all', 'Semua / All'),
+                _buildCategoryPill('all', AppStrings.libraryCategoryAll.tr),
                 const SizedBox(width: 8),
-                _buildCategoryPill('menu', '☕ Menu & Pesanan'),
+                _buildCategoryPill('menu', '☕ ${AppStrings.cashierPresetsMenu.tr}'),
                 const SizedBox(width: 8),
-                _buildCategoryPill('payment', '💳 Pembayaran'),
+                _buildCategoryPill('payment', '💳 ${AppStrings.cashierPresetsPayment.tr}'),
                 const SizedBox(width: 8),
-                _buildCategoryPill('friendly', '🤝 Sapaan & Ramah'),
+                _buildCategoryPill('friendly', '🤝 ${AppStrings.cashierPresetsFriendly.tr}'),
               ],
             ),
           ),
@@ -356,7 +347,7 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Suara Diucapkan: "$_activeSpokenPhrase"',
+                      '${AppStrings.spokenVoiceSnackbar.tr}: "$_activeSpokenPhrase"',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTypography.bodySmall.copyWith(
@@ -411,7 +402,7 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              item['id']!,
+                              Get.locale?.languageCode == 'en' ? item['en']! : item['id']!,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppTypography.bodySmall.copyWith(
@@ -425,7 +416,7 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
                         icon: Icon(Icons.volume_up_rounded,
                             color: AppColors.secondary, size: 20),
                         onPressed: () => _speakText(item['id']!, item['en']!),
-                        tooltip: 'Ucapkan Suara',
+                        tooltip: AppStrings.playVoice.tr,
                       ),
                       IconButton(
                         icon: Icon(Icons.screen_rotation_rounded,
@@ -436,7 +427,7 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
                           });
                           _tabController.animateTo(2);
                         },
-                        tooltip: 'Tampilkan ke Layar Balik',
+                        tooltip: AppStrings.cashierCustomerViewBadge.tr,
                       ),
                     ],
                   ),
@@ -613,30 +604,37 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
             // Right Column: Numpad Grid
             Expanded(
               flex: 5,
-              child: GridView.count(
-                crossAxisCount: 3,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 6,
-                crossAxisSpacing: 6,
-                childAspectRatio: 2.2,
-                children: [
-                  _buildNumpadButton('1', () => _typeDigit(1)),
-                  _buildNumpadButton('2', () => _typeDigit(2)),
-                  _buildNumpadButton('3', () => _typeDigit(3)),
-                  _buildNumpadButton('4', () => _typeDigit(4)),
-                  _buildNumpadButton('5', () => _typeDigit(5)),
-                  _buildNumpadButton('6', () => _typeDigit(6)),
-                  _buildNumpadButton('7', () => _typeDigit(7)),
-                  _buildNumpadButton('8', () => _typeDigit(8)),
-                  _buildNumpadButton('9', () => _typeDigit(9)),
-                  _buildNumpadButton('000', _addThousands),
-                  _buildNumpadButton('0', () => _typeDigit(0)),
-                  _buildNumpadIconButton(
-                    Icons.backspace_outlined,
-                    _backspaceAmount,
-                    onLongPress: _clearAmount,
-                  ),
-                ],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final itemHeight = ((constraints.maxHeight - 18) / 4).clamp(28.0, 64.0);
+                  final itemWidth = (constraints.maxWidth - 12) / 3;
+                  final ratio = (itemWidth / itemHeight).clamp(1.4, 3.5);
+                  return GridView.count(
+                    crossAxisCount: 3,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 6,
+                    crossAxisSpacing: 6,
+                    childAspectRatio: ratio,
+                    children: [
+                      _buildNumpadButton('1', () => _typeDigit(1)),
+                      _buildNumpadButton('2', () => _typeDigit(2)),
+                      _buildNumpadButton('3', () => _typeDigit(3)),
+                      _buildNumpadButton('4', () => _typeDigit(4)),
+                      _buildNumpadButton('5', () => _typeDigit(5)),
+                      _buildNumpadButton('6', () => _typeDigit(6)),
+                      _buildNumpadButton('7', () => _typeDigit(7)),
+                      _buildNumpadButton('8', () => _typeDigit(8)),
+                      _buildNumpadButton('9', () => _typeDigit(9)),
+                      _buildNumpadButton('000', _addThousands),
+                      _buildNumpadButton('0', () => _typeDigit(0)),
+                      _buildNumpadIconButton(
+                        Icons.backspace_outlined,
+                        _backspaceAmount,
+                        onLongPress: _clearAmount,
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ],
@@ -835,54 +833,63 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
     final isShortLandscape = size.height < 520 && size.width >= 580;
 
     return Padding(
-      padding: EdgeInsets.all(isShortLandscape ? 12 : 20),
+      padding: EdgeInsets.symmetric(
+        horizontal: isShortLandscape ? 16 : 20,
+        vertical: isShortLandscape ? 6 : 16,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Mode switch header
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: _isScreenFlipped
-                      ? AppColors.amber.withValues(alpha: 0.15)
-                      : AppColors.bgSurface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
                     color: _isScreenFlipped
-                        ? AppColors.amber
-                        : AppColors.border,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      _isScreenFlipped
-                          ? Icons.screen_rotation_rounded
-                          : Icons.phone_android_rounded,
-                      size: 14,
+                        ? AppColors.amber.withValues(alpha: 0.15)
+                        : AppColors.bgSurface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
                       color: _isScreenFlipped
                           ? AppColors.amber
-                          : AppColors.muted,
+                          : AppColors.border,
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      _isScreenFlipped
-                          ? 'Menghadap Pelanggan (180°)'
-                          : 'Menghadap Kasir / Anda',
-                      style: AppTypography.labelSmall.copyWith(
-                        fontWeight: FontWeight.w700,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _isScreenFlipped
+                            ? Icons.screen_rotation_rounded
+                            : Icons.phone_android_rounded,
+                        size: 14,
                         color: _isScreenFlipped
                             ? AppColors.amber
-                            : AppColors.ink,
+                            : AppColors.muted,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          _isScreenFlipped
+                              ? 'Menghadap Pelanggan (180°)'
+                              : 'Menghadap Kasir / Anda',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.labelSmall.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: _isScreenFlipped
+                                ? AppColors.amber
+                                : AppColors.ink,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
               ElevatedButton.icon(
                 onPressed: () {
                   HapticFeedback.mediumImpact();
@@ -892,7 +899,7 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
                 },
                 icon: const Icon(Icons.flip_camera_android_rounded, size: 16),
                 label: Text(
-                  _isScreenFlipped ? 'Normal (0°)' : 'Balik 180°',
+                  _isScreenFlipped ? AppStrings.cashierScreenNormal.tr : AppStrings.cashierFlipScreen.tr,
                   style: AppTypography.labelSmall.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -901,14 +908,14 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
                   backgroundColor: AppColors.secondary,
                   foregroundColor: Colors.white,
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      EdgeInsets.symmetric(horizontal: 12, vertical: isShortLandscape ? 6 : 8),
                   minimumSize: Size.zero,
                   shape: const StadiumBorder(),
                 ),
               ),
             ],
           ),
-          SizedBox(height: isShortLandscape ? 8 : 14),
+          SizedBox(height: isShortLandscape ? 6 : 14),
 
           // Big Facing Card Container (Rotates 180 degrees)
           Expanded(
@@ -917,10 +924,13 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
               duration: const Duration(milliseconds: 350),
               curve: Curves.easeInOutCubic,
               child: Container(
-                padding: EdgeInsets.all(isShortLandscape ? 14 : 24),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isShortLandscape ? 16 : 24,
+                  vertical: isShortLandscape ? 10 : 20,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: _isScreenFlipped
                         ? AppColors.secondary
@@ -945,20 +955,37 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
                         Icon(
                           Icons.visibility_rounded,
                           color: AppColors.secondary,
-                          size: 18,
+                          size: isShortLandscape ? 16 : 18,
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          AppStrings.cashierCustomerViewBadge.tr,
-                          style: AppTypography.labelMedium.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.secondary,
-                            letterSpacing: 0.5,
+                        Flexible(
+                          child: Text(
+                            AppStrings.cashierCustomerViewBadge.tr,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.labelMedium.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.secondary,
+                              letterSpacing: 0.5,
+                            ),
                           ),
                         ),
+                        if (isShortLandscape) ...[
+                          const SizedBox(width: 8),
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                            onPressed: () =>
+                                _speakText(_facingDisplayText, _facingDisplayText),
+                            icon: const Icon(Icons.volume_up_rounded, size: 20),
+                            color: AppColors.secondary,
+                            tooltip: AppStrings.cashierSpeakThisText.tr,
+                          ),
+                        ],
                       ],
                     ),
-                    SizedBox(height: isShortLandscape ? 8 : 16),
+                    SizedBox(height: isShortLandscape ? 6 : 16),
                     Expanded(
                       child: Center(
                         child: SingleChildScrollView(
@@ -967,7 +994,7 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
                             _facingDisplayText,
                             textAlign: TextAlign.center,
                             style: (isShortLandscape
-                                    ? AppTypography.headlineMedium
+                                    ? AppTypography.titleLarge
                                     : AppTypography.displayMedium)
                                 .copyWith(
                               fontWeight: FontWeight.w800,
@@ -978,18 +1005,20 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
                         ),
                       ),
                     ),
-                    SizedBox(height: isShortLandscape ? 8 : 14),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton.filledTonal(
-                          onPressed: () =>
-                              _speakText(_facingDisplayText, _facingDisplayText),
-                          icon: const Icon(Icons.volume_up_rounded),
-                          tooltip: 'Ucapkan Teks Ini',
-                        ),
-                      ],
-                    ),
+                    if (!isShortLandscape) ...[
+                      const SizedBox(height: 14),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton.filledTonal(
+                            onPressed: () =>
+                                _speakText(_facingDisplayText, _facingDisplayText),
+                            icon: const Icon(Icons.volume_up_rounded),
+                            tooltip: AppStrings.cashierSpeakThisText.tr,
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),

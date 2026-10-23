@@ -4,6 +4,9 @@ import 'package:speech2sign/core/theme/app_typography.dart';
 
 import '../domain/models/coffee_menu_item.dart';
 
+/// Interactive circular diagram depicting coffee layers and composition points.
+///
+/// Responsive to available parent width and follows the Cafe Warm Oat Milk design tokens.
 class CoffeeCompositionCircle extends StatelessWidget {
   final CoffeeMenuItem item;
   final double size;
@@ -11,113 +14,175 @@ class CoffeeCompositionCircle extends StatelessWidget {
   const CoffeeCompositionCircle({
     super.key,
     required this.item,
-    this.size = 200,
+    this.size = 190,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: SizedBox(
-        width: size + 110,
-        height: size + 60,
-        child: Stack(
-          alignment: Alignment.center,
-          clipBehavior: Clip.none,
-          children: [
-            // Outer subtle glow ring
-            Container(
-              width: size + 20,
-              height: size + 20,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.secondary.withValues(alpha: 0.25),
-                  width: 1.5,
-                ),
-              ),
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Adaptively scale circle size if on a narrow display
+        final maxAvail = constraints.maxWidth;
+        final targetDiameter = (maxAvail - 90).clamp(150.0, size);
+        final containerWidth = (targetDiameter + 100).clamp(280.0, maxAvail);
+        final containerHeight = targetDiameter + 50;
 
-            // Inner main circle
-            Container(
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.surface,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.12),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-                border: Border.all(color: AppColors.border, width: 2),
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.coffee_rounded,
-                      size: size * 0.38,
-                      color: AppColors.secondary,
+        return Center(
+          child: SizedBox(
+            width: containerWidth,
+            height: containerHeight,
+            child: Stack(
+              alignment: Alignment.center,
+              clipBehavior: Clip.none,
+              children: [
+                // 1. Outer subtle orbit ring
+                Container(
+                  width: targetDiameter + 24,
+                  height: targetDiameter + 24,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.secondary.withValues(alpha: 0.22),
+                      width: 1.5,
+                      strokeAlign: BorderSide.strokeAlignCenter,
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      item.nameId,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.titleSmall.copyWith(
-                        color: AppColors.ink,
-                        fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                // 2. Middle decorative dashed aura ring
+                Container(
+                  width: targetDiameter + 10,
+                  height: targetDiameter + 10,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.paleMist.withValues(alpha: 0.8),
+                      width: 1,
+                    ),
+                  ),
+                ),
+
+                // 3. Inner main coffee medallion
+                Container(
+                  width: targetDiameter,
+                  height: targetDiameter,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.surface,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.08),
+                        blurRadius: 22,
+                        offset: const Offset(0, 8),
+                      ),
+                      BoxShadow(
+                        color: AppColors.secondary.withValues(alpha: 0.06),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                    border: Border.all(color: AppColors.border, width: 2),
+                  ),
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Concentric latte cup emblem
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.bgSurface,
+                              border: Border.all(
+                                color: AppColors.border.withValues(alpha: 0.6),
+                                width: 1,
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.coffee_rounded,
+                              size: targetDiameter * 0.28,
+                              color: AppColors.secondary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          // Beverage title
+                          Text(
+                            item.nameId,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.titleSmall.copyWith(
+                              color: AppColors.ink,
+                              fontWeight: FontWeight.bold,
+                              height: 1.2,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
+
+                // 4. Composition Point 1: Top Right (e.g. Steamed Oat Milk)
+                if (item.compositionPoints.isNotEmpty)
+                  Positioned(
+                    top: 10,
+                    right: 0,
+                    child: _buildCompositionCallout(
+                      label: item.compositionPoints[0],
+                      icon: _pickPointIcon(item.compositionPoints[0]),
+                      isRightAligned: true,
+                    ),
+                  ),
+
+                // 5. Composition Point 2: Top Left (e.g. Low-Acid Shot)
+                if (item.compositionPoints.length > 1)
+                  Positioned(
+                    top: 36,
+                    left: 0,
+                    child: _buildCompositionCallout(
+                      label: item.compositionPoints[1],
+                      icon: _pickPointIcon(item.compositionPoints[1]),
+                      isRightAligned: false,
+                    ),
+                  ),
+
+                // 6. Composition Point 3: Bottom Right (e.g. Silky Foam)
+                if (item.compositionPoints.length > 2)
+                  Positioned(
+                    bottom: 12,
+                    right: 8,
+                    child: _buildCompositionCallout(
+                      label: item.compositionPoints[2],
+                      icon: _pickPointIcon(item.compositionPoints[2]),
+                      isRightAligned: true,
+                    ),
+                  ),
+              ],
             ),
-
-            // Composition Point 1: Top Right (e.g. Microfoam)
-            if (item.compositionPoints.isNotEmpty)
-              Positioned(
-                top: 8,
-                right: 0,
-                child: _buildCompositionCallout(
-                  label: item.compositionPoints[0],
-                  isRightAligned: true,
-                ),
-              ),
-
-            // Composition Point 2: Top Left (e.g. Oat Milk)
-            if (item.compositionPoints.length > 1)
-              Positioned(
-                top: 40,
-                left: 0,
-                child: _buildCompositionCallout(
-                  label: item.compositionPoints[1],
-                  isRightAligned: false,
-                ),
-              ),
-
-            // Composition Point 3: Bottom Center/Right (e.g. Espresso)
-            if (item.compositionPoints.length > 2)
-              Positioned(
-                bottom: 8,
-                right: 12,
-                child: _buildCompositionCallout(
-                  label: item.compositionPoints[2],
-                  isRightAligned: true,
-                ),
-              ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
+  }
+
+  IconData _pickPointIcon(String label) {
+    final lower = label.toLowerCase();
+    if (lower.contains('shot') || lower.contains('espresso') || lower.contains('kopi')) {
+      return Icons.bolt_rounded;
+    } else if (lower.contains('milk') || lower.contains('susu') || lower.contains('oat')) {
+      return Icons.water_drop_rounded;
+    } else if (lower.contains('foam') || lower.contains('busa') || lower.contains('crema')) {
+      return Icons.cloud_outlined;
+    }
+    return Icons.auto_awesome_rounded;
   }
 
   Widget _buildCompositionCallout({
     required String label,
+    required IconData icon,
     required bool isRightAligned,
   }) {
     final dot = Container(
@@ -129,7 +194,7 @@ class CoffeeCompositionCircle extends StatelessWidget {
         border: Border.all(color: AppColors.surface, width: 2),
         boxShadow: [
           BoxShadow(
-            color: AppColors.secondary.withValues(alpha: 0.4),
+            color: AppColors.secondary.withValues(alpha: 0.45),
             blurRadius: 4,
           ),
         ],
@@ -137,18 +202,36 @@ class CoffeeCompositionCircle extends StatelessWidget {
     );
 
     final chip = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: AppColors.bgSurface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border, width: 1),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border, width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Text(
-        label,
-        style: AppTypography.labelSmall.copyWith(
-          color: AppColors.ink,
-          fontWeight: FontWeight.w600,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 13,
+            color: AppColors.secondary,
+          ),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: AppTypography.labelSmall.copyWith(
+              color: AppColors.ink,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
 
@@ -157,12 +240,12 @@ class CoffeeCompositionCircle extends StatelessWidget {
       children: isRightAligned
           ? [
               dot,
-              const SizedBox(width: 4),
+              const SizedBox(width: 5),
               chip,
             ]
           : [
               chip,
-              const SizedBox(width: 4),
+              const SizedBox(width: 5),
               dot,
             ],
     );

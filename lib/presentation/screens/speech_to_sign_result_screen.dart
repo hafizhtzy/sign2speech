@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_card.dart';
+import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/responsive_layout.dart';
 import '../../features/history/controllers/history_controller.dart';
 import '../../features/history/models/history_item.dart';
@@ -182,13 +183,10 @@ class SpeechToSignResultScreen extends StatelessWidget {
                                 direction: TranslationDirection.speechToSign,
                                 signLanguage: settings.selectedSignLanguage.value,
                               );
-                              Get.snackbar(
-                                'Tersimpan',
-                                'Peragaan isyarat berhasil disimpan ke Riwayat',
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: AppColors.surface,
-                                colorText: AppColors.ink,
-                                margin: const EdgeInsets.all(16),
+                              AppSnackbar.success(
+                                title: AppStrings.signResultSaved.tr,
+                                message: AppStrings.signResultSavedDesc.tr,
+                                icon: Icons.bookmark_added_rounded,
                               );
                             },
                           ),

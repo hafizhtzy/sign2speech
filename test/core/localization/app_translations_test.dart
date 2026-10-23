@@ -51,6 +51,73 @@ void main() {
 
       expect(idMap[AppStrings.settingsAppLanguage], 'Bahasa Aplikasi');
       expect(enMap[AppStrings.settingsAppLanguage], 'App Language');
+
+      // Cafe POS & Delete Confirmation Localization Verification
+      expect(idMap[AppStrings.cafeDeleteOrderTitle], 'Hapus Pesanan?');
+      expect(enMap[AppStrings.cafeDeleteOrderTitle], 'Remove Item?');
+
+      expect(idMap[AppStrings.cafeDeleteItem], 'Hapus');
+      expect(enMap[AppStrings.cafeDeleteItem], 'Remove');
+
+      expect(idMap[AppStrings.cafeLiveOrderCameraTitle], 'Live Kamera & Suara Pesanan');
+      expect(enMap[AppStrings.cafeLiveOrderCameraTitle], 'Live Camera & Voice Order');
+
+      expect(idMap[AppStrings.cafeOrderReady], 'Pesanan Siap Diambil!');
+      expect(enMap[AppStrings.cafeOrderReady], 'Order is Ready for Pickup!');
+
+      expect(idMap[AppStrings.cafeOfficialReceipt], 'STRUK RESMI KAFE');
+      expect(enMap[AppStrings.cafeOfficialReceipt], 'OFFICIAL CAFE RECEIPT');
+
+      expect(idMap[AppStrings.cafeTodaySignTitle], 'ISYARAT HARI INI:');
+      expect(enMap[AppStrings.cafeTodaySignTitle], "TODAY'S SIGN:");
+
+      expect(idMap[AppStrings.cashierGreetingPrompt], 'Halo! Mau pesan apa hari ini?');
+      expect(enMap[AppStrings.cashierGreetingPrompt], 'Hello! What would you like to order today?');
+    });
+
+    test('Dynamic GetX .tr and .trParams evaluation resolves correctly in both locales', () {
+      Get.reset();
+      AppTranslations.ensureLoaded();
+
+      Get.locale = const Locale('id', 'ID');
+      expect(AppStrings.cafeDeleteOrderTitle.tr, 'Hapus Pesanan?');
+      expect(AppStrings.cafeDeleteItem.tr, 'Hapus');
+      expect(
+        AppStrings.cafeDeleteOrderConfirm.trParams({'name': 'Oat Cappuccino'}),
+        'Apakah Anda yakin ingin menghapus Oat Cappuccino dari tiket pesanan?',
+      );
+      expect(
+        AppStrings.cafeSignGuideTitle.trParams({'word': 'KOPI'}),
+        'Panduan Isyarat: "KOPI"',
+      );
+      expect(
+        AppStrings.cafeMatchPercentage.trParams({'percent': '95'}),
+        '95% Cocok',
+      );
+      expect(
+        AppStrings.cafeTrophyDesc.trParams({'sign': 'KOPI'}),
+        'Luar biasa! Gestur "KOPI" berhasil Anda peragakan dengan sempurna. Barista sangat mengapresiasi upaya Anda!',
+      );
+
+      Get.locale = const Locale('en', 'US');
+      expect(AppStrings.cafeDeleteOrderTitle.tr, 'Remove Item?');
+      expect(AppStrings.cafeDeleteItem.tr, 'Remove');
+      expect(
+        AppStrings.cafeDeleteOrderConfirm.trParams({'name': 'Oat Cappuccino'}),
+        'Are you sure you want to remove Oat Cappuccino from the order ticket?',
+      );
+      expect(
+        AppStrings.cafeSignGuideTitle.trParams({'word': 'COFFEE'}),
+        'Sign Guide: "COFFEE"',
+      );
+      expect(
+        AppStrings.cafeMatchPercentage.trParams({'percent': '95'}),
+        '95% Match',
+      );
+      expect(
+        AppStrings.cafeTrophyDesc.trParams({'sign': 'COFFEE'}),
+        'Awesome! You performed the "COFFEE" gesture perfectly. The barista really appreciates your effort!',
+      );
     });
   });
 

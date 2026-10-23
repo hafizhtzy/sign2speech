@@ -5,6 +5,7 @@ import '../../core/constants/app_routes.dart';
 import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_card.dart';
+import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/responsive_layout.dart';
 import '../../features/sign_language/controllers/text_to_sign_controller.dart';
 import '../../features/sign_language/models/sign_video_entry.dart';
@@ -159,13 +160,10 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
   Future<void> _downloadFilteredPack() async {
     final targetEntries = _filteredEntries;
     if (targetEntries.isEmpty) {
-      Get.snackbar(
-        'Tidak Ada Video',
-        'Tidak ada video pada filter ini untuk diunduh.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.surface,
-        colorText: AppColors.ink,
-        margin: const EdgeInsets.all(16),
+      AppSnackbar.warning(
+        title: AppStrings.libraryNoVideosToDownload.tr,
+        message: AppStrings.libraryNoVideosToDownloadDesc.tr,
+        icon: Icons.filter_none_rounded,
       );
       return;
     }
@@ -216,13 +214,12 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
         _downloadProgress = 0.0;
       });
 
-      Get.snackbar(
-        'Unduhan Selesai',
-        '$successCount video berhasil tersimpan di penyimpanan offline.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.surface,
-        colorText: AppColors.ink,
-        margin: const EdgeInsets.all(16),
+      AppSnackbar.success(
+        title: AppStrings.libraryDownloadComplete.tr,
+        message: AppStrings.libraryDownloadCompleteDesc.trParams({
+          'count': successCount.toString(),
+        }),
+        icon: Icons.cloud_done_rounded,
       );
     }
   }

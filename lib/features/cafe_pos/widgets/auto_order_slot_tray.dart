@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:speech2sign/core/localization/app_strings.dart';
 import 'package:speech2sign/core/theme/app_colors.dart';
 import 'package:speech2sign/core/theme/app_typography.dart';
+import 'package:speech2sign/core/utils/currency_formatter.dart';
 
 import '../domain/models/parsed_cafe_order_slot.dart';
 import 'dietary_alert_badge.dart';
@@ -125,7 +126,7 @@ class AutoOrderSlotTray extends StatelessWidget {
                 ),
               ),
               Text(
-                'Rp ${item.totalPrice}',
+                formatRupiah(item.totalPrice),
                 style: AppTypography.titleMedium.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,

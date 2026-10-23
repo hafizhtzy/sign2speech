@@ -25,7 +25,16 @@
 -keep class com.tundralabs.fluttertts.** { *; }
 -dontwarn com.tundralabs.fluttertts.**
 
+# Models and Domain DTOs
+-keepclassmembers class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+-keep class com.example.speech2sign.models.** { *; }
+-keep class com.speech2sign.models.** { *; }
+-keep class speech2sign.** { *; }
+
 # Generic Optimization Attributes
 -keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod,Exceptions
 -dontwarn java.lang.invoke.**
+
 

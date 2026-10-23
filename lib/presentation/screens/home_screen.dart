@@ -5,6 +5,7 @@ import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_card.dart';
+import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/responsive_layout.dart';
 import '../../core/widgets/status_badge.dart';
 import '../../features/history/controllers/history_controller.dart';
@@ -620,13 +621,10 @@ class _HomeScreenState extends State<HomeScreen> {
           _activeQuickPhrase = chipLabel;
         });
         await tts.speak(phraseToSpeak, languageCode: langCode);
-        Get.snackbar(
-          AppStrings.spokenVoiceSnackbar.tr,
-          phraseToSpeak,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: AppColors.primary,
-          colorText: AppColors.textOnDark,
-          margin: const EdgeInsets.all(16),
+        AppSnackbar.info(
+          title: AppStrings.spokenVoiceSnackbar.tr,
+          message: phraseToSpeak,
+          icon: Icons.volume_up_rounded,
           duration: const Duration(seconds: 2),
         );
         await Future.delayed(const Duration(milliseconds: 600));

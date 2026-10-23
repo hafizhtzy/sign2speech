@@ -3,18 +3,35 @@ import 'package:get/get.dart';
 import 'package:speech2sign/core/localization/app_strings.dart';
 import 'package:speech2sign/core/theme/app_colors.dart';
 import 'package:speech2sign/core/theme/app_typography.dart';
+import 'package:speech2sign/core/utils/currency_formatter.dart';
 
+import '../domain/models/coffee_menu_item.dart';
 import '../domain/models/coffee_recommendation_result.dart';
 
 class CoffeeRecommendationCard extends StatelessWidget {
   final CoffeeRecommendationResult? recommendation;
   final VoidCallback onSelect;
+  final String selectedTag;
+  final ValueChanged<String>? onTagSelected;
+  final ValueChanged<CoffeeMenuItem>? onAddDirectly;
 
   const CoffeeRecommendationCard({
     super.key,
     required this.recommendation,
     required this.onSelect,
+    this.selectedTag = 'Semua',
+    this.onTagSelected,
+    this.onAddDirectly,
   });
+
+  static const List<String> _preferenceTags = [
+    'Semua',
+    'Aman Lambung',
+    'Karamel Dingin',
+    'Double Shot Aren',
+    'Matcha Sehat',
+    'Americano Diet',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +99,7 @@ class CoffeeRecommendationCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'Rp ${rec.item.basePrice}',
+                  formatRupiah(rec.item.basePrice),
                   style: AppTypography.labelMedium.copyWith(
                     color: AppColors.primary,
                     fontWeight: FontWeight.bold,
@@ -92,15 +109,57 @@ class CoffeeRecommendationCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
-          // Drink Name
-          Text(
-            rec.item.nameId,
-            style: AppTypography.titleMedium.copyWith(
-              color: AppColors.secondary,
-              fontWeight: FontWeight.bold,
+          // Preference Filter Chips
+          if (onTagSelected != null) ...[
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: _preferenceTags.map((tag) {
+                  final isSelected = selectedTag == tag;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: FilterChip(
+                      selected: isSelected,
+                      showCheckmark: false,
+                      label: Text(tag),
+                      labelStyle: AppTypography.labelSmall.copyWith(
+                        color:
+                            isSelected ? AppColors.surface : AppColors.primary,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.w600,
+                      ),
+                      selectedColor: AppColors.primary,
+                      backgroundColor: AppColors.paleMist,
+                      side: BorderSide(
+                        color: isSelected
+                            ? AppColors.primary
+                            : AppColors.border,
+                      ),
+                      onSelected: (_) => onTagSelected!(tag),
+                    ),
+                  );
+                }).toList(),
+              ),
             ),
+            const SizedBox(height: 12),
+          ],
+
+          // Drink Name & Badges
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  rec.item.nameId,
+                  style: AppTypography.titleMedium.copyWith(
+                    color: AppColors.secondary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
           ),
 
           const SizedBox(height: 6),
@@ -144,27 +203,63 @@ class CoffeeRecommendationCard extends StatelessWidget {
 
           const SizedBox(height: 14),
 
-          // Select button
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: OutlinedButton.icon(
-              onPressed: onSelect,
-              icon: const Icon(Icons.tune, size: 18),
-              label: Text(
-                AppStrings.cafeAiChooseCustomize.tr,
-                style: AppTypography.labelLarge.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.secondary,
+          // Action Buttons: 1-Tap "Pesan Minuman Ini" + "Lihat Detail"
+          Row(
+            children: [
+              if (onAddDirectly != null) ...[
+                Expanded(
+                  flex: 3,
+                  child: SizedBox(
+                    height: 48,
+                    child: ElevatedButton.icon(
+                      onPressed: () => onAddDirectly!(rec.item),
+                      icon: const Icon(Icons.add_shopping_cart, size: 18),
+                      label: Text(
+                        AppStrings.cafeQuickOrderAction.tr,
+                        style: AppTypography.labelLarge.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.surface,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.surface,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              Expanded(
+                flex: onAddDirectly != null ? 2 : 1,
+                child: SizedBox(
+                  height: 48,
+                  child: OutlinedButton.icon(
+                    onPressed: onSelect,
+                    icon: const Icon(Icons.info_outline, size: 18),
+                    label: Text(
+                      AppStrings.cafeAiChooseCustomize.tr,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.labelLarge.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.secondary,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: AppColors.secondary, width: 1.5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: AppColors.secondary, width: 1.5),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
+            ],
           ),
         ],
       ),

@@ -116,6 +116,18 @@ class AppStrings {
   static const String libraryDownloadFilter = 'library_download_filter';
   static const String libraryDownloadAction = 'library_download_action';
   static const String librarySynonyms = 'library_synonyms';
+  static const String libraryNoVideosToDownload = 'library_no_videos_to_download';
+  static const String libraryNoVideosToDownloadDesc = 'library_no_videos_to_download_desc';
+  static const String libraryDownloadComplete = 'library_download_complete';
+  static const String libraryDownloadCompleteDesc = 'library_download_complete_desc';
+  static const String pkgDownloadSuccess = 'pkg_download_success';
+  static const String pkgDownloadSuccessDesc = 'pkg_download_success_desc';
+  static const String pkgDownloadCancelled = 'pkg_download_cancelled';
+  static const String pkgDownloadCancelledDesc = 'pkg_download_cancelled_desc';
+  static const String pkgDownloadFailed = 'pkg_download_failed';
+  static const String pkgDownloadFailedDesc = 'pkg_download_failed_desc';
+  static const String pkgCleanSuccess = 'pkg_clean_success';
+  static const String pkgCleanSuccessDesc = 'pkg_clean_success_desc';
 
   // History
   static const String historyTitle = 'history_title';
@@ -252,4 +264,70 @@ class AppStrings {
   static const String cafeCompositionOat = 'cafe_composition_oat';
   static const String cafeCompositionFoam = 'cafe_composition_foam';
   static const String cafeCompositionEspresso = 'cafe_composition_espresso';
+
+  // Live Camera & Interactive Real-Time POS
+  static const String cafeLiveOrderCameraTitle = 'cafe_live_order_camera_title';
+  static const String cafeLiveOrderCameraHint = 'cafe_live_order_camera_hint';
+  static const String cafeSpellingCameraTitle = 'cafe_spelling_camera_title';
+  static const String cafeSpellingCameraHint = 'cafe_spelling_camera_hint';
+  static const String cafeChallengeHintBtn = 'cafe_challenge_hint_btn';
+  static const String cafeChallengeCloseCamera = 'cafe_challenge_close_camera';
+  static const String cafeSwitchCamera = 'cafe_switch_camera';
+  static const String cafeDetectedLetter = 'cafe_detected_letter';
+  static const String cafeHoldConfirming = 'cafe_hold_confirming';
+  static const String cafeCameraActive = 'cafe_camera_active';
+  static const String cafeOpenLiveCamera = 'cafe_open_live_camera';
+  static const String cafeCloseLiveCamera = 'cafe_close_live_camera';
+  static const String cafeDeleteOrderTitle = 'cafe_delete_order_title';
+  static const String cafeDeleteOrderConfirm = 'cafe_delete_order_confirm';
+  static const String cafeDeleteItem = 'cafe_delete_item';
+  static const String cafeForCustomerName = 'cafe_for_customer_name';
+  static const String cafeSignVideoReady = 'cafe_sign_video_ready';
+  static const String cafeCloseNotification = 'cafe_close_notification';
+  static const String cafeTrophyTitle = 'cafe_trophy_title';
+  static const String cafeTrophyDesc = 'cafe_trophy_desc';
+  static const String cafeTrophyAction = 'cafe_trophy_action';
+
+  static const String cafeEmptyTicket = 'cafe_empty_ticket';
+  static const String cafeCustomerNotesPrefix = 'cafe_customer_notes_prefix';
+  static const String cafeSubstituteOatMilk = 'cafe_substitute_oat_milk';
+  static const String cafeExactCash = 'cafe_exact_cash';
+  static const String cafeCompleteCashPayment = 'cafe_complete_cash_payment';
+  static const String cafeQrisNationalStandard = 'cafe_qris_national_standard';
+  static const String cafeQrisVerifying = 'cafe_qris_verifying';
+  static const String cafeQrisSimulatePay = 'cafe_qris_simulate_pay';
+  static const String cafePaymentSuccessServing = 'cafe_payment_success_serving';
+  static const String cafeResetTicketTooltip = 'cafe_reset_ticket_tooltip';
+  static const String cafeTranscriptInputHint = 'cafe_transcript_input_hint';
+  static const String cafeProcessOrder = 'cafe_process_order';
+  static const String cafeListeningVoiceNow = 'cafe_listening_voice_now';
+  static const String cafeSimulatorTranscriptTitle = 'cafe_simulator_transcript_title';
+  static const String cafeQuickExamples = 'cafe_quick_examples';
+  static const String cafeDetectedPrefix = 'cafe_detected_prefix';
+  static const String cafeQuickOrderAction = 'cafe_quick_order_action';
+  static const String cafeCameraListeningGestures = 'cafe_camera_listening_gestures';
+  static const String cafeOpenMenuCatalog = 'cafe_open_menu_catalog';
+
+  static const String cafeSignGuideTitle = 'cafe_sign_guide_title';
+  static const String cafeReadyToPractice = 'cafe_ready_to_practice';
+  static const String cafeChangeSignTooltip = 'cafe_change_sign_tooltip';
+  static const String cafeChallengeTitle = 'cafe_challenge_title';
+  static const String cafeMatchPercentage = 'cafe_match_percentage';
+  static const String cafeTodaySignTitle = 'cafe_today_sign_title';
+  static const String cafeAimGestureHint = 'cafe_aim_gesture_hint';
+  static const String cafeTryAgain = 'cafe_try_again';
+  static const String cafeHoldForLetter = 'cafe_hold_for_letter';
+  static const String cafeTouchToSpell = 'cafe_touch_to_spell';
+  static const String cafeDeleteLastLetter = 'cafe_delete_last_letter';
+  static const String cafeOfficialReceipt = 'cafe_official_receipt';
+  static const String cafeSelect = 'cafe_select';
+  static const String cashierGreetingPrompt = 'cashier_greeting_prompt';
+  static const String cashierScreenNormal = 'cashier_screen_normal';
+  static const String cashierSpeakThisText = 'cashier_speak_this_text';
+  static const String cafeSpellingHintUnlimited = 'cafe_spelling_hint_unlimited';
+  static const String cafeCashierBaristaAiTitle = 'cafe_cashier_barista_ai_title';
+  static const String cafeQueueNumberPrefix = 'cafe_queue_number_prefix';
+  static const String cafeClearTicketTooltip = 'cafe_clear_ticket_tooltip';
+  static const String cafeBackTooltip = 'cafe_back_tooltip';
 }
+

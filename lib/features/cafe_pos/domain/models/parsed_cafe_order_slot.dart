@@ -147,4 +147,54 @@ class ParsedCafeOrderSlot {
       dietaryAlerts: dietaryAlerts ?? this.dietaryAlerts,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'drinkId': drinkId,
+      'drinkLabelKey': drinkLabelKey,
+      'drinkNameId': drinkNameId,
+      'drinkNameEn': drinkNameEn,
+      'temperature': temperature.name,
+      'cupSize': cupSize.name,
+      'milkType': milkType.name,
+      'sweetnessLevel': sweetnessLevel.name,
+      'extraShot': extraShot,
+      'quantity': quantity,
+      'basePrice': basePrice,
+      'dietaryAlerts': dietaryAlerts.map((e) => e.toMap()).toList(),
+    };
+  }
+
+  factory ParsedCafeOrderSlot.fromMap(Map<String, dynamic> map) {
+    return ParsedCafeOrderSlot(
+      drinkId: map['drinkId'] as String? ?? '',
+      drinkLabelKey: map['drinkLabelKey'] as String? ?? '',
+      drinkNameId: map['drinkNameId'] as String? ?? '',
+      drinkNameEn: map['drinkNameEn'] as String? ?? '',
+      temperature: OrderTemperature.values.firstWhere(
+        (e) => e.name == map['temperature'],
+        orElse: () => OrderTemperature.iced,
+      ),
+      cupSize: OrderCupSize.values.firstWhere(
+        (e) => e.name == map['cupSize'],
+        orElse: () => OrderCupSize.medium,
+      ),
+      milkType: OrderMilkType.values.firstWhere(
+        (e) => e.name == map['milkType'],
+        orElse: () => OrderMilkType.oatMilk,
+      ),
+      sweetnessLevel: OrderSweetnessLevel.values.firstWhere(
+        (e) => e.name == map['sweetnessLevel'],
+        orElse: () => OrderSweetnessLevel.lessSweet50,
+      ),
+      extraShot: map['extraShot'] as bool? ?? false,
+      quantity: (map['quantity'] as num?)?.toInt() ?? 1,
+      basePrice: (map['basePrice'] as num?)?.toInt() ?? 28000,
+      dietaryAlerts: (map['dietaryAlerts'] as List<dynamic>?)
+              ?.map((e) => DietaryAlertTag.fromMap(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+    );
+  }
 }
+

@@ -7,6 +7,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_card.dart';
+import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/responsive_layout.dart';
 import '../../core/widgets/status_badge.dart';
 import '../../features/history/controllers/history_controller.dart';
@@ -126,13 +127,10 @@ class SignToSpeechResultScreen extends StatelessWidget {
                           OutlinedButton.icon(
                             onPressed: () {
                               Clipboard.setData(ClipboardData(text: displayText));
-                              Get.snackbar(
-                                AppStrings.signResultCopied.tr,
-                                AppStrings.signResultCopiedDesc.tr,
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: AppColors.surface,
-                                colorText: AppColors.ink,
-                                margin: const EdgeInsets.all(16),
+                              AppSnackbar.info(
+                                title: AppStrings.signResultCopied.tr,
+                                message: AppStrings.signResultCopiedDesc.tr,
+                                icon: Icons.copy_rounded,
                               );
                             },
                             icon: const Icon(Icons.copy_rounded, size: 18),
@@ -225,13 +223,10 @@ class SignToSpeechResultScreen extends StatelessWidget {
       direction: TranslationDirection.signToSpeech,
       signLanguage: settings.selectedSignLanguage.value,
     );
-    Get.snackbar(
-      AppStrings.signResultSaved.tr,
-      AppStrings.signResultSavedDesc.tr,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppColors.surface,
-      colorText: AppColors.ink,
-      margin: const EdgeInsets.all(16),
+    AppSnackbar.success(
+      title: AppStrings.signResultSaved.tr,
+      message: AppStrings.signResultSavedDesc.tr,
+      icon: Icons.bookmark_added_rounded,
     );
   }
 }

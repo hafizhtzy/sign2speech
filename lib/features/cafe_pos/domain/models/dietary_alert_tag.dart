@@ -39,4 +39,33 @@ class DietaryAlertTag {
 
   @override
   int get hashCode => type.hashCode ^ detectedKeyword.hashCode;
+
+  Map<String, dynamic> toMap() {
+    return {
+      'type': type.name,
+      'severity': severity.name,
+      'labelKey': labelKey,
+      'defaultMessageId': defaultMessageId,
+      'defaultMessageEn': defaultMessageEn,
+      'detectedKeyword': detectedKeyword,
+    };
+  }
+
+  factory DietaryAlertTag.fromMap(Map<String, dynamic> map) {
+    return DietaryAlertTag(
+      type: DietaryAlertType.values.firstWhere(
+        (e) => e.name == map['type'],
+        orElse: () => DietaryAlertType.lactoseIntolerant,
+      ),
+      severity: DietaryAlertSeverity.values.firstWhere(
+        (e) => e.name == map['severity'],
+        orElse: () => DietaryAlertSeverity.info,
+      ),
+      labelKey: map['labelKey'] as String? ?? '',
+      defaultMessageId: map['defaultMessageId'] as String? ?? '',
+      defaultMessageEn: map['defaultMessageEn'] as String? ?? '',
+      detectedKeyword: map['detectedKeyword'] as String? ?? '',
+    );
+  }
 }
+

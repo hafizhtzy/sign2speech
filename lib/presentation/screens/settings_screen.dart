@@ -7,6 +7,7 @@ import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_card.dart';
+import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/responsive_layout.dart';
 import '../../features/settings/controllers/settings_controller.dart';
 import '../../features/sign_language/services/bisindo_tts_service.dart';
@@ -906,13 +907,10 @@ class SettingsScreen extends StatelessWidget {
             onPressed: () async {
               HapticFeedback.mediumImpact();
               await cacheService.clearCache();
-              Get.snackbar(
-                AppStrings.settingsClearCache.tr,
-                AppStrings.settingsCacheCleared.tr,
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: AppColors.surface,
-                colorText: AppColors.ink,
-                margin: const EdgeInsets.all(16),
+              AppSnackbar.success(
+                title: AppStrings.settingsClearCache.tr,
+                message: AppStrings.settingsCacheCleared.tr,
+                icon: Icons.delete_sweep_rounded,
               );
             },
             icon: const Icon(Icons.delete_outline, size: 18),

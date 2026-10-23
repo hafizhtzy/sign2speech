@@ -56,7 +56,7 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.lightPrimary,
           foregroundColor: AppColors.lightOnPrimary,
-          minimumSize: const Size(double.infinity, 50),
+          minimumSize: const Size(64, 48),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: const StadiumBorder(),
           elevation: 0,
@@ -68,7 +68,7 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.lightInk,
-          minimumSize: const Size(double.infinity, 50),
+          minimumSize: const Size(64, 48),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           side: const BorderSide(color: AppColors.lightBorder, width: 1.5),
           shape: const StadiumBorder(),
@@ -114,10 +114,18 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.lightPrimary,
         contentTextStyle: AppTypography.bodyMedium.copyWith(
-          color: AppColors.lightOnPrimary,
+          color: const Color(0xFFFDFBF7),
+          fontWeight: FontWeight.w500,
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: BorderSide(
+            color: AppColors.lightSecondary.withValues(alpha: 0.35),
+            width: 1.2,
+          ),
+        ),
         behavior: SnackBarBehavior.floating,
+        elevation: 6,
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: AppColors.lightSurface,
@@ -181,7 +189,7 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.darkPrimary,
           foregroundColor: AppColors.darkOnPrimary,
-          minimumSize: const Size(double.infinity, 50),
+          minimumSize: const Size(64, 48),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: const StadiumBorder(),
           elevation: 0,
@@ -193,7 +201,7 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.darkInk,
-          minimumSize: const Size(double.infinity, 50),
+          minimumSize: const Size(64, 48),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           side: const BorderSide(color: AppColors.darkBorder, width: 1.5),
           shape: const StadiumBorder(),
@@ -240,9 +248,17 @@ class AppTheme {
         backgroundColor: AppColors.darkBgSurface,
         contentTextStyle: AppTypography.bodyMedium.copyWith(
           color: AppColors.darkInk,
+          fontWeight: FontWeight.w500,
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(
+            color: AppColors.darkBorderSoft,
+            width: 1.2,
+          ),
+        ),
         behavior: SnackBarBehavior.floating,
+        elevation: 6,
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: AppColors.darkCanvas,

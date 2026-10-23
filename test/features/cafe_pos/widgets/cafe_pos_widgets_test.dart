@@ -143,7 +143,7 @@ void main() {
       expect(started, isTrue);
     });
 
-    testWidgets('renders active spelling card with countdown and letter buttons', (tester) async {
+    testWidgets('renders active spelling card with unlimited time and letter buttons', (tester) async {
       String addedLetter = '';
       bool finished = false;
 
@@ -152,7 +152,7 @@ void main() {
           isSpelling: true,
           currentName: '',
           buffer: 'RIA',
-          remainingMs: 1200,
+          remainingMs: 0,
           onStartSpelling: () {},
           onFinishSpelling: () => finished = true,
           onAddLetter: (letter) => addedLetter = letter,
@@ -160,11 +160,13 @@ void main() {
       ));
 
       expect(find.text('RIA'), findsOneWidget);
-      expect(find.text('1.2s'), findsOneWidget);
+      expect(find.text('Kamera Aktif'), findsAtLeastNWidgets(1));
 
       await tester.tap(find.text('N'));
       expect(addedLetter, 'N');
 
+      await tester.ensureVisible(find.text('Selesai Eja / Spasi'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Selesai Eja / Spasi'));
       expect(finished, isTrue);
     });
@@ -268,12 +270,71 @@ void main() {
       expect(find.text('Rian'), findsOneWidget);
       expect(find.text('Oat Cappuccino'), findsOneWidget);
       // Grand total = 30000 + 3000 tax = 33000
-      expect(find.text('Rp 33000'), findsOneWidget);
+      expect(find.text('Rp 33.000'), findsOneWidget);
       // Change = 50000 - 33000 = 17000
-      expect(find.text('Kembalian: Rp 17000'), findsOneWidget);
+      expect(find.text('Kembalian: Rp 17.000'), findsOneWidget);
 
       await tester.tap(find.text('Terjemahkan ke Isyarat & Suara'));
       expect(translated, isTrue);
+    });
+
+    testWidgets('CafeOrderTicketCard supports deleting item with confirmation dialog',
+        (tester) async {
+      final ticket = CafeOrderTicket(
+        orderId: 'ORD-108',
+        queueNumber: 'A-108',
+        customerName: 'Rian',
+        items: [
+          ParsedCafeOrderSlot(
+            drinkId: 'cappuccino',
+            drinkLabelKey: 'cappuccino',
+            drinkNameId: 'Oat Cappuccino',
+            drinkNameEn: 'Oat Cappuccino',
+            basePrice: 30000,
+            cupSize: OrderCupSize.medium,
+            milkType: OrderMilkType.freshDairy,
+          ),
+        ],
+        amountPaid: 50000,
+        paymentMethod: OrderPaymentMethod.cash,
+        createdAt: DateTime.now(),
+      );
+
+      int? removedIndex;
+
+      await tester.pumpWidget(_buildTestApp(
+        CafeOrderTicketCard(
+          ticket: ticket,
+          onPaymentMethodChanged: (_) {},
+          onAddCash: (_) {},
+          onTranslateBill: () {},
+          onClearTicket: () {},
+          onRemoveItem: (idx) => removedIndex = idx,
+        ),
+      ));
+
+      // Delete icon button is visible
+      final deleteIcon = find.byIcon(Icons.delete_outline_rounded);
+      expect(deleteIcon, findsOneWidget);
+
+      // Tap delete icon to trigger confirmation dialog
+      await tester.tap(deleteIcon);
+      await tester.pumpAndSettle();
+
+      // Confirmation dialog shows up
+      expect(find.text('Hapus Pesanan?'), findsOneWidget);
+      expect(
+        find.text(
+          'Apakah Anda yakin ingin menghapus Oat Cappuccino dari tiket pesanan?',
+        ),
+        findsOneWidget,
+      );
+
+      // Tap "Hapus" button in dialog
+      await tester.tap(find.text('Hapus'));
+      await tester.pumpAndSettle();
+
+      expect(removedIndex, equals(0));
     });
   });
 

@@ -17,11 +17,13 @@ import '../../features/sign_language/services/sign_language_config.dart';
 import '../../features/sign_language/services/sign_language_repository.dart';
 import '../../features/sign_language/services/sign_transcript_store.dart';
 import '../../features/sign_language/services/sign_translation_service.dart';
+import '../../core/localization/app_translations.dart';
 import '../../features/translator/services/speech_service.dart';
 
 class AppBinding extends Bindings {
   @override
   void dependencies() {
+    AppTranslations.ensureLoaded();
     // 1. Core Services & Stores
     final config = SignLanguageConfig();
     final cacheService = SignLanguageCacheService();

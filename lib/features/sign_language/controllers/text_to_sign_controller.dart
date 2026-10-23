@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../../core/localization/app_strings.dart';
+import '../../../core/widgets/app_snackbar.dart';
 import '../../translator/services/speech_service.dart';
 import '../models/sign_search_result.dart';
 import '../models/sign_video_entry.dart';
@@ -773,30 +775,28 @@ class TextToSignController extends GetxController {
         }
       }
 
-      Get.snackbar(
-        'Unduhan Berhasil',
-        'Paket ${_getCategoryDisplayTitle(category)} telah siap digunakan offline.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.black87,
-        colorText: Colors.white,
+      AppSnackbar.success(
+        title: AppStrings.pkgDownloadSuccess.tr,
+        message: AppStrings.pkgDownloadSuccessDesc.trParams({
+          'category': _getCategoryDisplayTitle(category),
+        }),
+        icon: Icons.cloud_download_rounded,
       );
     } catch (e) {
       if (cancelToken.isCancelled) {
-        Get.snackbar(
-          'Unduhan Dibatalkan',
-          'Pengunduhan paket ${_getCategoryDisplayTitle(category)} telah dibatalkan.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.black87,
-          colorText: Colors.white,
+        AppSnackbar.info(
+          title: AppStrings.pkgDownloadCancelled.tr,
+          message: AppStrings.pkgDownloadCancelledDesc.trParams({
+            'category': _getCategoryDisplayTitle(category),
+          }),
+          icon: Icons.cancel_outlined,
         );
       } else {
         debugPrint('[TextToSignCtrl] downloadCategoryPackage error: $e');
-        Get.snackbar(
-          'Unduhan Terkendala',
-          'Beberapa video paket gagal diunduh. Silakan coba kembali saat internet stabil.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red.shade900,
-          colorText: Colors.white,
+        AppSnackbar.error(
+          title: AppStrings.pkgDownloadFailed.tr,
+          message: AppStrings.pkgDownloadFailedDesc.tr,
+          icon: Icons.error_outline_rounded,
         );
       }
     } finally {
@@ -836,12 +836,12 @@ class TextToSignController extends GetxController {
       }
     }
 
-    Get.snackbar(
-      'Pembersihan Selesai',
-      '$count video unduhan telah dihapus dari memori perangkat.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.black87,
-      colorText: Colors.white,
+    AppSnackbar.success(
+      title: AppStrings.pkgCleanSuccess.tr,
+      message: AppStrings.pkgCleanSuccessDesc.trParams({
+        'count': count.toString(),
+      }),
+      icon: Icons.delete_sweep_rounded,
     );
   }
 
