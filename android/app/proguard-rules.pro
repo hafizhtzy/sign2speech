@@ -21,6 +21,11 @@
 -keep class com.example.speech2sign.** { *; }
 -keep class com.speech2sign.** { *; }
 
+# FlutterTTS
+-keep class com.tundralabs.fluttertts.** { *; }
+-dontwarn com.tundralabs.fluttertts.**
+
 # Generic Optimization Attributes
 -keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod,Exceptions
 -dontwarn java.lang.invoke.**
+
