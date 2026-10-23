@@ -2,14 +2,17 @@ import 'dart:async';
 
 import 'package:get/get.dart';
 
+import '../../settings/controllers/settings_controller.dart';
 import '../models/bisindo_prediction.dart';
 import '../models/sign_token.dart';
 import '../services/bisindo_tts_service.dart';
 import '../services/sign_transcript_store.dart';
+import '../services/sign_translation_service.dart';
 
 class BisindoRecognitionController extends GetxController {
   final BisindoTtsService ttsService;
   final SignTranscriptStore transcriptStore;
+  final SignTranslationService translationService;
 
   final RxList<SignToken> tokens = <SignToken>[].obs;
   final RxString spellingBuffer = ''.obs;
@@ -24,7 +27,8 @@ class BisindoRecognitionController extends GetxController {
   BisindoRecognitionController({
     required this.ttsService,
     required this.transcriptStore,
-  });
+    SignTranslationService? translationService,
+  }) : translationService = translationService ?? SignTranslationService();
 
   @override
   void onInit() {
@@ -45,12 +49,48 @@ class BisindoRecognitionController extends GetxController {
     }
   }
 
+  /// Full raw transcript text in original sign language / Indonesian representation
   String get fullTranscriptText {
     final words = tokens.map((t) => t.value).toList();
     if (spellingBuffer.value.isNotEmpty) {
       words.add(spellingBuffer.value);
     }
     return words.join(' ');
+  }
+
+  /// Translated transcript in English
+  String get translatedTranscriptText {
+    return translationService.translateToEnglish(fullTranscriptText);
+  }
+
+  /// Returns localized transcript based on current app language setting
+  String get localizedTranscriptText {
+    if (Get.isRegistered<SettingsController>()) {
+      final settings = Get.find<SettingsController>();
+      if (settings.selectedAppLanguage.value == 'en') {
+        return translatedTranscriptText;
+      }
+    }
+    return fullTranscriptText;
+  }
+
+  /// Speaks text dynamically using the user's selected language
+  Future<void> _speakText(String indonesianText) async {
+    final clean = indonesianText.trim();
+    if (clean.isEmpty) return;
+
+    bool isEnglish = false;
+    if (Get.isRegistered<SettingsController>()) {
+      final settings = Get.find<SettingsController>();
+      isEnglish = settings.selectedAppLanguage.value == 'en';
+    }
+
+    final textToSpeak = isEnglish
+        ? translationService.translateToEnglish(clean)
+        : clean;
+    final langCode = isEnglish ? 'en-US' : 'id-ID';
+
+    await ttsService.speak(textToSpeak, languageCode: langCode);
   }
 
   void handlePrediction(BisindoPrediction prediction) {
@@ -93,8 +133,8 @@ class BisindoRecognitionController extends GetxController {
         ),
       );
 
-      // Trigger Indonesian FIFO TTS
-      ttsService.speak(word);
+      // Trigger Dynamic FIFO TTS in chosen language
+      _speakText(word);
       saveCurrentTranscript();
     }
   }
@@ -115,8 +155,8 @@ class BisindoRecognitionController extends GetxController {
       ),
     );
 
-    // Speak entire word cleanly (e.g. "BELI") instead of "B...E...L...I"
-    ttsService.speak(bufferedWord);
+    // Speak entire word cleanly (e.g. "BELI" or "Buy")
+    _speakText(bufferedWord);
     saveCurrentTranscript();
   }
 
@@ -161,7 +201,7 @@ class BisindoRecognitionController extends GetxController {
     );
     lastRecognizedWord.value = clean;
     if (speak) {
-      ttsService.speak(clean);
+      _speakText(clean);
     }
     saveCurrentTranscript();
   }
@@ -177,7 +217,7 @@ class BisindoRecognitionController extends GetxController {
   Future<void> replayLastOrFullTranscript() async {
     final text = fullTranscriptText;
     if (text.isNotEmpty) {
-      await ttsService.speak(text);
+      await _speakText(text);
     }
   }
 

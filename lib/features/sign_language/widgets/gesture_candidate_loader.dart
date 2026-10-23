@@ -109,7 +109,7 @@ class GestureCandidateLoader extends StatelessWidget {
                 ),
                 if (isConfirmed) ...[
                   const SizedBox(width: 5),
-                  const Icon(
+                  Icon(
                     Icons.check_circle_rounded,
                     size: 16,
                     color: AppColors.success,

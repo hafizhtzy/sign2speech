@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../core/constants/app_assets.dart';
 import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/widgets/cashier_fab.dart';
+import '../../core/widgets/responsive_layout.dart';
+import '../../features/settings/controllers/settings_controller.dart';
 import 'history_screen.dart';
 import 'home_screen.dart';
 import 'settings_screen.dart';
@@ -19,19 +23,133 @@ class MainShellScreen extends StatefulWidget {
 class _MainShellScreenState extends State<MainShellScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    HomeScreen(),
-    HistoryScreen(),
-    SignLibraryScreen(),
-    SettingsScreen(),
+  List<Widget> _getScreens() => [
+    const HomeScreen(),
+    const HistoryScreen(),
+    const SignLibraryScreen(),
+    const SettingsScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    return Obx(() {
+      // Rebuild dynamically when themeMode changes
+      if (Get.isRegistered<SettingsController>()) {
+        Get.find<SettingsController>().themeMode.value;
+      }
+      final isLarge = context.isLargeScreen;
+      final isExpanded = context.isExpanded;
+      final screens = _getScreens();
+
+      if (isLarge) {
+        return Scaffold(
+          backgroundColor: AppColors.canvas,
+          floatingActionButton: const CashierFab(extended: true),
+          body: Row(
+            children: [
+              NavigationRail(
+                backgroundColor: AppColors.surface,
+                selectedIndex: _currentIndex,
+              onDestinationSelected: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+              extended: isExpanded,
+              minWidth: 80,
+              minExtendedWidth: 210,
+              indicatorColor: AppColors.secondary.withValues(alpha: 0.16),
+              selectedIconTheme: IconThemeData(
+                color: AppColors.primary,
+                size: 24,
+              ),
+              unselectedIconTheme: IconThemeData(
+                color: AppColors.muted,
+                size: 22,
+              ),
+              selectedLabelTextStyle: AppTypography.labelMedium.copyWith(
+                fontWeight: FontWeight.w800,
+                color: AppColors.primary,
+              ),
+              unselectedLabelTextStyle: AppTypography.labelMedium.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.muted,
+              ),
+              leading: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppColors.bgSurface,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      padding: const EdgeInsets.all(8),
+                      child: Image.asset(
+                        AppAssets.brandEmblem,
+                        fit: BoxFit.contain,
+                        cacheWidth: 100,
+                      ),
+                    ),
+                    if (isExpanded) ...[
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Text(
+                          AppStrings.appTitle.tr,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.titleMedium.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.ink,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              destinations: [
+                NavigationRailDestination(
+                  icon: const Icon(Icons.home_outlined),
+                  selectedIcon: const Icon(Icons.home_rounded),
+                  label: Text(AppStrings.navHome.tr),
+                ),
+                NavigationRailDestination(
+                  icon: const Icon(Icons.history_outlined),
+                  selectedIcon: const Icon(Icons.history_rounded),
+                  label: Text(AppStrings.navHistory.tr),
+                ),
+                NavigationRailDestination(
+                  icon: const Icon(Icons.menu_book_outlined),
+                  selectedIcon: const Icon(Icons.menu_book_rounded),
+                  label: Text(AppStrings.navLibrary.tr),
+                ),
+                NavigationRailDestination(
+                  icon: const Icon(Icons.settings_outlined),
+                  selectedIcon: const Icon(Icons.settings_rounded),
+                  label: Text(AppStrings.navSettings.tr),
+                ),
+              ],
+            ),
+            VerticalDivider(width: 1, thickness: 1, color: AppColors.border),
+            Expanded(
+              child: IndexedStack(index: _currentIndex, children: screens),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _screens),
+      backgroundColor: AppColors.canvas,
+      floatingActionButton: const CashierFab(),
+      body: IndexedStack(index: _currentIndex, children: screens),
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.surface,
           border: Border(
             top: BorderSide(color: AppColors.border, width: 1),
@@ -80,5 +198,6 @@ class _MainShellScreenState extends State<MainShellScreen> {
         ),
       ),
     );
+    });
   }
 }

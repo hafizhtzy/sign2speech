@@ -5,6 +5,7 @@ import '../../core/constants/app_routes.dart';
 import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_card.dart';
+import '../../core/widgets/responsive_layout.dart';
 import '../../features/sign_language/controllers/text_to_sign_controller.dart';
 import '../../features/sign_language/models/sign_video_entry.dart';
 import '../../features/sign_language/services/sign_language_repository.dart';
@@ -241,9 +242,11 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
         centerTitle: false,
       ),
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        child: ResponsiveContentWrapper(
+          maxWidth: ResponsiveBreakpoints.maxDashboardWidth,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // ── 1. SEARCH INPUT ──────────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
@@ -252,15 +255,15 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                   hintText: AppStrings.librarySearchPlaceholder.tr,
-                  hintStyle: const TextStyle(
+                  hintStyle: TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 14,
                   ),
                   prefixIcon:
-                      const Icon(Icons.search, color: AppColors.textMuted),
+                      Icon(Icons.search, color: AppColors.textMuted),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.clear,
                             color: AppColors.textMuted,
                           ),
@@ -278,15 +281,15 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.border),
+                    borderSide: BorderSide(color: AppColors.border),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.border),
+                    borderSide: BorderSide(color: AppColors.border),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(
+                    borderSide: BorderSide(
                       color: AppColors.primary,
                       width: 2,
                     ),
@@ -345,7 +348,7 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                                     ? FontWeight.w700
                                     : FontWeight.w600,
                                 color: isSelected
-                                    ? AppColors.textOnDark
+                                    ? AppColors.onPrimary
                                     : AppColors.muted,
                               ),
                             ),
@@ -406,7 +409,7 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: AppCard(
                 backgroundColor: AppColors.bgSurface,
-                border: const BorderSide(color: AppColors.border),
+                border: BorderSide(color: AppColors.border),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
                   vertical: 10,
@@ -416,7 +419,7 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                     Container(
                       width: 38,
                       height: 38,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: AppColors.secondary,
                         shape: BoxShape.circle,
                       ),
@@ -435,7 +438,7 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                             _isDownloading
                                 ? 'Mengunduh... (${(_downloadProgress * 100).toInt()}%)'
                                 : 'Unduh Filter Ini (${entries.length} video)',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w700,
                               color: AppColors.ink,
@@ -445,7 +448,7 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                             _isDownloading
                                 ? 'Sedang menyimpan video ke memori lokal'
                                 : 'Kategori $_selectedCategory • $_selectedLanguage',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               color: AppColors.muted,
                             ),
@@ -465,7 +468,7 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                       ),
                       child: Text(
                         _isDownloading ? 'Memproses' : 'Unduh',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.secondary,
                           fontWeight: FontWeight.w700,
                           fontSize: 13,
@@ -491,7 +494,7 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                             color: AppColors.muted.withValues(alpha: 0.5),
                           ),
                           const SizedBox(height: 12),
-                          const Text(
+                          Text(
                             'Tidak ada kosakata yang cocok',
                             style: TextStyle(
                               color: AppColors.ink,
@@ -510,164 +513,34 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                         ],
                       ),
                     )
-                  : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-                      itemCount: entries.length,
-                      addRepaintBoundaries: true,
-                      addAutomaticKeepAlives: false,
-                      separatorBuilder: (_, _) => const SizedBox(height: 8),
-                      itemBuilder: (context, index) {
-                        final entry = entries[index];
-                        final isSibi =
-                            entry.signSystem.toLowerCase().trim() == 'sibi';
-                        final isBundled = entry.assetPath.isNotEmpty;
+                  : LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (constraints.maxWidth >=
+                            ResponsiveBreakpoints.compactMaxWidth) {
+                          return GridView.builder(
+                            padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                            gridDelegate:
+                                const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent: 460,
+                              mainAxisExtent: 84,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 10,
+                            ),
+                            itemCount: entries.length,
+                            addRepaintBoundaries: true,
+                            itemBuilder: (context, index) =>
+                                _buildVocabularyCard(context, entries[index]),
+                          );
+                        }
 
-                        return AppCard(
-                          padding: const EdgeInsets.all(12),
-                          onTap: () async {
-                            final ttsCtrl = Get.find<TextToSignController>();
-                            ttsCtrl.recognizedWords.value = entry.label;
-                            ttsCtrl.selectedLanguage.value =
-                                entry.signSystem.toLowerCase();
-                            ttsCtrl.currentEntry.value = entry;
-                            ttsCtrl.playlist.assignAll([entry]);
-                            ttsCtrl.activeWordIndex.value = 0;
-                            ttsCtrl.currentVideoSource.value = entry.path;
-                            await ttsCtrl.playEntry(
-                              entry,
-                              force: true,
-                              autoDownload: false,
-                            );
-                            Get.toNamed(AppRoutes.speechToSignResult);
-                          },
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 42,
-                                height: 42,
-                                decoration: BoxDecoration(
-                                  color: AppColors.bgSurface,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  Icons.play_circle_fill_rounded,
-                                  color: AppColors.primary,
-                                  size: 26,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          entry.label,
-                                          style: const TextStyle(
-                                            fontSize: 15.5,
-                                            fontWeight: FontWeight.w700,
-                                            color: AppColors.ink,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        // Badge Bahasa (BISINDO / SIBI)
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 7,
-                                            vertical: 2,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.bgSurface,
-                                            borderRadius: BorderRadius.circular(
-                                              6,
-                                            ),
-                                            border: Border.all(
-                                              color: AppColors.border,
-                                              width: 0.8,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            isSibi ? 'SIBI' : 'BISINDO',
-                                            style: const TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w700,
-                                              color: AppColors.secondary,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 3),
-                                    Text(
-                                      entry.aliases.isNotEmpty
-                                          ? 'Sinonim: ${entry.aliases.join(', ')}'
-                                          : _formatCategoryDisplay(
-                                              entry.category,
-                                            ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontSize: 11.5,
-                                        color: AppColors.muted,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              // Badge Kategori & Status Sumber
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 3,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.bgSurface,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      _formatCategoryDisplay(entry.category),
-                                      style: const TextStyle(
-                                        fontSize: 10.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.muted,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        isBundled
-                                            ? Icons.check_circle_outline_rounded
-                                            : Icons.cloud_outlined,
-                                        size: 13,
-                                        color: isBundled
-                                            ? AppColors.matcha
-                                            : AppColors.secondary,
-                                      ),
-                                      const SizedBox(width: 3),
-                                      Text(
-                                        isBundled ? 'Offline' : 'Cloud',
-                                        style: TextStyle(
-                                          fontSize: 10.5,
-                                          fontWeight: FontWeight.w700,
-                                          color: isBundled
-                                              ? AppColors.matcha
-                                              : AppColors.secondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                        return ListView.separated(
+                          padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                          itemCount: entries.length,
+                          addRepaintBoundaries: true,
+                          addAutomaticKeepAlives: false,
+                          separatorBuilder: (_, _) => const SizedBox(height: 8),
+                          itemBuilder: (context, index) =>
+                              _buildVocabularyCard(context, entries[index]),
                         );
                       },
                     ),
@@ -675,6 +548,162 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
           ],
         ),
       ),
+    ),
+  );
+}
+
+  Widget _buildVocabularyCard(BuildContext context, SignVideoEntry entry) {
+    final isSibi = entry.signSystem.toLowerCase().trim() == 'sibi';
+    final isBundled = entry.assetPath.isNotEmpty;
+
+    return AppCard(
+      padding: const EdgeInsets.all(12),
+      onTap: () async {
+        final ttsCtrl = Get.find<TextToSignController>();
+        ttsCtrl.recognizedWords.value = entry.label;
+        ttsCtrl.selectedLanguage.value = entry.signSystem.toLowerCase();
+        ttsCtrl.currentEntry.value = entry;
+        ttsCtrl.playlist.assignAll([entry]);
+        ttsCtrl.activeWordIndex.value = 0;
+        ttsCtrl.currentVideoSource.value = entry.path;
+        await ttsCtrl.playEntry(
+          entry,
+          force: true,
+          autoDownload: false,
+        );
+        Get.toNamed(AppRoutes.speechToSignResult);
+      },
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: AppColors.bgSurface,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.play_circle_fill_rounded,
+              color: AppColors.primary,
+              size: 26,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        entry.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.ink,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.bgSurface,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: AppColors.border,
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Text(
+                        isSibi ? 'SIBI' : 'BISINDO',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  entry.aliases.isNotEmpty
+                      ? 'Sinonim: ${entry.aliases.join(', ')}'
+                      : _formatCategoryDisplay(entry.category),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: AppColors.muted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 96),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 2.5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.bgSurface,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    _formatCategoryDisplay(entry.category),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.muted,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isBundled
+                        ? Icons.check_circle_outline_rounded
+                        : Icons.cloud_outlined,
+                    size: 13,
+                    color: isBundled ? AppColors.matcha : AppColors.secondary,
+                  ),
+                  const SizedBox(width: 3),
+                  Text(
+                    isBundled ? 'Offline' : 'Cloud',
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      color: isBundled ? AppColors.matcha : AppColors.secondary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          ),
+        ],
+      ),
     );
   }
 }
+
+

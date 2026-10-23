@@ -83,29 +83,35 @@ Di ruang publik—seperti loket pelayanan kependudukan (Dukcapil), stasiun trans
 
 ---
 
-## 4. Design System Specification: Nordic Ocean & Warm Alabaster
+## 4. Design System Specification: Cafe Warm Oat Milk / Espresso
 
-Sistem antarmuka Sign2Speech mengedepankan atmosfer tenang, profesional, dan humanis, menghindari kesan template AI generik berlebihan yang melelahkan mata pengguna disabilitas:
+Sistem antarmuka Sign2Speech mengedepankan atmosfer hangat, tenang, dan humanis terinspirasi dari estetika kafe editorial (*warm oat milk & rich espresso*), menghindari kesan template AI generik berlebihan yang melelahkan mata pengguna disabilitas. Sumber kebenaran tunggal (*Single Source of Truth*) terdefinisi di `AppColors` (`lib/core/theme/app_colors.dart`):
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│                        NORDIC OCEAN PALETTE                            │
-│  [#1B3B4B] Mineral Ocean Blue  ── Primary Identity, AppBars, Hero CTA │
-│  [#38687D] Fjord Blue          ── Secondary Accent, Rings, Active Wave│
-│  [#F9F9F7] Warm Alabaster      ── Canvas Background (Soft Creamy Base)│
-│  [#FFFFFF] Pure White          ── Card Surfaces, Bottom Sheets, Modals│
-│  [#EAF0F2] Pale Mist           ── Accent Container, Category Chips   │
-│  [#192328] Deep Graphite       ── Primary Typography, High Contrast   │
-│  [#6B7B83] Stone Slate         ── Secondary Labels, Subtitles, Timers │
+│            CAFE WARM OAT MILK / ESPRESSO PALETTE (AppColors)           │
+│  [#2C1E18] Rich Espresso Brown ── Primary Identity, AppBars, Hero CTA  │
+│  [#8C5A3C] Warm Caramel        ── Secondary Accent, Rings, Active Wave │
+│  [#FDFBF7] Warm Oat Milk       ── Canvas Background (Soft Creamy Base) │
+│  [#FFFFFF] Pure Warm White     ── Elevated Card Surfaces, Bottom Sheets│
+│  [#F4EFE6] Soft Latte Foam     ── Secondary Surfaces, Chips, Badges    │
+│  [#E6DCD2] Warm Sand Border    ── Outlines, Input Borders, Dividers    │
+│  [#D5C7B8] Cafe Dashed Line    ── Ticket Dashed Divider Line           │
+│  [#2C1E18] Deep Espresso Ink   ── Primary Typography & Editorial Lines │
+│  [#6E5A4F] Roasted Mocha       ── Secondary Text, Subtitles, Timers    │
+│  [#9A8679] Warm Taupe          ── Placeholders, Captions & Hints       │
+│  [#4A6B53] Matcha Sage         ── Offline Status & Semantic Success    │
+│  [#D97724] Amber Gold          ── Warning, Highlights & Badges         │
+│  [#191210] Espresso Dark       ── Camera Viewfinder & Dark Overlays    │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### 4.1 Token Desain & Aksesibilitas WCAG 2.1 AAA
-- **Rasio Kontras**: Teks Deep Graphite (`#192328`) di atas Warm Alabaster (`#F9F9F7`) mencapai kontras $\mathbf{14.2:1}$ (melampaui standar WCAG AAA minimum $7:1$).
+- **Rasio Kontras**: Teks Deep Espresso Ink (`#2C1E18`) di atas Warm Oat Milk (`#FDFBF7`) mencapai kontras $\mathbf{13.8:1}$ (melampaui standar WCAG AAA minimum $7:1$).
 - **Touch Target Ergonomis**: Seluruh elemen tombol aksi memiliki batas tap minimal $48 \times 48\text{ dp}$ dengan padding responsif.
-- **HUD Glassmorphism (Camera Overlay)**: Menggunakan blur latar $16\text{ px}$ dengan tint `#1B3B4B` beropasitas $40\%$, menjaga visibilitas feed kamera postur tubuh tanpa distraksi.
-- **Hold-to-Confirm Ring**: Cincin indikator ketepatan gestur melingkar beranimasi halus ($0\% \rightarrow 100\%$) dengan aksen Fjord Blue (`#38687D`) dan getaran haptic singkat (*medium impact*) saat gestur terekam.
-- **Audio Waveform Visualizer**: 5 batang gelombang reaktif berbasis level desibel suara asli di `SignSpeechCard` memberikan kepastian visual bahwa sistem sedang mendengarkan.
+- **HUD Glassmorphism (Camera Overlay)**: Menggunakan blur latar $16\text{ px}$ dengan tint `#2C1E18` beropasitas $40\%$ atau background `cameraDark` (`#191210`), menjaga visibilitas feed kamera postur tubuh tanpa distraksi.
+- **Hold-to-Confirm Ring**: Cincin indikator ketepatan gestur melingkar beranimasi halus ($0\% \rightarrow 100\%$) dengan aksen Warm Caramel (`#8C5A3C`) dan getaran haptic singkat (*medium impact*) saat gestur terekam.
+- **Audio Waveform Visualizer**: 5 batang gelombang reaktif berbasis level desibel suara asli di `SignSpeechCard` dengan aksen Warm Caramel (`#8C5A3C`) memberikan kepastian visual bahwa sistem sedang mendengarkan.
 
 ---
 
@@ -312,7 +318,7 @@ gantt
     Recognition Controller & FIFO TTS Queue :a6, after a5, 2d
     section Fase 4: Native & UI Integration
     Native Android CameraX MediaPipe Plugin :a7, after a5, 3d
-    Nordic Ocean Design System & Widgets    :a8, after a3, 3d
+    Cafe Warm Oat Milk / Espresso Widgets   :a8, after a3, 3d
     Screen Assembly & End-to-End QA         :a9, after a7, 3d
 ```
 

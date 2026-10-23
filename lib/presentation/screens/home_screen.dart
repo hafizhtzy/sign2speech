@@ -7,7 +7,9 @@ import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_card.dart';
+import '../../core/widgets/responsive_layout.dart';
 import '../../core/widgets/status_badge.dart';
+import '../../features/cashier_assistance/widgets/cashier_assistant_sheet.dart';
 import '../../features/history/controllers/history_controller.dart';
 import '../../features/settings/controllers/settings_controller.dart';
 import '../../features/sign_language/services/bisindo_tts_service.dart';
@@ -28,15 +30,21 @@ class _HomeScreenState extends State<HomeScreen> {
     final history = Get.find<HistoryController>();
     final tts = Get.find<BisindoTtsService>();
 
-    return Scaffold(
-      backgroundColor: AppColors.canvas,
+    return Obx(() {
+      // Rebuild dynamically when themeMode changes
+      settings.themeMode.value;
+
+      return Scaffold(
+        backgroundColor: AppColors.canvas,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+          child: ResponsiveContentWrapper(
+            maxWidth: ResponsiveBreakpoints.maxDashboardWidth,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
               // Top Brand Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -191,39 +199,138 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 10),
 
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
+              Obx(() {
+                final isEn = settings.selectedAppLanguage.value == 'en';
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Row(
+                    children: [
+                      _buildQuickOrderChip(
+                        tts: tts,
+                        isEn: isEn,
+                        chipLabel: '☕ Pesan Kopi',
+                        spokenPhrase: 'Saya mau pesan kopi',
+                        chipLabelEn: '☕ Order Coffee',
+                        spokenPhraseEn: 'I would like to order coffee',
+                      ),
+                      const SizedBox(width: 8),
+                      _buildQuickOrderChip(
+                        tts: tts,
+                        isEn: isEn,
+                        chipLabel: '🧊 Less Ice',
+                        spokenPhrase: 'Tolong esnya sedikit saja ya',
+                        chipLabelEn: '🧊 Less Ice',
+                        spokenPhraseEn: 'Please give me less ice',
+                      ),
+                      const SizedBox(width: 8),
+                      _buildQuickOrderChip(
+                        tts: tts,
+                        isEn: isEn,
+                        chipLabel: '🍯 Kurang Gula',
+                        spokenPhrase: 'Tolong kurangi gulanya ya',
+                        chipLabelEn: '🍯 Less Sugar',
+                        spokenPhraseEn: 'Please make it with less sugar',
+                      ),
+                      const SizedBox(width: 8),
+                      _buildQuickOrderChip(
+                        tts: tts,
+                        isEn: isEn,
+                        chipLabel: '💳 Bayar QRIS',
+                        spokenPhrase: 'Saya ingin bayar menggunakan QRIS',
+                        chipLabelEn: '💳 Pay with QRIS',
+                        spokenPhraseEn: 'I want to pay using QRIS',
+                      ),
+                      const SizedBox(width: 8),
+                      _buildQuickOrderChip(
+                        tts: tts,
+                        isEn: isEn,
+                        chipLabel: '🛍️ Bawa Pulang',
+                        spokenPhrase: 'Tolong dibungkus untuk dibawa pulang',
+                        chipLabelEn: '🛍️ Takeaway',
+                        spokenPhraseEn: 'Please pack it for takeaway',
+                      ),
+                    ],
+                  ),
+                );
+              }),
+              const SizedBox(height: 16),
+
+              // ── Alat Pintar Kasir & Layar Pelanggan ──────────────
+              AppCard(
+                onTap: () => CashierAssistantSheet.show(context),
+                padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    _buildQuickOrderChip(
-                      tts: tts,
-                      chipLabel: '☕ Pesan Kopi',
-                      spokenPhrase: 'Saya mau pesan kopi',
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: AppColors.secondary.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.point_of_sale_rounded,
+                        color: AppColors.secondary,
+                        size: 24,
+                      ),
                     ),
-                    const SizedBox(width: 8),
-                    _buildQuickOrderChip(
-                      tts: tts,
-                      chipLabel: '🧊 Less Ice',
-                      spokenPhrase: 'Tolong esnya sedikit saja ya',
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  AppStrings.cashierAssistantTitle.tr,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTypography.titleMedium.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.ink,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.matcha.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  'FITUR KASIR',
+                                  style: AppTypography.labelSmall.copyWith(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.matcha,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            AppStrings.cashierAssistantSubtitle.tr,
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.muted,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(width: 8),
-                    _buildQuickOrderChip(
-                      tts: tts,
-                      chipLabel: '🍯 Kurang Gula',
-                      spokenPhrase: 'Tolong kurangi gulanya ya',
-                    ),
-                    const SizedBox(width: 8),
-                    _buildQuickOrderChip(
-                      tts: tts,
-                      chipLabel: '💳 Bayar QRIS',
-                      spokenPhrase: 'Saya ingin bayar menggunakan QRIS',
-                    ),
-                    const SizedBox(width: 8),
-                    _buildQuickOrderChip(
-                      tts: tts,
-                      chipLabel: '🛍️ Bawa Pulang',
-                      spokenPhrase: 'Tolong dibungkus untuk dibawa pulang',
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 16,
+                      color: AppColors.muted,
                     ),
                   ],
                 ),
@@ -240,32 +347,80 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 12),
 
-              // 1. Sign to Speech Card (Rich Espresso)
-              _buildFeatureCard(
-                title: 'Sign to Speech',
-                subtitle: AppStrings.homeSignToSpeechDesc.tr,
-                tag: AppStrings.homeSignToSpeechBadge.tr,
-                color: AppColors.primary,
-                textColor: AppColors.textOnDark,
-                tagBgColor: AppColors.textOnDark.withValues(alpha: 0.14),
-                dividerColor: AppColors.textOnDark.withValues(alpha: 0.20),
-                icon: Icons.camera_alt_rounded,
-                onTap: () => Get.toNamed(AppRoutes.signToSpeechCamera),
-              ),
-              const SizedBox(height: 14),
-
-              // 2. Speech to Sign Card (Warm Caramel)
-              _buildFeatureCard(
-                title: 'Speech to Sign',
-                subtitle: AppStrings.homeSpeechToSignDesc.tr,
-                tag: AppStrings.homeSpeechToSignBadge.tr,
-                color: AppColors.secondary,
-                textColor: AppColors.textOnDark,
-                tagBgColor: AppColors.textOnDark.withValues(alpha: 0.16),
-                dividerColor: AppColors.textOnDark.withValues(alpha: 0.25),
-                icon: Icons.mic_rounded,
-                onTap: () => Get.toNamed(AppRoutes.speechToSignMic),
-              ),
+              if (context.isLargeScreen)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: _buildFeatureCard(
+                        title: 'Sign to Speech',
+                        subtitle: AppStrings.homeSignToSpeechDesc.tr,
+                        tag: AppStrings.homeSignToSpeechBadge.tr,
+                        color: AppColors.isDark ? AppColors.surface : AppColors.primary,
+                        textColor: AppColors.isDark ? AppColors.ink : AppColors.textOnDark,
+                        tagBgColor: AppColors.isDark
+                            ? AppColors.paleMist
+                            : AppColors.textOnDark.withValues(alpha: 0.14),
+                        dividerColor: AppColors.isDark
+                            ? AppColors.border
+                            : AppColors.textOnDark.withValues(alpha: 0.20),
+                        icon: Icons.camera_alt_rounded,
+                        onTap: () => Get.toNamed(AppRoutes.signToSpeechCamera),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildFeatureCard(
+                        title: 'Speech to Sign',
+                        subtitle: AppStrings.homeSpeechToSignDesc.tr,
+                        tag: AppStrings.homeSpeechToSignBadge.tr,
+                        color: AppColors.isDark ? AppColors.surface : AppColors.secondary,
+                        textColor: AppColors.isDark ? AppColors.ink : AppColors.textOnDark,
+                        tagBgColor: AppColors.isDark
+                            ? AppColors.secondary.withValues(alpha: 0.16)
+                            : AppColors.textOnDark.withValues(alpha: 0.16),
+                        dividerColor: AppColors.isDark
+                            ? AppColors.border
+                            : AppColors.textOnDark.withValues(alpha: 0.25),
+                        icon: Icons.mic_rounded,
+                        onTap: () => Get.toNamed(AppRoutes.speechToSignMic),
+                      ),
+                    ),
+                  ],
+                )
+              else ...[
+                _buildFeatureCard(
+                  title: 'Sign to Speech',
+                  subtitle: AppStrings.homeSignToSpeechDesc.tr,
+                  tag: AppStrings.homeSignToSpeechBadge.tr,
+                  color: AppColors.isDark ? AppColors.surface : AppColors.primary,
+                  textColor: AppColors.isDark ? AppColors.ink : AppColors.textOnDark,
+                  tagBgColor: AppColors.isDark
+                      ? AppColors.paleMist
+                      : AppColors.textOnDark.withValues(alpha: 0.14),
+                  dividerColor: AppColors.isDark
+                      ? AppColors.border
+                      : AppColors.textOnDark.withValues(alpha: 0.20),
+                  icon: Icons.camera_alt_rounded,
+                  onTap: () => Get.toNamed(AppRoutes.signToSpeechCamera),
+                ),
+                const SizedBox(height: 14),
+                _buildFeatureCard(
+                  title: 'Speech to Sign',
+                  subtitle: AppStrings.homeSpeechToSignDesc.tr,
+                  tag: AppStrings.homeSpeechToSignBadge.tr,
+                  color: AppColors.isDark ? AppColors.surface : AppColors.secondary,
+                  textColor: AppColors.isDark ? AppColors.ink : AppColors.textOnDark,
+                  tagBgColor: AppColors.isDark
+                      ? AppColors.secondary.withValues(alpha: 0.16)
+                      : AppColors.textOnDark.withValues(alpha: 0.16),
+                  dividerColor: AppColors.isDark
+                      ? AppColors.border
+                      : AppColors.textOnDark.withValues(alpha: 0.25),
+                  icon: Icons.mic_rounded,
+                  onTap: () => Get.toNamed(AppRoutes.speechToSignMic),
+                ),
+              ],
               const SizedBox(height: 24),
 
               // Quick Categories Shortcut (Katalog Isyarat Kafe)
@@ -273,7 +428,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Katalog Isyarat Kafe',
+                    AppStrings.homeCafeCatalog.tr,
                     style: AppTypography.titleMedium.copyWith(
                       fontWeight: FontWeight.w700,
                       color: AppColors.ink,
@@ -282,7 +437,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   TextButton(
                     onPressed: () => Get.toNamed(AppRoutes.signLibrary),
                     child: Text(
-                      'Lihat Semua',
+                      AppStrings.homeViewAll.tr,
                       style: AppTypography.labelMedium.copyWith(
                         fontWeight: FontWeight.w700,
                         color: AppColors.secondary,
@@ -339,7 +494,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Percakapan Terakhir',
+                          AppStrings.homeRecentConversation.tr,
                           style: AppTypography.titleMedium.copyWith(
                             fontWeight: FontWeight.w700,
                             color: AppColors.ink,
@@ -348,7 +503,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         TextButton(
                           onPressed: () => Get.toNamed(AppRoutes.history),
                           child: Text(
-                            'Riwayat',
+                            AppStrings.navHistory.tr,
                             style: AppTypography.labelMedium.copyWith(
                               fontWeight: FontWeight.w700,
                               color: AppColors.secondary,
@@ -405,7 +560,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ],
                                 ),
                               ),
-                              const Icon(
+                              Icon(
                                 Icons.chevron_right,
                                 color: AppColors.textMuted,
                                 size: 20,
@@ -423,14 +578,22 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
+    ),
     );
+    });
   }
 
   Widget _buildQuickOrderChip({
     required BisindoTtsService tts,
+    required bool isEn,
     required String chipLabel,
     required String spokenPhrase,
+    required String chipLabelEn,
+    required String spokenPhraseEn,
   }) {
+    final activeLabel = isEn ? chipLabelEn : chipLabel;
+    final phraseToSpeak = isEn ? spokenPhraseEn : spokenPhrase;
+    final langCode = isEn ? 'en-US' : 'id-ID';
     final isActive = _activeQuickPhrase == chipLabel;
 
     return GestureDetector(
@@ -438,10 +601,10 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           _activeQuickPhrase = chipLabel;
         });
-        await tts.speak(spokenPhrase);
+        await tts.speak(phraseToSpeak, languageCode: langCode);
         Get.snackbar(
-          'Suara Diucapkan',
-          spokenPhrase,
+          AppStrings.spokenVoiceSnackbar.tr,
+          phraseToSpeak,
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: AppColors.primary,
           colorText: AppColors.textOnDark,
@@ -475,7 +638,7 @@ class _HomeScreenState extends State<HomeScreen> {
               : null,
         ),
         child: Text(
-          chipLabel,
+          activeLabel,
           style: AppTypography.labelMedium.copyWith(
             fontWeight: FontWeight.w700,
             color: isActive ? AppColors.textOnDark : AppColors.ink,
@@ -498,7 +661,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     return Material(
       color: color,
-      borderRadius: BorderRadius.circular(24),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: BorderSide(
+          color: AppColors.isDark ? AppColors.border : Colors.transparent,
+          width: 1,
+        ),
+      ),
       elevation: 0,
       child: InkWell(
         onTap: onTap,

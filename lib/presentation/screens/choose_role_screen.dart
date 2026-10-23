@@ -6,6 +6,7 @@ import '../../core/constants/app_routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_button.dart';
+import '../../core/widgets/responsive_layout.dart';
 import '../../features/settings/controllers/settings_controller.dart';
 
 class ChooseRoleScreen extends StatefulWidget {
@@ -40,10 +41,12 @@ class _ChooseRoleScreenState extends State<ChooseRoleScreen> {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.all(24),
-          child: Column(
+        child: ResponsiveContentWrapper(
+          maxWidth: ResponsiveBreakpoints.maxFormWidth,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.all(24),
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
@@ -112,6 +115,7 @@ class _ChooseRoleScreenState extends State<ChooseRoleScreen> {
           ),
         ),
       ),
+      ),
     );
   }
 
@@ -130,6 +134,8 @@ class _ChooseRoleScreenState extends State<ChooseRoleScreen> {
         setState(() {
           _selected = roleKey;
         });
+        final settings = Get.find<SettingsController>();
+        settings.setRole(roleKey);
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -188,7 +194,7 @@ class _ChooseRoleScreenState extends State<ChooseRoleScreen> {
                       ),
                       if (isSelected) ...[
                         const SizedBox(width: 8),
-                        const Icon(
+                        Icon(
                           Icons.check_circle,
                           color: AppColors.secondary,
                           size: 20,

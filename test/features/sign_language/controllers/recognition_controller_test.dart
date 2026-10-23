@@ -7,12 +7,17 @@ import 'package:speech2sign/features/sign_language/models/sign_token.dart';
 import 'package:speech2sign/features/sign_language/services/bisindo_tts_service.dart';
 import 'package:speech2sign/features/sign_language/services/sign_transcript_store.dart';
 
+import 'package:speech2sign/features/settings/controllers/settings_controller.dart';
+import 'package:speech2sign/features/sign_language/services/sign_translation_service.dart';
+
 class MockTtsService extends BisindoTtsService {
   final List<String> spokenWords = [];
+  final List<String?> spokenLanguages = [];
 
   @override
-  Future<void> speak(String text) async {
+  Future<void> speak(String text, {String? languageCode}) async {
     spokenWords.add(text);
+    spokenLanguages.add(languageCode);
   }
 }
 
@@ -21,6 +26,8 @@ void main() {
 
   late MockTtsService mockTts;
   late SignTranscriptStore store;
+  late SignTranslationService translationService;
+  late SettingsController settingsController;
   late BisindoRecognitionController controller;
 
   setUp(() async {
@@ -28,9 +35,14 @@ void main() {
     Get.testMode = true;
     mockTts = MockTtsService();
     store = SignTranscriptStore();
+    translationService = SignTranslationService();
+    settingsController = SettingsController();
+    Get.put<SettingsController>(settingsController);
+
     controller = BisindoRecognitionController(
       ttsService: mockTts,
       transcriptStore: store,
+      translationService: translationService,
     );
   });
 
@@ -117,6 +129,25 @@ void main() {
       final reloaded = await store.loadTranscript();
       expect(reloaded.length, equals(1));
       expect(reloaded.first.value, equals('Selamat Pagi'));
+    });
+
+    test('Speaks translated English text with en-US locale when English language is active', () async {
+      settingsController.selectedAppLanguage.value = 'en';
+
+      const predHalo = BisindoPrediction(
+        label: 'WORD_HALO',
+        confidence: 0.95,
+        margin: 0.40,
+        isLetter: false,
+      );
+
+      controller.handlePrediction(predHalo);
+      expect(controller.tokens.first.value, equals('Halo'));
+      // Translated transcript text should be "Hello"
+      expect(controller.translatedTranscriptText, equals('Hello'));
+      // Spoken text should be English "Hello" with en-US locale
+      expect(mockTts.spokenWords, contains('Hello'));
+      expect(mockTts.spokenLanguages, contains('en-US'));
     });
   });
 }

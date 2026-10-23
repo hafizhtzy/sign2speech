@@ -6,6 +6,7 @@ import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_button.dart';
+import '../../core/widgets/responsive_layout.dart';
 import '../../features/history/controllers/history_controller.dart';
 import '../../features/history/models/history_item.dart';
 import '../../features/settings/controllers/settings_controller.dart';
@@ -33,10 +34,12 @@ class SpeechToSignMicScreen extends StatelessWidget {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.all(24),
-          child: Column(
+        child: ResponsiveContentWrapper(
+          maxWidth: ResponsiveBreakpoints.maxFormWidth,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.all(24),
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
@@ -122,6 +125,7 @@ class SpeechToSignMicScreen extends StatelessWidget {
           ),
         ),
       ),
+      ),
     );
   }
 
@@ -140,7 +144,7 @@ class SpeechToSignMicScreen extends StatelessWidget {
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppColors.border),
+        side: BorderSide(color: AppColors.border),
       ),
     );
   }

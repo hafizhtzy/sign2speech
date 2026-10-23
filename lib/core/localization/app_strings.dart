@@ -18,6 +18,9 @@ class AppStrings {
   static const String start = 'start';
   static const String startApp = 'start_app';
   static const String startNow = 'start_now';
+  static const String playVoice = 'play_voice';
+  static const String sourceText = 'source_text';
+  static const String originalSign = 'original_sign';
 
   // Navigation
   static const String navHome = 'nav_home';
@@ -52,6 +55,12 @@ class AppStrings {
   static const String homeShortcutCoffee = 'home_shortcut_coffee';
   static const String homeShortcutLessIce = 'home_shortcut_less_ice';
   static const String homeShortcutLessSugar = 'home_shortcut_less_sugar';
+  static const String homeShortcutPayQris = 'home_shortcut_pay_qris';
+  static const String homeShortcutTakeaway = 'home_shortcut_takeaway';
+  static const String homeCafeCatalog = 'home_cafe_catalog';
+  static const String homeViewAll = 'home_view_all';
+  static const String homeRecentConversation = 'home_recent_conversation';
+  static const String spokenVoiceSnackbar = 'spoken_voice_snackbar';
   static const String homeMainModes = 'home_main_modes';
   static const String homeSignToSpeechBadge = 'home_sign_to_speech_badge';
   static const String homeSpeechToSignBadge = 'home_speech_to_sign_badge';
@@ -138,4 +147,32 @@ class AppStrings {
   static const String settingsOfflineStorageDesc = 'settings_offline_storage_desc';
   static const String settingsClearCache = 'settings_clear_cache';
   static const String settingsCacheCleared = 'settings_cache_cleared';
+  static const String settingsThemeMode = 'settings_theme_mode';
+  static const String settingsThemeModeDesc = 'settings_theme_mode_desc';
+  static const String themeModeSystem = 'theme_mode_system';
+  static const String themeModeLight = 'theme_mode_light';
+  static const String themeModeDark = 'theme_mode_dark';
+
+  // Cashier & Customer Assistant
+  static const String cashierAssistantTitle = 'cashier_assistant_title';
+  static const String cashierAssistantSubtitle = 'cashier_assistant_subtitle';
+  static const String cashierTabPresets = 'cashier_tab_presets';
+  static const String cashierTabPricePad = 'cashier_tab_price_pad';
+  static const String cashierTabCustomerDisplay = 'cashier_tab_customer_display';
+  static const String cashierPresetsMenu = 'cashier_presets_menu';
+  static const String cashierPresetsPayment = 'cashier_presets_payment';
+  static const String cashierPresetsFriendly = 'cashier_presets_friendly';
+  static const String cashierSpeakAmount = 'cashier_speak_amount';
+  static const String cashierAmountPrompt = 'cashier_amount_prompt';
+  static const String cashierClearAmount = 'cashier_clear_amount';
+  static const String cashierFlipScreen = 'cashier_flip_screen';
+  static const String cashierFlipScreenDesc = 'cashier_flip_screen_desc';
+  static const String cashierCustomerViewBadge = 'cashier_customer_view_badge';
+  static const String cashierOpenAssistant = 'cashier_open_assistant';
+
+  // Onboarding 3
+  static const String onboarding3Title = 'onboarding_3_title';
+  static const String onboarding3Desc = 'onboarding_3_desc';
+  static const String onboardingBadgePresets = 'onboarding_badge_presets';
+  static const String onboardingBadgeFlipScreen = 'onboarding_badge_flip_screen';
 }

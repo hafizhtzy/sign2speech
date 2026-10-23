@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_card.dart';
+import '../../core/widgets/responsive_layout.dart';
 import '../../features/history/controllers/history_controller.dart';
 import '../../features/history/models/history_item.dart';
 import '../../features/settings/controllers/settings_controller.dart';
@@ -35,13 +36,12 @@ class SpeechToSignResultScreen extends StatelessWidget {
         ),
       ),
       body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 680),
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.all(20),
-              child: Column(
+        child: ResponsiveContentWrapper(
+          maxWidth: 720,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.all(20),
+            child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Spoken Phrase Card
@@ -52,7 +52,7 @@ class SpeechToSignResultScreen extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.record_voice_over_rounded,
                           color: AppColors.secondary,
                           size: 22,
@@ -106,7 +106,7 @@ class SpeechToSignResultScreen extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.info_outline_rounded,
+                          Icon(Icons.info_outline_rounded,
                               color: AppColors.warning, size: 18),
                           const SizedBox(width: 10),
                           Expanded(
@@ -201,7 +201,6 @@ class SpeechToSignResultScreen extends StatelessWidget {
             ),
           ),
         ),
-      ),
     );
   }
 }
@@ -243,7 +242,7 @@ class _RemoteVideoDownloadCard extends StatelessWidget {
                     color: AppColors.paleMist,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.cloud_download_rounded,
                     color: AppColors.secondary,
                     size: 24,

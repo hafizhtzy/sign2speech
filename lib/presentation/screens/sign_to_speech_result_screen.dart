@@ -21,15 +21,18 @@ class SignToSpeechResultScreen extends StatelessWidget {
     final settings = Get.find<SettingsController>();
     final history = Get.find<HistoryController>();
 
-    final text = recCtrl.fullTranscriptText.isEmpty
+    final isEn = settings.selectedAppLanguage.value == 'en';
+    final rawText = recCtrl.fullTranscriptText.isEmpty
         ? 'Halo, terima kasih. Saya mau bayar menggunakan QRIS.'
         : recCtrl.fullTranscriptText;
+    final englishText = recCtrl.translationService.translateToEnglish(rawText);
+    final displayText = isEn ? englishText : rawText;
 
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
         title: Text(
-          'Hasil Sign to Speech',
+          isEn ? 'Sign to Speech Result' : 'Hasil Sign to Speech',
           style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w700),
         ),
         leading: IconButton(
@@ -57,21 +60,33 @@ class SignToSpeechResultScreen extends StatelessWidget {
                           label: settings.selectedSignLanguage.value,
                           variant: BadgeVariant.active,
                         ),
-                        const StatusBadge(
-                          label: 'Bahasa Indonesia (id-ID)',
+                        StatusBadge(
+                          label: isEn
+                              ? 'English (en-US)'
+                              : 'Bahasa Indonesia (id-ID)',
                           variant: BadgeVariant.neutral,
                         ),
                       ],
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      text,
+                      displayText,
                       style: AppTypography.headlineMedium.copyWith(
                         fontWeight: FontWeight.w800,
                         color: AppColors.ink,
                         height: 1.35,
                       ),
                     ),
+                    if (isEn) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        'Isyarat Asli: $rawText',
+                        style: AppTypography.bodySmall.copyWith(
+                          color: AppColors.muted,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 24),
 
                     // Audio Trigger Row
@@ -81,7 +96,7 @@ class SignToSpeechResultScreen extends StatelessWidget {
                           onPressed: () => recCtrl.replayLastOrFullTranscript(),
                           icon: const Icon(Icons.volume_up_rounded, size: 20),
                           label: Text(
-                            'Putar Suara',
+                            isEn ? 'Play Voice' : 'Putar Suara',
                             style: AppTypography.labelMedium.copyWith(
                               fontWeight: FontWeight.w600,
                               color: AppColors.textOnDark,
@@ -100,10 +115,12 @@ class SignToSpeechResultScreen extends StatelessWidget {
                         const SizedBox(width: 12),
                         OutlinedButton.icon(
                           onPressed: () {
-                            Clipboard.setData(ClipboardData(text: text));
+                            Clipboard.setData(ClipboardData(text: displayText));
                             Get.snackbar(
-                              'Disalin',
-                              'Teks terjemahan berhasil disalin ke papan klip',
+                              isEn ? 'Copied' : 'Disalin',
+                              isEn
+                                  ? 'Translation copied to clipboard'
+                                  : 'Teks terjemahan berhasil disalin ke papan klip',
                               snackPosition: SnackPosition.BOTTOM,
                               backgroundColor: AppColors.surface,
                               colorText: AppColors.ink,
@@ -112,7 +129,7 @@ class SignToSpeechResultScreen extends StatelessWidget {
                           },
                           icon: const Icon(Icons.copy_rounded, size: 18),
                           label: Text(
-                            'Salin Teks',
+                            isEn ? 'Copy Text' : 'Salin Teks',
                             style: AppTypography.labelMedium.copyWith(
                               fontWeight: FontWeight.w600,
                               color: AppColors.ink,
@@ -135,18 +152,22 @@ class SignToSpeechResultScreen extends StatelessWidget {
 
               // Bottom Actions
               AppSecondaryButton(
-                label: 'Simpan ke Riwayat',
+                label: isEn ? 'Save to History' : 'Simpan ke Riwayat',
                 icon: Icons.bookmark_border_rounded,
                 onPressed: () {
                   history.addHistoryEntry(
-                    original: 'Gestur Kamera',
-                    translated: text,
+                    original: isEn
+                        ? 'Sign Gesture ($rawText)'
+                        : 'Gestur Kamera',
+                    translated: displayText,
                     direction: TranslationDirection.signToSpeech,
                     signLanguage: settings.selectedSignLanguage.value,
                   );
                   Get.snackbar(
-                    'Tersimpan',
-                    'Terjemahan berhasil disimpan ke Riwayat',
+                    isEn ? 'Saved' : 'Tersimpan',
+                    isEn
+                        ? 'Translation saved to History'
+                        : 'Terjemahan berhasil disimpan ke Riwayat',
                     snackPosition: SnackPosition.BOTTOM,
                     backgroundColor: AppColors.surface,
                     colorText: AppColors.ink,

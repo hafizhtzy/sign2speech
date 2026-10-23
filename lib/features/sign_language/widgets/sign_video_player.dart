@@ -188,7 +188,7 @@ class _SignVideoPlayerState extends State<SignVideoPlayer> {
                       Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const SizedBox(
+                          SizedBox(
                             width: 36,
                             height: 36,
                             child: CircularProgressIndicator(
@@ -197,7 +197,7 @@ class _SignVideoPlayerState extends State<SignVideoPlayer> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          const Text(
+                          Text(
                             'Mengunduh dari hajicare-sign.web.app...',
                             style: TextStyle(
                               color: AppColors.surface,
@@ -234,7 +234,7 @@ class _SignVideoPlayerState extends State<SignVideoPlayer> {
                             Text(
                               widget.errorMessage ?? _playerError!,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppColors.surface,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
@@ -245,7 +245,7 @@ class _SignVideoPlayerState extends State<SignVideoPlayer> {
                         ),
                       )
                     else if (widget.isLoading)
-                      const CircularProgressIndicator(color: AppColors.surface)
+                      CircularProgressIndicator(color: AppColors.surface)
                     else
                       Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -306,7 +306,7 @@ class _SignVideoPlayerState extends State<SignVideoPlayer> {
                                   : (isLocalCache
                                       ? 'Tersimpan di Cache'
                                       : 'hajicare-sign.web.app'),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppColors.surface,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,

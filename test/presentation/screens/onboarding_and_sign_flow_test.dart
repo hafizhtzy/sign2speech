@@ -71,6 +71,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap Lanjut
+      await tester.ensureVisible(find.text('Lanjut'));
       await tester.tap(find.text('Lanjut'));
       await tester.pumpAndSettle();
 

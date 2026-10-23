@@ -74,7 +74,7 @@ class CameraHudOverlay extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.swap_horiz_rounded,
                           size: 16,
                           color: AppColors.surface,
@@ -84,7 +84,7 @@ class CameraHudOverlay extends StatelessWidget {
                           activeModel == SignLanguageModelType.bisindo
                               ? 'BISINDO (47)'
                               : 'SIBI (72)',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.surface,
                             fontWeight: FontWeight.w700,
                             fontSize: 12,
@@ -121,7 +121,7 @@ class CameraHudOverlay extends StatelessWidget {
                         child: Text(
                           statusMessage,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.surface,
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -149,7 +149,7 @@ class CameraHudOverlay extends StatelessWidget {
                     tooltip: isCameraActive ? 'Jeda Kamera' : 'Lanjutkan Kamera',
                   ),
                   IconButton(
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.flip_camera_ios_rounded,
                       color: AppColors.surface,
                       size: 20,
@@ -197,7 +197,7 @@ class CameraHudOverlay extends StatelessWidget {
                   latestPrediction!.isLetter
                       ? 'Mengeja: ${latestPrediction!.cleanLabel}'
                       : latestPrediction!.cleanLabel,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: AppColors.ink,
@@ -213,7 +213,7 @@ class CameraHudOverlay extends StatelessWidget {
                   ),
                   child: Text(
                     '${(latestPrediction!.confidence * 100).toStringAsFixed(0)}%',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       color: AppColors.secondary,

@@ -7,6 +7,7 @@ import '../../core/constants/app_routes.dart';
 import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_button.dart';
+import '../../core/widgets/responsive_layout.dart';
 import '../../features/history/controllers/history_controller.dart';
 import '../../features/history/models/history_item.dart';
 import '../../features/settings/controllers/settings_controller.dart';
@@ -33,6 +34,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
   final SignLanguageController signCtrl = Get.find<SignLanguageController>();
   final BisindoRecognitionController recCtrl =
       Get.find<BisindoRecognitionController>();
+  final SettingsController settings = Get.find<SettingsController>();
 
   bool _isTrayExpanded = true;
   int _selectedCategoryTab = 0; // 0: Kata Populer, 1: Eja Alfabet
@@ -96,10 +98,15 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
   void _onSaveAndFinish() {
     if (recCtrl.fullTranscriptText.isNotEmpty) {
       final history = Get.find<HistoryController>();
-      final settings = Get.find<SettingsController>();
+      final isEn = settings.selectedAppLanguage.value == 'en';
+      final textToSave = isEn
+          ? recCtrl.translatedTranscriptText
+          : recCtrl.fullTranscriptText;
       history.addHistoryEntry(
-        original: 'Gestur Kamera',
-        translated: recCtrl.fullTranscriptText,
+        original: isEn
+            ? 'Sign Gesture (${recCtrl.fullTranscriptText})'
+            : 'Gestur Kamera',
+        translated: textToSave,
         direction: TranslationDirection.signToSpeech,
         signLanguage: settings.selectedSignLanguage.value,
       );
@@ -117,7 +124,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
         elevation: 0,
         leading: IconButton(
           onPressed: () => Get.back(),
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_rounded,
             color: AppColors.ink,
           ),
@@ -134,7 +141,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                   width: 1,
                 ),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.sign_language_rounded,
                 color: AppColors.primary,
                 size: 20,
@@ -145,7 +152,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
               child: Text(
                 AppStrings.cameraTitle.tr,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.ink,
                   fontWeight: FontWeight.w700,
                   fontSize: 18,
@@ -156,59 +163,121 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
         ),
       ),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.only(bottom: 24),
-          children: [
-            // 1. Model Switcher [ SIBI | BISINDO ]
-            _buildModelSwitcher(),
+        child: ResponsiveContentWrapper(
+          maxWidth: ResponsiveBreakpoints.maxDashboardWidth,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth >= ResponsiveBreakpoints.compactMaxWidth) {
+                // Wide Screen (Tablet / Desktop / Landscape): 2-Column Split
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Left Column: Camera Viewport + Controls
+                      Expanded(
+                        flex: 6,
+                        child: SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildModelSwitcher(),
+                              _buildCameraPanel(height: 380),
+                              const SizedBox(height: 12),
+                              _buildRecognitionStatus(),
+                              const SizedBox(height: 12),
+                              _buildControls(),
+                              const SizedBox(height: 16),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      // Right Column: Gesture Simulator + AI Unified Result + Action Buttons
+                      Expanded(
+                        flex: 5,
+                        child: SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildGestureSimulatorTray(),
+                              const SizedBox(height: 12),
+                              _buildUnifiedResultCard(),
+                              const SizedBox(height: 16),
+                              _buildFinishActionButtons(),
+                              const SizedBox(height: 24),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
 
-            // 2. Camera Viewport & Overlays
-            _buildCameraPanel(),
-
-            // 3. Collapsible Gesture Simulator Tray
-            _buildGestureSimulatorTray(),
-            const SizedBox(height: 12),
-
-            // 4. AI Transcription Result Card
-            _buildUnifiedResultCard(),
-            const SizedBox(height: 12),
-
-            // 5. Recognition Status & Manual Capture Option
-            _buildRecognitionStatus(),
-            const SizedBox(height: 16),
-
-            // 6. Action Controls: MULAI / BERHENTI, SPASI, HAPUS, RESET
-            _buildControls(),
-            const SizedBox(height: 14),
-
-            // 7. TTS Speaker & Finish Buttons
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
+              // Smartphone (Compact): 1-Column Stack
+              return ListView(
+                padding: const EdgeInsets.only(bottom: 24),
                 children: [
-                  Expanded(
-                    child: Obx(() {
-                      final raw = recCtrl.fullTranscriptText.trim();
-                      return AppSecondaryButton(
-                        label: 'Suarakan',
-                        icon: Icons.record_voice_over_rounded,
-                        onPressed: raw.isEmpty ? null : () => recCtrl.speakTranscript(),
-                      );
-                    }),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: AppPrimaryButton(
-                      label: 'Selesai',
-                      icon: Icons.check_circle_outline_rounded,
-                      onPressed: _onSaveAndFinish,
-                    ),
-                  ),
+                  // 1. Model Switcher [ SIBI | BISINDO ]
+                  _buildModelSwitcher(),
+
+                  // 2. Camera Viewport & Overlays
+                  _buildCameraPanel(),
+
+                  // 3. Collapsible Gesture Simulator Tray
+                  _buildGestureSimulatorTray(),
+                  const SizedBox(height: 12),
+
+                  // 4. AI Transcription Result Card
+                  _buildUnifiedResultCard(),
+                  const SizedBox(height: 12),
+
+                  // 5. Recognition Status & Manual Capture Option
+                  _buildRecognitionStatus(),
+                  const SizedBox(height: 16),
+
+                  // 6. Action Controls: MULAI / BERHENTI, SPASI, HAPUS, RESET
+                  _buildControls(),
+                  const SizedBox(height: 14),
+
+                  // 7. TTS Speaker & Finish Buttons
+                  _buildFinishActionButtons(),
                 ],
-              ),
-            ),
-          ],
+              );
+            },
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildFinishActionButtons() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: Obx(() {
+              final raw = recCtrl.fullTranscriptText.trim();
+              return AppSecondaryButton(
+                label: 'Suarakan',
+                icon: Icons.record_voice_over_rounded,
+                onPressed: raw.isEmpty ? null : () => recCtrl.speakTranscript(),
+              );
+            }),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: AppPrimaryButton(
+              label: 'Selesai',
+              icon: Icons.check_circle_outline_rounded,
+              onPressed: _onSaveAndFinish,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -307,7 +376,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
   }
 
   /// Camera Panel with Standby State, Active Viewport & Live Overlays
-  Widget _buildCameraPanel() {
+  Widget _buildCameraPanel({double height = 310}) {
     return RepaintBoundary(
       child: Obx(() {
         final isCameraActive = signCtrl.isCameraActive.value;
@@ -334,7 +403,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
           child: SizedBox(
-            height: 310,
+            height: height,
             child: Stack(
               fit: StackFit.expand,
               children: [
@@ -431,7 +500,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                 // 4. Overlays depending on live state
                 if (isCameraActive) ...[
                   if (liveState == BisindoLiveState.signing)
-                    const Positioned(
+                    Positioned(
                       left: 14,
                       bottom: 16,
                       child: _LivePill(
@@ -441,7 +510,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                       ),
                     ),
                   if (liveState == BisindoLiveState.classifying)
-                    const Positioned(
+                    Positioned(
                       left: 14,
                       bottom: 16,
                       child: _LivePill(
@@ -457,7 +526,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                       ),
                     ),
                   if (liveState == BisindoLiveState.listening)
-                    const Positioned(
+                    Positioned(
                       left: 14,
                       bottom: 16,
                       child: _LivePill(
@@ -526,7 +595,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                                 Container(
                                   width: 10,
                                   height: 10,
-                                  decoration: const BoxDecoration(
+                                  decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: AppColors.error,
                                   ),
@@ -558,7 +627,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                                 value: signCtrl.captureProgress.value,
                                 minHeight: 4,
                                 backgroundColor: Colors.white24,
-                                valueColor: const AlwaysStoppedAnimation(
+                                valueColor: AlwaysStoppedAnimation(
                                   AppColors.error,
                                 ),
                               ),
@@ -621,7 +690,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(
+                SizedBox(
                   width: 38,
                   height: 38,
                   child: CircularProgressIndicator(
@@ -673,7 +742,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                         width: 1.5,
                       ),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.no_photography_rounded,
                       color: AppColors.error,
                       size: 28,
@@ -848,13 +917,13 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.auto_awesome,
                     size: 16,
                     color: AppColors.secondary,
                   ),
                   const SizedBox(width: 8),
-                  const Text(
+                  Text(
                     'Uji Coba Gestur:',
                     style: TextStyle(
                       fontSize: 12.5,
@@ -863,29 +932,33 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                     ),
                   ),
                   const SizedBox(width: 6),
-                  Obx(() {
-                    final modelName = signCtrl.currentModel.value.displayName;
-                    final count = signCtrl.currentModel.value.classCount;
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.paleMist,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        'TFLite $modelName ($count)',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
+                  Expanded(
+                    child: Obx(() {
+                      final modelName = signCtrl.currentModel.value.displayName;
+                      final count = signCtrl.currentModel.value.classCount;
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
                         ),
-                      ),
-                    );
-                  }),
-                  const Spacer(),
+                        decoration: BoxDecoration(
+                          color: AppColors.paleMist,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          'TFLite $modelName ($count)',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                  const SizedBox(width: 6),
                   Icon(
                     _isTrayExpanded
                         ? Icons.keyboard_arrow_up
@@ -900,7 +973,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
 
           // Expanded Chips Selector
           if (_isTrayExpanded) ...[
-            const Divider(height: 1, color: AppColors.borderSoft),
+            Divider(height: 1, color: AppColors.borderSoft),
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
               child: Column(
@@ -909,14 +982,18 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                   // Tab selector: Kata Populer vs Eja Alfabet
                   Row(
                     children: [
-                      _buildSimulatorCategoryTab(
-                        index: 0,
-                        title: 'Kata Populer',
+                      Expanded(
+                        child: _buildSimulatorCategoryTab(
+                          index: 0,
+                          title: 'Kata Populer',
+                        ),
                       ),
                       const SizedBox(width: 8),
-                      _buildSimulatorCategoryTab(
-                        index: 1,
-                        title: 'Eja Alfabet',
+                      Expanded(
+                        child: _buildSimulatorCategoryTab(
+                          index: 1,
+                          title: 'Eja Alfabet',
+                        ),
                       ),
                     ],
                   ),
@@ -941,14 +1018,14 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                           return ActionChip(
                             label: Text(
                               word,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.ink,
                               ),
                             ),
                             backgroundColor: AppColors.paleMist,
-                            side: const BorderSide(color: AppColors.border),
+                            side: BorderSide(color: AppColors.border),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                             ),
@@ -984,7 +1061,8 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
       },
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.secondary : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
@@ -994,6 +1072,9 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
         ),
         child: Text(
           title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 11.5,
             fontWeight: FontWeight.w700,
@@ -1033,14 +1114,14 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                 Container(
                   width: 8,
                   height: 8,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: AppColors.primary,
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Text(
-                  'Teks Terdeteksi',
+                Text(
+                  AppStrings.cameraDetectedText.tr,
                   style: TextStyle(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w800,
@@ -1061,8 +1142,8 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                       border: Border.all(color: AppColors.border),
                     ),
                     child: Text(
-                      'Mengeja: ${recCtrl.spellingBuffer.value}',
-                      style: const TextStyle(
+                      '${AppStrings.cameraSpelling.tr}: ${recCtrl.spellingBuffer.value}',
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: AppColors.secondary,
@@ -1076,7 +1157,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text(
-                  'Arahkan gestur ke kamera atau gunakan simulator gestur di atas untuk memulai penerjemahan...',
+                  AppStrings.cameraAimGuide.tr,
                   style: TextStyle(
                     color: AppColors.muted,
                     fontStyle: FontStyle.italic,
@@ -1092,31 +1173,64 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                   child: Row(children: items.map(_buildGestureBox).toList()),
                 ),
               const SizedBox(height: 10),
-              const Divider(color: AppColors.borderSoft, height: 1),
+              Divider(color: AppColors.borderSoft, height: 1),
               const SizedBox(height: 10),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
-                    child: Text(
-                      raw,
-                      style: const TextStyle(
-                        color: AppColors.ink,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                        height: 1.35,
-                      ),
+                    child: Builder(
+                      builder: (context) {
+                        final isEnglish =
+                            settings.selectedAppLanguage.value == 'en';
+                        final englishText = recCtrl.translatedTranscriptText;
+                        if (isEnglish && englishText.isNotEmpty) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                englishText,
+                                style: TextStyle(
+                                  color: AppColors.ink,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 16,
+                                  height: 1.3,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Isyarat: $raw',
+                                style: TextStyle(
+                                  color: AppColors.muted,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                        return Text(
+                          raw,
+                          style: TextStyle(
+                            color: AppColors.ink,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                            height: 1.35,
+                          ),
+                        );
+                      },
                     ),
                   ),
                   TextButton.icon(
                     onPressed: recCtrl.speakTranscript,
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.volume_up_rounded,
                       size: 18,
                       color: AppColors.secondary,
                     ),
-                    label: const Text(
-                      'Dengar',
+                    label: Text(
+                      AppStrings.listen.tr,
                       style: TextStyle(
                         color: AppColors.secondary,
                         fontWeight: FontWeight.w700,
@@ -1150,7 +1264,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: AppColors.border, width: 1),
         ),
-        child: const Center(
+        child: Center(
           child: Icon(
             Icons.space_bar_rounded,
             size: 16,
@@ -1175,7 +1289,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
       child: Center(
         child: Text(
           token.value,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.ink,
             fontWeight: FontWeight.w700,
             fontSize: 13,
@@ -1275,7 +1389,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                     ),
                     child: Text(
                       '${(conf * 100).toStringAsFixed(0)}%',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.success,
                         fontWeight: FontWeight.w700,
                         fontSize: 11,
@@ -1307,7 +1421,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                     signCtrl.isCameraActive.value
                         ? 'Deteksi gestur otomatis aktif'
                         : 'Tekan MULAI untuk deteksi otomatis',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.muted,
                       fontSize: 11,
                     ),
@@ -1507,7 +1621,7 @@ class _CameraBadge extends StatelessWidget {
             Container(
               width: 6,
               height: 6,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: AppColors.success,
               ),

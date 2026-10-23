@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 
-/// Primary call-to-action button adhering to the Nordic / Cafe design system.
+/// Primary call-to-action button adhering to the Nordic / Cafe & Instagram design system.
 /// Features 48dp+ accessibility touch target, pill radius, and dynamic typography.
 class AppPrimaryButton extends StatelessWidget {
   final String label;
@@ -25,6 +25,8 @@ class AppPrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fg = AppColors.onPrimary;
+
     return SizedBox(
       width: width ?? double.infinity,
       height: height,
@@ -32,18 +34,18 @@ class AppPrimaryButton extends StatelessWidget {
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.textOnDark,
+          foregroundColor: fg,
           elevation: 0,
           shape: const StadiumBorder(),
           padding: const EdgeInsets.symmetric(horizontal: 16),
         ),
         child: isLoading
-            ? const SizedBox(
+            ? SizedBox(
                 width: 22,
                 height: 22,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
-                  color: AppColors.textOnDark,
+                  color: fg,
                 ),
               )
             : Row(
@@ -56,14 +58,14 @@ class AppPrimaryButton extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTypography.labelLarge.copyWith(
-                        color: AppColors.textOnDark,
-                        fontWeight: FontWeight.w600,
+                        color: fg,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
                   if (icon != null) ...[
                     const SizedBox(width: 8),
-                    Icon(icon, size: 20, color: AppColors.textOnDark),
+                    Icon(icon, size: 20, color: fg),
                   ],
                 ],
               ),
@@ -98,7 +100,7 @@ class AppSecondaryButton extends StatelessWidget {
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.ink,
-          side: const BorderSide(color: AppColors.border, width: 1.5),
+          side: BorderSide(color: AppColors.border, width: 1.5),
           shape: const StadiumBorder(),
           padding: const EdgeInsets.symmetric(horizontal: 16),
         ),

@@ -6,6 +6,7 @@ import '../../core/constants/app_routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_button.dart';
+import '../../core/widgets/responsive_layout.dart';
 import '../../features/settings/controllers/settings_controller.dart';
 import '../../features/sign_language/controllers/sign_language_controller.dart';
 import '../../features/sign_language/services/bisindo_classifier_service.dart';
@@ -42,10 +43,12 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.all(24),
-          child: Column(
+        child: ResponsiveContentWrapper(
+          maxWidth: ResponsiveBreakpoints.maxFormWidth,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.all(24),
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
@@ -111,6 +114,7 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

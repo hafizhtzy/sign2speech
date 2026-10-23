@@ -15,20 +15,21 @@ Aplikasi Flutter **Sign2Speech** untuk menjembatani komunikasi dua arah antara *
 
 ---
 
-## 2. Tema & Identitas Visual (Nordic Ocean Playful Editorial)
+## 2. Tema & Identitas Visual (Cafe Warm Oat Milk / Espresso)
 
-Sistem desain mengacu penuh pada `DESIGN.md` dan storyboard referensi 12 layar:
-- **Primary**: Mineral Ocean Blue (`#1B3B4B`)
-- **Secondary**: Fjord Blue (`#38687D`)
-- **Canvas / Background**: Warm Alabaster (`#F9F9F7`)
-- **Card / Surface**: Pure White (`#FFFFFF`)
-- **Pale Mist**: Accent Container & Chips (`#EAF0F2`)
-- **Soft Fjord**: Selected Tint (`#D7E3E8`)
-- **Ink / Typography**: Deep Graphite (`#192328`)
-- **Muted Text**: Stone Slate (`#6B7B83`)
-- **Borders**: Structural Blue-Gray (`#D1DCE0`)
-- **Tipografi**: **Plus Jakarta Sans** untuk seluruh UI.
-- **Copywriting**: Bahasa Indonesia baku yang ramah dan inklusif.
+Sistem desain mengacu penuh pada `DESIGN.md`, `AppColors` (`lib/core/theme/app_colors.dart`), dan storyboard referensi 12 layar:
+- **Primary**: Rich Espresso Brown (`#2C1E18` / `AppColors.primary`)
+- **Secondary**: Warm Caramel / Cinnamon (`#8C5A3C` / `AppColors.secondary`)
+- **Canvas / Background**: Warm Oat Milk / Cream (`#FDFBF7` / `AppColors.canvas`)
+- **Card / Surface**: Pure Warm White (`#FFFFFF` / `AppColors.surface`) & Soft Latte Foam (`#F4EFE6` / `AppColors.bgSurface`)
+- **Pale Mist**: Soft Latte Foam (`#F4EFE6` / `AppColors.paleMist`)
+- **Borders**: Warm Sand Border (`#E6DCD2` / `AppColors.border`) & Cafe Dashed Line (`#D5C7B8` / `AppColors.borderDashed`)
+- **Ink / Typography**: Rich Espresso Brown (`#2C1E18` / `AppColors.ink`)
+- **Muted Text**: Roasted Mocha (`#6E5A4F` / `AppColors.muted`) & Warm Taupe (`#9A8679` / `AppColors.textMuted`)
+- **Semantic Accents**: Matcha Sage (`#4A6B53` / `AppColors.matcha` offline & success), Amber Gold (`#D97724` / `AppColors.amber` warning & badges)
+- **Camera Viewport**: Deep Espresso Dark (`#191210` / `AppColors.cameraDark`)
+- **Tipografi**: **Plus Jakarta Sans** (`AppTypography`) untuk seluruh UI.
+- **Multi-Bahasa**: Dinamis via `AppStrings` & `AppTranslations` (`id_ID` & `en_US`).
 - **Touch Target**: Seluruh tombol aksi berukuran minimum >= 48 x 48 dp.
 
 ---

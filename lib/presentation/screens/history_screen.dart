@@ -7,10 +7,13 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_card.dart';
 import '../../core/widgets/empty_state_view.dart';
+import '../../core/widgets/responsive_layout.dart';
 import '../../features/history/controllers/history_controller.dart';
 import '../../features/history/models/history_item.dart';
+import '../../features/settings/controllers/settings_controller.dart';
 import '../../features/sign_language/controllers/text_to_sign_controller.dart';
 import '../../features/sign_language/services/bisindo_tts_service.dart';
+import '../../features/sign_language/services/sign_translation_service.dart';
 
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});
@@ -19,6 +22,8 @@ class HistoryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final history = Get.find<HistoryController>();
     final tts = Get.find<BisindoTtsService>();
+    final settings = Get.find<SettingsController>();
+    final translationService = Get.find<SignTranslationService>();
 
     return Scaffold(
       backgroundColor: AppColors.canvas,
@@ -50,50 +55,102 @@ class HistoryScreen extends StatelessWidget {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            // Filter Tabs Row
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-              child: Obx(
-                () => Row(
-                  children: [
-                    _buildFilterTab(history, 0, AppStrings.libraryCategoryAll.tr),
-                    const SizedBox(width: 8),
-                    _buildFilterTab(history, 1, 'Sign to Speech'),
-                    const SizedBox(width: 8),
-                    _buildFilterTab(history, 2, 'Speech to Sign'),
-                  ],
+        child: ResponsiveContentWrapper(
+          maxWidth: ResponsiveBreakpoints.maxDashboardWidth,
+          child: Column(
+            children: [
+              // Filter Tabs Row
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                child: Obx(
+                  () => Row(
+                    children: [
+                      _buildFilterTab(history, 0, AppStrings.libraryCategoryAll.tr),
+                      const SizedBox(width: 8),
+                      _buildFilterTab(history, 1, 'Sign to Speech'),
+                      const SizedBox(width: 8),
+                      _buildFilterTab(history, 2, 'Speech to Sign'),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-            // Content List
-            Expanded(
-              child: Obx(() {
-                final list = history.filteredItems;
+              // Content List
+              Expanded(
+                child: Obx(() {
+                  final list = history.filteredItems;
 
-                if (list.isEmpty) {
-                  return EmptyStateView(
-                    title: AppStrings.historyEmptyTitle.tr,
-                    subtitle: AppStrings.historyEmptyDesc.tr,
-                    actionLabel: AppStrings.historyStartTranslation.tr,
-                    onAction: () => Get.toNamed(AppRoutes.mainShell),
+                  if (list.isEmpty) {
+                    return EmptyStateView(
+                      title: AppStrings.historyEmptyTitle.tr,
+                      subtitle: AppStrings.historyEmptyDesc.tr,
+                      actionLabel: AppStrings.historyStartTranslation.tr,
+                      onAction: () => Get.toNamed(AppRoutes.mainShell),
+                    );
+                  }
+
+                  if (context.isLargeScreen) {
+                    return GridView.builder(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 8,
+                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 460,
+                        mainAxisExtent: 186,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                      ),
+                      itemCount: list.length,
+                      itemBuilder: (context, index) => _buildHistoryCard(
+                        context,
+                        list[index],
+                        history,
+                        tts,
+                        settings,
+                        translationService,
+                      ),
+                    );
+                  }
+
+                  return ListView.separated(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
+                    itemCount: list.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 10),
+                    itemBuilder: (context, index) => _buildHistoryCard(
+                      context,
+                      list[index],
+                      history,
+                      tts,
+                      settings,
+                      translationService,
+                    ),
                   );
-                }
+                }),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-                return ListView.separated(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 8,
-                  ),
-                  itemCount: list.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 10),
-                  itemBuilder: (context, index) {
-                    final item = list[index];
-                    final isS2S =
-                        item.direction == TranslationDirection.signToSpeech;
+  Widget _buildHistoryCard(
+    BuildContext context,
+    HistoryItem item,
+    HistoryController history,
+    BisindoTtsService tts,
+    SettingsController settings,
+    SignTranslationService translationService,
+  ) {
+    final isS2S = item.direction == TranslationDirection.signToSpeech;
+
 
                     return AppCard(
                       padding: const EdgeInsets.all(16),
@@ -154,7 +211,7 @@ class HistoryScreen extends StatelessWidget {
                                 ],
                               ),
                               IconButton(
-                                icon: const Icon(
+                                icon: Icon(
                                   Icons.close,
                                   size: 16,
                                   color: AppColors.muted,
@@ -166,23 +223,49 @@ class HistoryScreen extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 10),
-                          Text(
-                            item.translatedContent,
-                            style: AppTypography.titleMedium.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.ink,
-                              height: 1.35,
-                            ),
+                          Builder(
+                            builder: (context) {
+                              final isEn =
+                                  settings.selectedAppLanguage.value == 'en';
+                              final englishText = translationService
+                                  .translateToEnglish(item.translatedContent);
+                              final displayText =
+                                  isEn ? englishText : item.translatedContent;
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    displayText,
+                                    style: AppTypography.titleMedium.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.ink,
+                                      height: 1.35,
+                                    ),
+                                  ),
+                                  if (isEn &&
+                                      englishText != item.translatedContent) ...[
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      '${AppStrings.originalSign.tr}: ${item.translatedContent}',
+                                      style: AppTypography.bodySmall.copyWith(
+                                        color: AppColors.muted,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ] else if (item.originalContent.isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${AppStrings.sourceText.tr}: ${item.originalContent}',
+                                      style: AppTypography.bodySmall.copyWith(
+                                        color: AppColors.muted,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              );
+                            },
                           ),
-                          if (item.originalContent.isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              'Asal: ${item.originalContent}',
-                              style: AppTypography.bodySmall.copyWith(
-                                color: AppColors.muted,
-                              ),
-                            ),
-                          ],
                           const SizedBox(height: 12),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -196,14 +279,24 @@ class HistoryScreen extends StatelessWidget {
                               ),
                               if (isS2S)
                                 TextButton.icon(
-                                  onPressed: () =>
-                                      tts.speak(item.translatedContent),
+                                  onPressed: () {
+                                    final isEn =
+                                        settings.selectedAppLanguage.value == 'en';
+                                    final textToSpeak = isEn
+                                        ? translationService
+                                            .translateToEnglish(item.translatedContent)
+                                        : item.translatedContent;
+                                    tts.speak(
+                                      textToSpeak,
+                                      languageCode: isEn ? 'en-US' : 'id-ID',
+                                    );
+                                  },
                                   icon: const Icon(
                                     Icons.volume_up_rounded,
                                     size: 16,
                                   ),
                                   label: Text(
-                                    'Putar Suara',
+                                    AppStrings.playVoice.tr,
                                     style: AppTypography.labelSmall.copyWith(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
@@ -249,15 +342,8 @@ class HistoryScreen extends StatelessWidget {
                         ],
                       ),
                     );
-                  },
-                );
-              }),
-            ),
-          ],
-        ),
-      ),
-    );
   }
+
 
   Widget _buildFilterTab(HistoryController history, int index, String title) {
     final isSelected = history.selectedFilterIndex.value == index;
@@ -279,7 +365,7 @@ class HistoryScreen extends StatelessWidget {
             style: AppTypography.labelSmall.copyWith(
               fontSize: 12,
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-              color: isSelected ? AppColors.textOnDark : AppColors.muted,
+              color: isSelected ? AppColors.onPrimary : AppColors.muted,
             ),
           ),
         ),

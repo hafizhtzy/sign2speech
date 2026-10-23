@@ -16,6 +16,7 @@ import '../../features/sign_language/services/camera_feed_service.dart';
 import '../../features/sign_language/services/sign_language_config.dart';
 import '../../features/sign_language/services/sign_language_repository.dart';
 import '../../features/sign_language/services/sign_transcript_store.dart';
+import '../../features/sign_language/services/sign_translation_service.dart';
 import '../../features/translator/services/speech_service.dart';
 
 class AppBinding extends Bindings {
@@ -69,10 +70,14 @@ class AppBinding extends Bindings {
       permanent: true,
     );
 
+    final translationService = SignTranslationService();
+    Get.put<SignTranslationService>(translationService, permanent: true);
+
     Get.put<BisindoRecognitionController>(
       BisindoRecognitionController(
         ttsService: ttsService,
         transcriptStore: transcriptStore,
+        translationService: translationService,
       ),
       permanent: true,
     );

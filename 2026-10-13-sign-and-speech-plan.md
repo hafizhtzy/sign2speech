@@ -13,7 +13,7 @@
 - Computer Vision: MediaPipe Holistic via Android Native CameraX EventChannel (`com.sign2speech.bisindo/landmarks`)
 - Audio & Video: `speech_to_text`, `flutter_tts`, `video_player`
 - Networking & Cache: `dio`, `path_provider`, `shared_preferences`
-- Design Tokens: Nordic Ocean (`#1B3B4B`, `#38687D`) & Warm Alabaster (`#F9F9F7`, `#FFFFFF`, `#EAF0F2`, `#192328`, `#6B7B83`)
+- Design Tokens: Cafe Warm Oat Milk / Espresso (`#2C1E18`, `#8C5A3C`, `#FDFBF7`, `#FFFFFF`, `#F4EFE6`, `#E6DCD2`, `#6E5A4F`, `#4A6B53`, `#D97724`)
 
 **Spec:** [docs/superpowers/specs/2026-10-13-sign-and-speech-prd.md](file:///c:/fadli/Antigravity-Skill-Brain/docs/superpowers/specs/2026-10-13-sign-and-speech-prd.md)
 
@@ -339,7 +339,7 @@
 
 ---
 
-### Task 8: UI Components & Nordic Ocean Design Tokens
+### Task 8: UI Components & Cafe Warm Oat Milk / Espresso Design Tokens
 
 **Files:**
 - Create: `lib/core/theme/app_colors.dart`
@@ -353,14 +353,14 @@
 **Interfaces:**
 - Consumes: GetX controllers, Theme tokens
 - Produces:
-  - `AppColors`: Mineral Ocean (`#1B3B4B`), Fjord Blue (`#38687D`), Warm Alabaster (`#F9F9F7`), Pure White (`#FFFFFF`), Pale Mist (`#EAF0F2`), Deep Graphite (`#192328`), Stone Slate (`#6B7B83`)
+  - `AppColors`: Rich Espresso (`#2C1E18`), Warm Caramel (`#8C5A3C`), Warm Oat Milk (`#FDFBF7`), Pure Warm White (`#FFFFFF`), Soft Latte Foam (`#F4EFE6`), Warm Sand Border (`#E6DCD2`), Roasted Mocha (`#6E5A4F`), Matcha Sage (`#4A6B53`), Amber Gold (`#D97724`)
   - `SignSpeechCard`: Kartu perekam suara dengan animasi visualizer gelombang audio reaktif
   - `SignVideoPlayer`: Pemutar video berulang dengan indikator badge kata aktif
   - `HoldConfirmRing`: Cincin progres melingkar $0\% \rightarrow 100\%$ untuk feedback gestur
 
 - [ ] **Step 1: Write failing widget test for Design Tokens & Custom Widgets**
-  - Uji `SignSpeechCard`: menampilkan teks ucapan dan ikon mic aktif dengan palet Nordic Ocean.
-  - Uji `HoldConfirmRing`: menampilkan progres $0.0$ hingga $1.0$ dengan warna aksen Fjord Blue.
+  - Uji `SignSpeechCard`: menampilkan teks ucapan dan ikon mic aktif dengan palet Cafe Warm Oat Milk / Espresso.
+  - Uji `HoldConfirmRing`: menampilkan progres $0.0$ hingga $1.0$ dengan warna aksen Warm Caramel.
   - Uji `SignVideoPlayer`: menampilkan indikator kata aktif yang sesuai dengan `activeWordIndex`.
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -368,7 +368,7 @@
   - Expected: FAIL
 
 - [ ] **Step 3: Implement Design Tokens & Widgets**
-  - Buat `AppColors` dan `AppTheme` dengan palet Nordic Ocean & Warm Alabaster.
+  - Buat `AppColors` dan `AppTheme` dengan palet Cafe Warm Oat Milk / Espresso.
   - Terapkan animasi mikrointeraksi pada cincin konfirmasi dan gelombang audio responsif.
 
 - [ ] **Step 4: Run test to verify it passes**
@@ -376,7 +376,7 @@
   - Expected: PASS
 
 - [ ] **Step 5: Commit changes**
-  - Command: `git add lib/core/theme/ lib/features/sign_language/widgets/ test/features/sign_language/widgets/ && git commit -m "feat(ui): implement Nordic Ocean design tokens and accessibility widgets"`
+  - Command: `git add lib/core/theme/ lib/features/sign_language/widgets/ test/features/sign_language/widgets/ && git commit -m "feat(ui): implement Cafe Warm Oat Milk / Espresso design tokens and accessibility widgets"`
 
 ---
 

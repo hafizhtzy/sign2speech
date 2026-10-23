@@ -12,7 +12,7 @@ Sumber yang telah dibaca:
 - `2026-10-13-sign-and-speech-prd(1).md`: PRD versi 2.1.0, Document ID `PRD-S2S-2026-001`, bertanda Approved / Ready for Engineering Execution.
 - `2026-10-13-sign-and-speech-plan(1).md`: rencana implementasi sembilan task utama.
 - `logic-sign(1).md`: pada lampiran yang dibaca berisi implementation plan dengan task serupa; jangan diasumsikan sebagai kontrak training yang independen.
-- `DESIGN (1).md`: Nordic Ocean Playful Editorial, kontrak layar, aset, state, dan aksesibilitas.
+- `DESIGN (1).md`: Cafe Warm Oat Milk / Espresso Playful Editorial, kontrak layar, aset, state, dan aksesibilitas.
 - Project Rule Sign2Speech yang ditempel pengguna dalam obrolan.
 - Screenshot explorer workspace `speech2sign` yang diberikan pengguna.
 
@@ -64,24 +64,29 @@ Pengguna menyatakan skill sudah diunduh. Status penemuan skill oleh agent, depen
 
 ## 4. Keputusan desain yang dikunci
 
-**Gaya:** Nordic Ocean Playful Editorial; hangat, ramah, ringan, dengan ilustrasi editorial 2D dan whitespace lega.
+**Gaya:** Cafe Warm Oat Milk / Espresso Playful Editorial; hangat, ramah, tenang, dengan ilustrasi editorial 2D dan whitespace lega.
 
 | Token | Nilai | Pemakaian |
 | --- | --- | --- |
-| Primary | `#1B3B4B` | CTA utama, kartu utama, navigasi terpilih |
-| Secondary | `#38687D` | Waveform, ring, kata aktif |
-| Canvas | `#F9F9F7` | Latar utama |
-| Surface | `#FFFFFF` | Kartu, input, sheet |
-| Pale Mist | `#EAF0F2` | Chips, banner, area lembut |
-| Ink | `#192328` | Teks utama dan garis ilustrasi |
-| Muted | `#6B7B83` | Teks pendukung; periksa kontras |
-| Border | `#D1DCE0` | Outline dan divider |
+| Primary (`AppColors.primary`) | `#2C1E18` | CTA utama, hero card, navigasi aktif (Rich Espresso) |
+| Secondary (`AppColors.secondary`) | `#8C5A3C` | Waveform, ring konfirmasi, kata aktif (Warm Caramel) |
+| Canvas (`AppColors.canvas`) | `#FDFBF7` | Latar utama aplikasi (Warm Oat Milk / Cream) |
+| Surface (`AppColors.surface`) | `#FFFFFF` | Kartu elevated, modal, input, sheet (Pure Warm White) |
+| BgSurface / Pale Mist (`AppColors.bgSurface`) | `#F4EFE6` | Latar kartu sekunder, chips, banner (Latte Foam) |
+| Border (`AppColors.border`) | `#E6DCD2` | Outline kartu, input border, divider (Warm Sand) |
+| Border Dashed (`AppColors.borderDashed`) | `#D5C7B8` | Garis putus-putus cafe ticket |
+| Ink (`AppColors.ink`) | `#2C1E18` | Teks utama, heading, garis ilustrasi (Rich Espresso) |
+| Muted (`AppColors.muted`) | `#6E5A4F` | Teks pendukung, subtitle, timer (Roasted Mocha) |
+| Text Muted (`AppColors.textMuted`) | `#9A8679` | Placeholder & caption (Warm Taupe) |
+| Matcha / Success (`AppColors.matcha`) | `#4A6B53` | Status offline & indikator sukses semantik |
+| Amber / Warning (`AppColors.amber`) | `#D97724` | Badge, warning, highlight |
+| Camera Dark (`AppColors.cameraDark`) | `#191210` | Latar viewfinder kamera & dark overlay |
 
-Token tambahan di DESIGN.md: `#D7E3E8`, `#F0F4F5`, `#E4ECEF`. Warna status sukses/peringatan/error hanya untuk feedback semantik, bukan dekorasi merek.
+Single Source of Truth terpusat di `AppColors` (`lib/core/theme/app_colors.dart`).
 
 - Font **Plus Jakarta Sans** untuk seluruh UI; jangan mengganti dengan Inter atau Roboto default.
-- Copy Bahasa Indonesia yang ramah; nama merek dan istilah resmi boleh dipertahankan.
-- Karakter konsisten: wanita muda berambut ikal cepol dan pria muda berambut pendek; outline Graphite, fill putih hangat.
+- Multi-bahasa dinamis via `AppStrings` & `AppTranslations` (`id_ID` & `en_US`) dengan getter `.tr` reaktif di dalam `Obx`.
+- Karakter konsisten: wanita muda berambut ikal cepol dan pria muda berambut pendek; outline Rich Espresso (`#2C1E18`), fill putih hangat.
 - Ilustrasi tangan dekoratif bukan representasi BISINDO/SIBI yang terverifikasi.
 - Acuan artboard **393 × 852**; implementasi adaptif, bukan koordinat layar yang dibekukan.
 - Spacing dasar: 4, 8, 16, 24, 32, 48.

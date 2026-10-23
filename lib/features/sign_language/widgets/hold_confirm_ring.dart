@@ -35,7 +35,7 @@ class HoldConfirmRing extends StatelessWidget {
             value: progress.clamp(0.0, 1.0),
             strokeWidth: 6,
             strokeCap: StrokeCap.round,
-            valueColor: const AlwaysStoppedAnimation<Color>(
+            valueColor: AlwaysStoppedAnimation<Color>(
               AppColors.secondary,
             ),
           ),

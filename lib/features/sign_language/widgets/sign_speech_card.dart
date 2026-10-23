@@ -85,7 +85,7 @@ class _SignSpeechCardState extends State<SignSpeechCard>
               },
             )
           else
-            const SizedBox(
+            SizedBox(
               height: 48,
               child: Center(
                 child: Text(
@@ -155,7 +155,7 @@ class _SignSpeechCardState extends State<SignSpeechCard>
               child: Text(
                 widget.recognizedText,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: AppColors.ink,
