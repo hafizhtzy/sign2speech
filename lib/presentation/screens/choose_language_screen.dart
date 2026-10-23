@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_button.dart';
 import '../../features/settings/controllers/settings_controller.dart';
 import '../../features/sign_language/controllers/sign_language_controller.dart';
@@ -31,31 +32,33 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
-        title: const Text('Pilih Bahasa Isyarat'),
+        title: Text(
+          'Pilih Bahasa Isyarat',
+          style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w700),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
         ),
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
+              Text(
                 'Sistem Isyarat Pilihan',
-                style: TextStyle(
-                  fontSize: 24,
+                style: AppTypography.headlineMedium.copyWith(
                   fontWeight: FontWeight.w800,
                   color: AppColors.ink,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Anda dapat mengganti pilihan ini kapan saja melalui menu Pengaturan.',
-                style: TextStyle(
-                  fontSize: 15,
+                style: AppTypography.bodyMedium.copyWith(
                   color: AppColors.muted,
                   height: 1.4,
                 ),
@@ -66,7 +69,8 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
               _buildLanguageCard(
                 title: 'BISINDO',
                 fullName: 'Bahasa Isyarat Indonesia',
-                description: 'Isyarat alami dua tangan yang lazim digunakan komunitas Tuli Indonesia sehari-hari.',
+                description:
+                    'Isyarat alami dua tangan yang lazim digunakan komunitas Tuli Indonesia sehari-hari.',
                 badgeAsset: AppAssets.badgeBisindo,
                 vocabCount: '47 Kosakata Inti',
                 langKey: 'BISINDO',
@@ -77,12 +81,13 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
               _buildLanguageCard(
                 title: 'SIBI',
                 fullName: 'Sistem Isyarat Bahasa Indonesia',
-                description: 'Sistem isyarat formal berbasis tata bahasa baku Indonesia dan alfabet jari.',
+                description:
+                    'Sistem isyarat formal berbasis tata bahasa baku Indonesia dan alfabet jari.',
                 badgeAsset: AppAssets.badgeSibi,
                 vocabCount: '72 Kosakata Formal',
                 langKey: 'SIBI',
               ),
-              const Spacer(),
+              const SizedBox(height: 32),
 
               // Action CTA
               AppPrimaryButton(
@@ -170,8 +175,7 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
                     children: [
                       Text(
                         title,
-                        style: TextStyle(
-                          fontSize: 18,
+                        style: AppTypography.titleLarge.copyWith(
                           fontWeight: FontWeight.w800,
                           color: isSelected ? AppColors.primary : AppColors.ink,
                         ),
@@ -188,8 +192,7 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
                         ),
                         child: Text(
                           vocabCount,
-                          style: const TextStyle(
-                            fontSize: 11,
+                          style: AppTypography.labelSmall.copyWith(
                             fontWeight: FontWeight.w700,
                             color: AppColors.secondary,
                           ),
@@ -200,8 +203,7 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
                   const SizedBox(height: 2),
                   Text(
                     fullName,
-                    style: const TextStyle(
-                      fontSize: 13,
+                    style: AppTypography.labelMedium.copyWith(
                       fontWeight: FontWeight.w600,
                       color: AppColors.muted,
                     ),
@@ -209,8 +211,7 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
                   const SizedBox(height: 6),
                   Text(
                     description,
-                    style: const TextStyle(
-                      fontSize: 13,
+                    style: AppTypography.bodySmall.copyWith(
                       color: AppColors.ink,
                       height: 1.35,
                     ),

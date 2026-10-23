@@ -113,6 +113,11 @@ class SignLanguageController extends GetxController {
   Timer? _transientTimer;
   List<double>? _prevHandLandmarks;
 
+  // Performance & Anti-Lag Optimization: 25 FPS frame budget
+  int _lastFrameTimestampMs = 0;
+  int _lastUiProgressUpdateMs = 0;
+  static const int kMinFrameIntervalMs = 38;
+
   // Manual pipeline
   Timer? _countdownTimer;
   Timer? _captureTimer;
@@ -335,13 +340,20 @@ class SignLanguageController extends GetxController {
     }
   }
 
-  /// Ingests a camera landmark frame.
+  /// Ingests a camera landmark frame with 25 FPS anti-lag budget.
   void onIncomingLandmarkFrame(LandmarkFrame frame, {int? nowMs}) {
     if (_isDisposed) return;
 
     if (!isContinuousRunning.value || !isReadyForInput || isManualActive) {
       return;
     }
+
+    final currentMs = nowMs ?? DateTime.now().millisecondsSinceEpoch;
+    // Throttle frame processing to 25 FPS to keep device cool and prevent main thread lag
+    if (currentMs - _lastFrameTimestampMs < kMinFrameIntervalMs) {
+      return;
+    }
+    _lastFrameTimestampMs = currentMs;
 
     final baseFeature = BisindoFeatureExtractor.extract(frame);
     final hasHand = frame.landmarks.length >= 225 &&
@@ -396,10 +408,15 @@ class SignLanguageController extends GetxController {
 
     if (segmenter.isSigningActive) {
       sequenceBuffer.addFrame(baseFeature);
-      framesCollected.value = sequenceBuffer.frameCount;
-      captureProgress.value =
-          (sequenceBuffer.frameCount / BisindoSequenceBuffer.targetTimesteps)
-              .clamp(0.0, 1.0);
+
+      // Throttled UI reactive updates (every ~65ms) to prevent Obx rendering thrashing
+      if (currentMs - _lastUiProgressUpdateMs >= 65 || sequenceBuffer.frameCount <= 1) {
+        _lastUiProgressUpdateMs = currentMs;
+        framesCollected.value = sequenceBuffer.frameCount;
+        captureProgress.value =
+            (sequenceBuffer.frameCount / BisindoSequenceBuffer.targetTimesteps)
+                .clamp(0.0, 1.0);
+      }
 
       if (state.value == BisindoLiveState.listening ||
           state.value == BisindoLiveState.recognized ||
@@ -480,7 +497,7 @@ class SignLanguageController extends GetxController {
     _isPreviewing = true;
     final stopwatch = Stopwatch()..start();
     try {
-      final inputTensor = sequenceBuffer.buildModelTensor();
+      final inputTensor = await sequenceBuffer.buildModelTensorAsync();
       final prediction = await classifierService.classify(
         inputTensor,
         modelType: currentModel.value.toModelType,

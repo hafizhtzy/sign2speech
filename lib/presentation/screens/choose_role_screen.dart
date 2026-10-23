@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_button.dart';
 import '../../features/settings/controllers/settings_controller.dart';
 
@@ -29,7 +30,10 @@ class _ChooseRoleScreenState extends State<ChooseRoleScreen> {
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
-        title: const Text('Pilih Peran'),
+        title: Text(
+          'Pilih Peran',
+          style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w700),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
@@ -37,23 +41,22 @@ class _ChooseRoleScreenState extends State<ChooseRoleScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
+              Text(
                 'Bagaimana Anda Berkomunikasi?',
-                style: TextStyle(
-                  fontSize: 24,
+                style: AppTypography.headlineMedium.copyWith(
                   fontWeight: FontWeight.w800,
                   color: AppColors.ink,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Pilih peran agar kami dapat menyesuaikan alur kenyamanan layar untuk Anda.',
-                style: TextStyle(
-                  fontSize: 15,
+                style: AppTypography.bodyMedium.copyWith(
                   color: AppColors.muted,
                   height: 1.4,
                 ),
@@ -65,19 +68,19 @@ class _ChooseRoleScreenState extends State<ChooseRoleScreen> {
                 title: 'Teman Tuli',
                 cafeBadge: 'Barista / Pelanggan Tuli',
                 cafeBadgeTextColor: AppColors.secondary,
-                subtitle: 'Menggunakan Bahasa Isyarat (BISINDO / SIBI) untuk berbicara, mendengar via teks dan visual.',
+                subtitle:
+                    'Menggunakan Bahasa Isyarat (BISINDO / SIBI) untuk berbicara, mendengar via teks dan visual.',
                 imagePath: AppAssets.roleTemanTuli,
                 roleKey: 'Teman Tuli',
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Center(
                   child: Text(
                     'atau',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                    style: AppTypography.labelLarge.copyWith(
                       color: AppColors.muted,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -88,7 +91,8 @@ class _ChooseRoleScreenState extends State<ChooseRoleScreen> {
                 title: 'Teman Dengar',
                 cafeBadge: 'Pelanggan / Teman Dengar',
                 cafeBadgeTextColor: AppColors.muted,
-                subtitle: 'Berbicara menggunakan suara lisan, mendengarkan respon suara dari bahasa isyarat lawan bicara.',
+                subtitle:
+                    'Berbicara menggunakan suara lisan, mendengarkan respon suara dari bahasa isyarat lawan bicara.',
                 imagePath: AppAssets.roleTemanDengar,
                 roleKey: 'Teman Dengar',
               ),
@@ -167,8 +171,7 @@ class _ChooseRoleScreenState extends State<ChooseRoleScreen> {
                     ),
                     child: Text(
                       cafeBadge,
-                      style: TextStyle(
-                        fontSize: 11,
+                      style: AppTypography.labelSmall.copyWith(
                         fontWeight: FontWeight.w700,
                         color: cafeBadgeTextColor,
                       ),
@@ -178,8 +181,7 @@ class _ChooseRoleScreenState extends State<ChooseRoleScreen> {
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
-                          fontSize: 18,
+                        style: AppTypography.titleLarge.copyWith(
                           fontWeight: FontWeight.w700,
                           color: AppColors.ink,
                         ),
@@ -197,8 +199,7 @@ class _ChooseRoleScreenState extends State<ChooseRoleScreen> {
                   const SizedBox(height: 6),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      fontSize: 13,
+                    style: AppTypography.bodySmall.copyWith(
                       color: AppColors.muted,
                       height: 1.35,
                     ),

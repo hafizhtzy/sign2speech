@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../core/constants/app_routes.dart';
+import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_button.dart';
 import '../../features/history/controllers/history_controller.dart';
 import '../../features/history/models/history_item.dart';
@@ -21,7 +23,10 @@ class SpeechToSignMicScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
-        title: const Text('Speech to Sign'),
+        title: Text(
+          'Speech to Sign',
+          style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w700),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
@@ -29,23 +34,22 @@ class SpeechToSignMicScreen extends StatelessWidget {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                'Bicara Lewat Mikrofon',
-                style: TextStyle(
-                  fontSize: 24,
+              Text(
+                AppStrings.speechSpeakMic.tr,
+                style: AppTypography.headlineMedium.copyWith(
                   fontWeight: FontWeight.w800,
                   color: AppColors.ink,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Ucapkan kalimat dalam Bahasa Indonesia. Sistem akan mencocokkan kata dengan peragaan video isyarat.',
-                style: TextStyle(
-                  fontSize: 14,
+              Text(
+                AppStrings.speechSpeakMicDesc.tr,
+                style: AppTypography.bodyMedium.copyWith(
                   color: AppColors.muted,
                   height: 1.4,
                 ),
@@ -63,11 +67,9 @@ class SpeechToSignMicScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Quick Test Voice Phrases
-              const Text(
-                'Atau coba contoh ucapan langsung:',
-                style: TextStyle(
-                  fontSize: 13,
+              Text(
+                AppStrings.speechTrySamples.tr,
+                style: AppTypography.labelMedium.copyWith(
                   fontWeight: FontWeight.w600,
                   color: AppColors.muted,
                 ),
@@ -75,6 +77,7 @@ class SpeechToSignMicScreen extends StatelessWidget {
               const SizedBox(height: 8),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
                 child: Row(
                   children: [
                     _buildTestChip(ttsCtrl, 'Saya mau beli tiket'),
@@ -93,29 +96,28 @@ class SpeechToSignMicScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
 
-              // Action Button to View Video Results
               AppPrimaryButton(
-                label: 'Lihat Peragaan Isyarat',
+                label: AppStrings.speechViewSignVideo.tr,
                 icon: Icons.sign_language_rounded,
                 onPressed: () {
-                  final query = ttsCtrl.recognizedWords.value.isEmpty
-                      ? 'Terima kasih'
-                      : ttsCtrl.recognizedWords.value;
+                    final query = ttsCtrl.recognizedWords.value.isEmpty
+                        ? 'Terima kasih'
+                        : ttsCtrl.recognizedWords.value;
 
-                  ttsCtrl.processVoiceInput(query);
+                    ttsCtrl.processVoiceInput(query);
 
-                  final history = Get.find<HistoryController>();
-                  history.addHistoryEntry(
-                    original: query,
-                    translated: 'Peragaan Isyarat',
-                    direction: TranslationDirection.speechToSign,
-                    signLanguage: settings.selectedSignLanguage.value,
-                  );
+                    final history = Get.find<HistoryController>();
+                    history.addHistoryEntry(
+                      original: query,
+                      translated: 'Peragaan Isyarat',
+                      direction: TranslationDirection.speechToSign,
+                      signLanguage: settings.selectedSignLanguage.value,
+                    );
 
-                  Get.toNamed(AppRoutes.speechToSignResult);
-                },
-              ),
-              const SizedBox(height: 12),
+                    Get.toNamed(AppRoutes.speechToSignResult);
+                  },
+                ),
+                const SizedBox(height: 12),
             ],
           ),
         ),
@@ -132,8 +134,7 @@ class SpeechToSignMicScreen extends StatelessWidget {
         Get.toNamed(AppRoutes.speechToSignResult);
       },
       backgroundColor: AppColors.surface,
-      labelStyle: const TextStyle(
-        fontSize: 12,
+      labelStyle: AppTypography.labelSmall.copyWith(
         fontWeight: FontWeight.w600,
         color: AppColors.ink,
       ),

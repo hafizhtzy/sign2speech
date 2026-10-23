@@ -3,7 +3,9 @@ import 'package:get/get.dart';
 
 import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_routes.dart';
+import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_card.dart';
 import '../../core/widgets/status_badge.dart';
 import '../../features/history/controllers/history_controller.dart';
@@ -30,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: AppColors.canvas,
       body: SafeArea(
         child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -38,49 +41,53 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: AppColors.bgSurface,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        padding: const EdgeInsets.all(8),
-                        child: Image.asset(
-                          AppAssets.brandEmblem,
-                          fit: BoxFit.contain,
-                          cacheWidth: 100,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Sign2Speech',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.primary,
-                            ),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: AppColors.bgSurface,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.border),
                           ),
-                          Text(
-                            'Aksesibilitas Kasir & Kafe',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.muted,
-                              fontWeight: FontWeight.w500,
-                            ),
+                          padding: const EdgeInsets.all(8),
+                          child: Image.asset(
+                            AppAssets.brandEmblem,
+                            fit: BoxFit.contain,
+                            cacheWidth: 100,
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                AppStrings.appTitle.tr,
+                                style: AppTypography.titleLarge.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              Text(
+                                AppStrings.appSubtitle.tr,
+                                style: AppTypography.bodySmall.copyWith(
+                                  color: AppColors.muted,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   Obx(
                     () => Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         StatusBadge(
                           label: settings.selectedSignLanguage.value,
@@ -123,49 +130,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Row(
-                                      children: [
-                                        const Flexible(
-                                          child: Text(
-                                            'Mau Pesan Apa Hari Ini?',
-                                            style: TextStyle(
-                                              fontSize: 17,
-                                              fontWeight: FontWeight.w800,
-                                              color: AppColors.ink,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Obx(
-                                          () => Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 2,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: AppColors.primary,
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: Text(
-                                              settings
-                                                  .selectedSignLanguage
-                                                  .value,
-                                              style: const TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w700,
-                                                color: AppColors.textOnDark,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                                    Text(
+                                      AppStrings.homeGreeting.tr,
+                                      style: AppTypography.titleLarge.copyWith(
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.ink,
+                                      ),
                                     ),
                                     const SizedBox(height: 6),
-                                    const Text(
-                                      'Pilih mode terjemahan atau pintasan kasir di bawah untuk mulai komunikasi ramah dan inklusif di kafe.',
-                                      style: TextStyle(
-                                        fontSize: 13,
+                                    Text(
+                                      AppStrings.homeGreetingDesc.tr,
+                                      style: AppTypography.bodySmall.copyWith(
                                         color: AppColors.muted,
                                         height: 1.4,
                                       ),
@@ -194,23 +169,21 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 20),
 
-              // ── New Section: Pintasan Kalimat Kasir (Quick Chips) ────────
+              // ── Pintasan Kalimat Kasir (Quick Chips) ────────
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Pintasan Kalimat Kasir',
-                    style: TextStyle(
-                      fontSize: 16,
+                  Text(
+                    AppStrings.homeCashierShortcuts.tr,
+                    style: AppTypography.titleMedium.copyWith(
                       fontWeight: FontWeight.w800,
                       color: AppColors.ink,
                     ),
                   ),
                   Text(
-                    'Sentuh untuk bersuara',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.muted.withValues(alpha: 0.9),
+                    AppStrings.homeTapToSpeak.tr,
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.muted,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -220,6 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
                 child: Row(
                   children: [
                     _buildQuickOrderChip(
@@ -257,22 +231,20 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 22),
 
               // ── Mode Penerjemah Utama ────────────────────────────────────
-              const Text(
-                'Mode Penerjemah Utama',
-                style: TextStyle(
-                  fontSize: 18,
+              Text(
+                AppStrings.homeMainModes.tr,
+                style: AppTypography.titleLarge.copyWith(
                   fontWeight: FontWeight.w800,
                   color: AppColors.ink,
                 ),
               ),
               const SizedBox(height: 12),
 
-              // 1. Sign to Speech Card (Rich Espresso #2C1E18)
+              // 1. Sign to Speech Card (Rich Espresso)
               _buildFeatureCard(
                 title: 'Sign to Speech',
-                subtitle:
-                    'Arahkan kamera ke gerakan isyarat untuk diterjemahkan menjadi suara lisan Bahasa Indonesia secara langsung.',
-                tag: 'Kamera AI + Suara',
+                subtitle: AppStrings.homeSignToSpeechDesc.tr,
+                tag: AppStrings.homeSignToSpeechBadge.tr,
                 color: AppColors.primary,
                 textColor: AppColors.textOnDark,
                 tagBgColor: AppColors.textOnDark.withValues(alpha: 0.14),
@@ -282,12 +254,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 14),
 
-              // 2. Speech to Sign Card (Warm Caramel #8C5A3C)
+              // 2. Speech to Sign Card (Warm Caramel)
               _buildFeatureCard(
                 title: 'Speech to Sign',
-                subtitle:
-                    'Bicara lewat mikrofon untuk menampilkan rangkaian video peragaan isyarat kata-demi-kata secara berurutan.',
-                tag: 'Mikrofon + Video',
+                subtitle: AppStrings.homeSpeechToSignDesc.tr,
+                tag: AppStrings.homeSpeechToSignBadge.tr,
                 color: AppColors.secondary,
                 textColor: AppColors.textOnDark,
                 tagBgColor: AppColors.textOnDark.withValues(alpha: 0.16),
@@ -301,20 +272,18 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Katalog Isyarat Kafe',
-                    style: TextStyle(
-                      fontSize: 16,
+                    style: AppTypography.titleMedium.copyWith(
                       fontWeight: FontWeight.w700,
                       color: AppColors.ink,
                     ),
                   ),
                   TextButton(
                     onPressed: () => Get.toNamed(AppRoutes.signLibrary),
-                    child: const Text(
+                    child: Text(
                       'Lihat Semua',
-                      style: TextStyle(
-                        fontSize: 13,
+                      style: AppTypography.labelMedium.copyWith(
                         fontWeight: FontWeight.w700,
                         color: AppColors.secondary,
                       ),
@@ -326,6 +295,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
                 child: Row(
                   children: [
                     _buildCategoryPill(
@@ -368,20 +338,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Percakapan Terakhir',
-                          style: TextStyle(
-                            fontSize: 16,
+                          style: AppTypography.titleMedium.copyWith(
                             fontWeight: FontWeight.w700,
                             color: AppColors.ink,
                           ),
                         ),
                         TextButton(
                           onPressed: () => Get.toNamed(AppRoutes.history),
-                          child: const Text(
+                          child: Text(
                             'Riwayat',
-                            style: TextStyle(
-                              fontSize: 13,
+                            style: AppTypography.labelMedium.copyWith(
                               fontWeight: FontWeight.w700,
                               color: AppColors.secondary,
                             ),
@@ -423,16 +391,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                   children: [
                                     Text(
                                       item.translatedContent,
-                                      style: const TextStyle(
+                                      style: AppTypography.titleSmall.copyWith(
                                         fontWeight: FontWeight.w700,
-                                        fontSize: 14,
                                         color: AppColors.ink,
                                       ),
                                     ),
                                     Text(
                                       item.signLanguageType,
-                                      style: const TextStyle(
-                                        fontSize: 12,
+                                      style: AppTypography.bodySmall.copyWith(
                                         color: AppColors.muted,
                                       ),
                                     ),
@@ -510,8 +476,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Text(
           chipLabel,
-          style: TextStyle(
-            fontSize: 13,
+          style: AppTypography.labelMedium.copyWith(
             fontWeight: FontWeight.w700,
             color: isActive ? AppColors.textOnDark : AppColors.ink,
           ),
@@ -557,9 +522,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     child: Text(
                       tag,
-                      style: TextStyle(
+                      style: AppTypography.labelSmall.copyWith(
                         color: textColor,
-                        fontSize: 12,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -578,8 +542,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 18),
               Text(
                 title,
-                style: TextStyle(
-                  fontSize: 22,
+                style: AppTypography.headlineMedium.copyWith(
                   fontWeight: FontWeight.w800,
                   color: textColor,
                 ),
@@ -587,8 +550,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 8),
               Text(
                 subtitle,
-                style: TextStyle(
-                  fontSize: 14,
+                style: AppTypography.bodyMedium.copyWith(
                   fontWeight: FontWeight.w400,
                   color: textColor.withValues(alpha: 0.85),
                   height: 1.45,
@@ -597,11 +559,12 @@ class _HomeScreenState extends State<HomeScreen> {
               // Cafe Ticket Dashed Divider Detail
               LayoutBuilder(
                 builder: (context, constraints) {
-                  final boxWidth = constraints.maxWidth;
+                  final boxWidth =
+                      constraints.maxWidth.isFinite ? constraints.maxWidth : 300.0;
                   const dashWidth = 5.0;
                   const dashSpace = 4.0;
                   final dashCount =
-                      (boxWidth / (dashWidth + dashSpace)).floor();
+                      (boxWidth / (dashWidth + dashSpace)).floor().clamp(1, 100);
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     child: Row(
@@ -622,9 +585,8 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 children: [
                   Text(
-                    'Mulai Sekarang',
-                    style: TextStyle(
-                      fontSize: 14,
+                    AppStrings.startNow.tr,
+                    style: AppTypography.labelLarge.copyWith(
                       fontWeight: FontWeight.w700,
                       color: textColor,
                     ),
@@ -656,8 +618,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(width: 8),
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 13,
+              style: AppTypography.labelMedium.copyWith(
                 fontWeight: FontWeight.w600,
                 color: AppColors.ink,
               ),

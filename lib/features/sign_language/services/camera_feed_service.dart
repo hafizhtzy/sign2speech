@@ -177,11 +177,17 @@ class CameraFeedService extends GetxService {
     } catch (_) {}
   }
 
+  int _lastStatUpdateMs = 0;
+
   void _onLandmarkEvent(dynamic event) {
     if (event is! Map) return;
     try {
       final frame = LandmarkFrame.fromEvent(event);
-      receivedFramesCount.value++;
+      final now = DateTime.now().millisecondsSinceEpoch;
+      if (now - _lastStatUpdateMs >= 500) {
+        _lastStatUpdateMs = now;
+        receivedFramesCount.value++;
+      }
       onFrame?.call(frame);
     } catch (e) {
       debugPrint('[CameraFeedService] Frame parse error: $e');

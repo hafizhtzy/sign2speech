@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../core/constants/app_routes.dart';
+import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_button.dart';
 import '../../features/history/controllers/history_controller.dart';
@@ -140,11 +141,11 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
               ),
             ),
             const SizedBox(width: 12),
-            const Expanded(
+            Expanded(
               child: Text(
-                'Deteksi Isyarat',
+                AppStrings.cameraTitle.tr,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppColors.ink,
                   fontWeight: FontWeight.w700,
                   fontSize: 18,
@@ -307,15 +308,16 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
 
   /// Camera Panel with Standby State, Active Viewport & Live Overlays
   Widget _buildCameraPanel() {
-    return Obx(() {
-      final isCameraActive = signCtrl.isCameraActive.value;
+    return RepaintBoundary(
+      child: Obx(() {
+        final isCameraActive = signCtrl.isCameraActive.value;
       final currentModel = signCtrl.currentModel.value;
       final liveState = signCtrl.state.value;
 
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
-          color: const Color(0xFF141F24),
+          color: AppColors.cameraDark,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: AppColors.border,
@@ -339,7 +341,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                 // 1. Camera Standby or Active Feed
                 if (!isCameraActive)
                   ColoredBox(
-                    color: const Color(0xFF141F24),
+                    color: AppColors.cameraDark,
                     child: Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -362,10 +364,10 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                             ),
                           ),
                           const SizedBox(height: 14),
-                          const Text(
-                            'Kamera Belum Aktif',
+                          Text(
+                            AppStrings.cameraInactiveTitle.tr,
                             textAlign: TextAlign.center,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w700,
                               fontSize: 16,
@@ -375,7 +377,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 24),
                             child: Text(
-                              'Tekan tombol MULAI di bawah untuk mengaktifkan kamera dan deteksi isyarat otomatis.',
+                              AppStrings.cameraInactiveDesc.tr,
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.65),
@@ -585,11 +587,13 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                       switchInCurve: Curves.easeOutBack,
                       switchOutCurve: Curves.easeIn,
                       child: activeLabel.isNotEmpty
-                          ? GestureCandidateLoader(
-                              key: const ValueKey('gesture_candidate_loader'),
-                              label: activeLabel,
-                              progress: progress,
-                              isConfirmed: isConfirmed,
+                          ? RepaintBoundary(
+                              child: GestureCandidateLoader(
+                                key: const ValueKey('gesture_candidate_loader'),
+                                label: activeLabel,
+                                progress: progress,
+                                isConfirmed: isConfirmed,
+                              ),
                             )
                           : const SizedBox.shrink(),
                     );
@@ -600,8 +604,9 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
           ),
         ),
       );
-    });
-  }
+    }),
+  );
+}
 
   /// Active Camera Viewport: Real CameraPreview, Permission Prompt, or Simulator Fallback
   Widget _buildActiveCameraFeed() {
@@ -611,7 +616,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
       // 1. Loading camera sensor & requesting permissions
       if (camService.isLoading.value) {
         return Container(
-          color: const Color(0xFF0F181C),
+          color: AppColors.cameraDark,
           child: Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -650,7 +655,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
       // 2. Permission Denied Viewport
       if (!camService.isPermissionGranted.value) {
         return Container(
-          color: const Color(0xFF0F181C),
+          color: AppColors.cameraDark,
           child: Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -752,7 +757,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                 creationParamsCodec: StandardMessageCodec(),
               )
             else
-              Container(color: const Color(0xFF0F181C)),
+              Container(color: AppColors.cameraDark),
             // Hand placement silhouette guide overlay
             Center(
               child: Container(
@@ -780,7 +785,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
 
       // 4. Hardware Fallback / Simulator Viewport
       return Container(
-        color: const Color(0xFF0F181C),
+        color: AppColors.cameraDark,
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -1504,7 +1509,7 @@ class _CameraBadge extends StatelessWidget {
               height: 6,
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: Color(0xFF48C774),
+                color: AppColors.success,
               ),
             ),
             const SizedBox(width: 5),

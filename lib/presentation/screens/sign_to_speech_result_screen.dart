@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_card.dart';
 import '../../core/widgets/status_badge.dart';
@@ -27,14 +28,18 @@ class SignToSpeechResultScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
-        title: const Text('Hasil Sign to Speech'),
+        title: Text(
+          'Hasil Sign to Speech',
+          style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w700),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
         ),
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -61,8 +66,7 @@ class SignToSpeechResultScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                     Text(
                       text,
-                      style: const TextStyle(
-                        fontSize: 24,
+                      style: AppTypography.headlineMedium.copyWith(
                         fontWeight: FontWeight.w800,
                         color: AppColors.ink,
                         height: 1.35,
@@ -76,7 +80,13 @@ class SignToSpeechResultScreen extends StatelessWidget {
                         ElevatedButton.icon(
                           onPressed: () => recCtrl.replayLastOrFullTranscript(),
                           icon: const Icon(Icons.volume_up_rounded, size: 20),
-                          label: const Text('Putar Suara'),
+                          label: Text(
+                            'Putar Suara',
+                            style: AppTypography.labelMedium.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textOnDark,
+                            ),
+                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.secondary,
                             foregroundColor: AppColors.textOnDark,
@@ -101,7 +111,13 @@ class SignToSpeechResultScreen extends StatelessWidget {
                             );
                           },
                           icon: const Icon(Icons.copy_rounded, size: 18),
-                          label: const Text('Salin Teks'),
+                          label: Text(
+                            'Salin Teks',
+                            style: AppTypography.labelMedium.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.ink,
+                            ),
+                          ),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16,
@@ -115,7 +131,7 @@ class SignToSpeechResultScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const Spacer(),
+              const SizedBox(height: 32),
 
               // Bottom Actions
               AppSecondaryButton(

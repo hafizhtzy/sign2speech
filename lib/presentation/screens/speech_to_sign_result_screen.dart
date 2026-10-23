@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_card.dart';
 import '../../features/history/controllers/history_controller.dart';
@@ -23,7 +25,10 @@ class SpeechToSignResultScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
-        title: const Text('Hasil Speech to Sign'),
+        title: Text(
+          AppStrings.speechResultTitle.tr,
+          style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w700),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
@@ -34,6 +39,7 @@ class SpeechToSignResultScreen extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 680),
             child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -56,10 +62,9 @@ class SpeechToSignResultScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Teks Ucapan:',
-                                style: TextStyle(
-                                  fontSize: 12,
+                              Text(
+                                AppStrings.speechSpokenText.tr,
+                                style: AppTypography.labelSmall.copyWith(
                                   color: AppColors.muted,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -69,8 +74,7 @@ class SpeechToSignResultScreen extends StatelessWidget {
                                   ttsCtrl.recognizedWords.value.isEmpty
                                       ? 'Terima kasih, saya mau beli tiket'
                                       : ttsCtrl.recognizedWords.value,
-                                  style: const TextStyle(
-                                    fontSize: 16,
+                                  style: AppTypography.titleMedium.copyWith(
                                     fontWeight: FontWeight.w700,
                                     color: AppColors.ink,
                                   ),
@@ -96,21 +100,20 @@ class SpeechToSignResultScreen extends StatelessWidget {
                       margin: const EdgeInsets.only(bottom: 8),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFF3E0),
+                        color: AppColors.warning.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFFFB74D)),
+                        border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
                       ),
                       child: Row(
                         children: [
                           const Icon(Icons.info_outline_rounded,
-                              color: Color(0xFFE65100), size: 18),
+                              color: AppColors.warning, size: 18),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               'Kata ini tidak ditemukan di $userLang. Menampilkan hasil dari $lang.',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Color(0xFFE65100),
+                              style: AppTypography.bodySmall.copyWith(
+                                color: AppColors.warning,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -162,7 +165,7 @@ class SpeechToSignResultScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: AppSecondaryButton(
-                          label: 'Bicara Lagi',
+                          label: AppStrings.speechSpeakAgain.tr,
                           icon: Icons.mic_rounded,
                           onPressed: () => Get.back(),
                         ),
@@ -170,27 +173,27 @@ class SpeechToSignResultScreen extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: AppPrimaryButton(
-                          label: 'Simpan',
+                          label: AppStrings.save.tr,
                           icon: Icons.bookmark_border_rounded,
                           onPressed: () {
-                            history.addHistoryEntry(
-                              original: ttsCtrl.recognizedWords.value,
-                              translated: 'Peragaan Isyarat',
-                              direction: TranslationDirection.speechToSign,
-                              signLanguage: settings.selectedSignLanguage.value,
-                            );
-                            Get.snackbar(
-                              'Tersimpan',
-                              'Peragaan isyarat berhasil disimpan ke Riwayat',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: AppColors.surface,
-                              colorText: AppColors.ink,
-                              margin: const EdgeInsets.all(16),
-                            );
-                          },
+                              history.addHistoryEntry(
+                                original: ttsCtrl.recognizedWords.value,
+                                translated: 'Peragaan Isyarat',
+                                direction: TranslationDirection.speechToSign,
+                                signLanguage: settings.selectedSignLanguage.value,
+                              );
+                              Get.snackbar(
+                                'Tersimpan',
+                                'Peragaan isyarat berhasil disimpan ke Riwayat',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: AppColors.surface,
+                                colorText: AppColors.ink,
+                                margin: const EdgeInsets.all(16),
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -253,8 +256,7 @@ class _RemoteVideoDownloadCard extends StatelessWidget {
                     children: [
                       Text(
                         'Video "${entry.label}" tersedia di cloud',
-                        style: const TextStyle(
-                          fontSize: 14,
+                        style: AppTypography.titleSmall.copyWith(
                           fontWeight: FontWeight.w700,
                           color: AppColors.ink,
                         ),
@@ -262,8 +264,7 @@ class _RemoteVideoDownloadCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         'hajicare-sign.web.app — unduh untuk menonton offline',
-                        style: const TextStyle(
-                          fontSize: 12,
+                        style: AppTypography.bodySmall.copyWith(
                           color: AppColors.muted,
                         ),
                         maxLines: 1,
@@ -296,8 +297,7 @@ class _RemoteVideoDownloadCard extends StatelessWidget {
                     downloadProgress > 0
                         ? 'Mengunduh ${(downloadProgress * 100).toInt()}%...'
                         : 'Menyiapkan unduhan...',
-                    style: const TextStyle(
-                      fontSize: 12,
+                    style: AppTypography.bodySmall.copyWith(
                       color: AppColors.muted,
                       fontWeight: FontWeight.w600,
                     ),
@@ -321,11 +321,11 @@ class _RemoteVideoDownloadCard extends StatelessWidget {
                     ),
                   ),
                   icon: const Icon(Icons.download_rounded, size: 18),
-                  label: const Text(
+                  label: Text(
                     'Unduh & Putar Video',
-                    style: TextStyle(
+                    style: AppTypography.labelLarge.copyWith(
                       fontWeight: FontWeight.w700,
-                      fontSize: 14,
+                      color: AppColors.textOnDark,
                     ),
                   ),
                 ),

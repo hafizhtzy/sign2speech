@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_typography.dart';
 
 enum BadgeVariant { neutral, active, success, warning, error }
 
@@ -66,9 +67,8 @@ class StatusBadge extends StatelessWidget {
           ],
           Text(
             label,
-            style: TextStyle(
+            style: AppTypography.labelSmall.copyWith(
               color: fg,
-              fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
           ),

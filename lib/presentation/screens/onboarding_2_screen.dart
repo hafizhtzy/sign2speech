@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_button.dart';
 
 class Onboarding2Screen extends StatelessWidget {
@@ -46,12 +47,11 @@ class Onboarding2Screen extends StatelessWidget {
                   ),
                   TextButton(
                     onPressed: () => Get.back(),
-                    child: const Text(
+                    child: Text(
                       'Kembali',
-                      style: TextStyle(
+                      style: AppTypography.labelLarge.copyWith(
                         color: AppColors.muted,
                         fontWeight: FontWeight.w600,
-                        fontSize: 14,
                       ),
                     ),
                   ),
@@ -78,21 +78,18 @@ class Onboarding2Screen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Text Content
-              const Text(
+              Text(
                 'Untuk Semua Kesempatan',
-                style: TextStyle(
-                  fontSize: 26,
+                style: AppTypography.displayMedium.copyWith(
                   fontWeight: FontWeight.w800,
                   color: AppColors.ink,
                   height: 1.25,
                 ),
               ),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 'Memudahkan pelanggan dan barista Teman Tuli berkomunikasi saat memesan menu, memilih takaran gula/es, hingga pembayaran di kasir.',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w400,
+                style: AppTypography.bodyLarge.copyWith(
                   color: AppColors.muted,
                   height: 1.5,
                 ),
@@ -145,8 +142,7 @@ class Onboarding2Screen extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 13,
+            style: AppTypography.labelMedium.copyWith(
               fontWeight: FontWeight.w600,
               color: AppColors.ink,
             ),

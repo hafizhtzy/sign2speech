@@ -62,4 +62,9 @@ class AppColors {
   static const Color success = Color(0xFF4A6B53); // Matcha Sage
   static const Color warning = Color(0xFFD97724); // Amber Gold
   static const Color error = Color(0xFFBA1A1A);
+
+  // ── Camera Viewports & Dark Overlays ──────────────────────────────────────
+  /// Deep Espresso Dark for camera backgrounds and viewfinder surfaces
+  static const Color cameraDark = Color(0xFF191210);
+  static const Color cameraDarkElevated = Color(0xFF231B17);
 }

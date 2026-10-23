@@ -1,7 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech2sign/core/constants/app_routes.dart';
+import 'package:speech2sign/core/localization/app_translations.dart';
 import 'package:speech2sign/core/theme/app_theme.dart';
 import 'package:speech2sign/features/settings/controllers/settings_controller.dart';
 import 'package:speech2sign/features/sign_language/controllers/bisindo_recognition_controller.dart';
@@ -25,6 +27,8 @@ void main() {
           initialBinding: AppBinding(),
           initialRoute: AppRoutes.onboarding1,
           getPages: AppPages.pages,
+          translations: AppTranslations(),
+          locale: const Locale('id', 'ID'),
         ),
       );
 
@@ -49,6 +53,8 @@ void main() {
           initialBinding: AppBinding(),
           initialRoute: AppRoutes.chooseRole,
           getPages: AppPages.pages,
+          translations: AppTranslations(),
+          locale: const Locale('id', 'ID'),
         ),
       );
 
@@ -81,6 +87,8 @@ void main() {
             initialBinding: AppBinding(),
             initialRoute: AppRoutes.signToSpeechCamera,
             getPages: AppPages.pages,
+            translations: AppTranslations(),
+            locale: const Locale('id', 'ID'),
           ),
         );
 
@@ -109,6 +117,8 @@ void main() {
           initialBinding: AppBinding(),
           initialRoute: AppRoutes.speechToSignMic,
           getPages: AppPages.pages,
+          translations: AppTranslations(),
+          locale: const Locale('id', 'ID'),
         ),
       );
 

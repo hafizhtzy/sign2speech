@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../constants/app_assets.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_typography.dart';
 import 'app_button.dart';
 
 class EmptyStateView extends StatelessWidget {
@@ -39,8 +40,7 @@ class EmptyStateView extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 18,
+              style: AppTypography.titleLarge.copyWith(
                 fontWeight: FontWeight.w700,
                 color: AppColors.ink,
               ),
@@ -49,8 +49,7 @@ class EmptyStateView extends StatelessWidget {
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
+              style: AppTypography.bodyMedium.copyWith(
                 color: AppColors.muted,
                 height: 1.4,
               ),

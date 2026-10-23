@@ -278,7 +278,7 @@ class _SignVideoPlayerState extends State<SignVideoPlayer> {
                         ),
                         decoration: BoxDecoration(
                           color: isOfflineAsset
-                              ? const Color(0xFF1B5E20).withValues(alpha: 0.85)
+                              ? AppColors.success.withValues(alpha: 0.85)
                               : (isLocalCache
                                   ? AppColors.secondary.withValues(alpha: 0.90)
                                   : AppColors.primary.withValues(alpha: 0.85)),

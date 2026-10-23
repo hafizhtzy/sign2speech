@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
+import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
-import 'home_screen.dart';
+import '../../core/theme/app_typography.dart';
 import 'history_screen.dart';
-import 'sign_library_screen.dart';
+import 'home_screen.dart';
 import 'settings_screen.dart';
+import 'sign_library_screen.dart';
 
 class MainShellScreen extends StatefulWidget {
   const MainShellScreen({super.key});
@@ -46,34 +49,32 @@ class _MainShellScreenState extends State<MainShellScreen> {
           elevation: 0,
           selectedItemColor: AppColors.primary,
           unselectedItemColor: AppColors.textMuted,
-          selectedLabelStyle: const TextStyle(
+          selectedLabelStyle: AppTypography.labelSmall.copyWith(
             fontWeight: FontWeight.w700,
-            fontSize: 12,
           ),
-          unselectedLabelStyle: const TextStyle(
+          unselectedLabelStyle: AppTypography.labelSmall.copyWith(
             fontWeight: FontWeight.w500,
-            fontSize: 12,
           ),
-          items: const [
+          items: [
             BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home_rounded),
-              label: 'Beranda',
+              icon: const Icon(Icons.home_outlined),
+              activeIcon: const Icon(Icons.home_rounded),
+              label: AppStrings.navHome.tr,
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.history_outlined),
-              activeIcon: Icon(Icons.history_rounded),
-              label: 'Riwayat',
+              icon: const Icon(Icons.history_outlined),
+              activeIcon: const Icon(Icons.history_rounded),
+              label: AppStrings.navHistory.tr,
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.menu_book_outlined),
-              activeIcon: Icon(Icons.menu_book_rounded),
-              label: 'Perpustakaan',
+              icon: const Icon(Icons.menu_book_outlined),
+              activeIcon: const Icon(Icons.menu_book_rounded),
+              label: AppStrings.navLibrary.tr,
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.settings_outlined),
-              activeIcon: Icon(Icons.settings_rounded),
-              label: 'Pengaturan',
+              icon: const Icon(Icons.settings_outlined),
+              activeIcon: const Icon(Icons.settings_rounded),
+              label: AppStrings.navSettings.tr,
             ),
           ],
         ),

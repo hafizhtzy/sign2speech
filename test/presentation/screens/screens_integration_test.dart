@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech2sign/core/constants/app_routes.dart';
+import 'package:speech2sign/core/localization/app_translations.dart';
 import 'package:speech2sign/core/theme/app_theme.dart';
 import 'package:speech2sign/presentation/navigation/app_binding.dart';
 import 'package:speech2sign/presentation/navigation/app_pages.dart';
@@ -29,6 +30,8 @@ void main() {
           initialBinding: AppBinding(),
           initialRoute: AppRoutes.mainShell,
           getPages: AppPages.pages,
+          translations: AppTranslations(),
+          locale: const Locale('id', 'ID'),
         ),
       );
 

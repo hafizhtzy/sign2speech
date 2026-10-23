@@ -112,8 +112,8 @@ class CameraHudOverlay extends StatelessWidget {
                           color: !isCameraActive
                               ? Colors.grey
                               : (isInferring
-                                  ? const Color(0xFFFFB300)
-                                  : const Color(0xFF4CAF50)),
+                                  ? AppColors.warning
+                                  : AppColors.success),
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -190,7 +190,7 @@ class CameraHudOverlay extends StatelessWidget {
                       ? Icons.spellcheck_rounded
                       : Icons.check_circle_rounded,
                   size: 18,
-                  color: const Color(0xFF2E7D32),
+                  color: AppColors.success,
                 ),
                 const SizedBox(width: 8),
                 Text(

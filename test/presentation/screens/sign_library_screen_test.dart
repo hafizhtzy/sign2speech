@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:speech2sign/core/localization/app_translations.dart';
 import 'package:speech2sign/features/sign_language/controllers/text_to_sign_controller.dart';
 import 'package:speech2sign/features/sign_language/models/sign_language_catalog.dart';
 import 'package:speech2sign/features/sign_language/services/sign_language_repository.dart';
@@ -25,8 +26,10 @@ void main() {
     'SignLibraryScreen renders language segmented pills and filters BISINDO vs SIBI correctly',
     (tester) async {
       await tester.pumpWidget(
-        const GetMaterialApp(
-          home: SignLibraryScreen(),
+        GetMaterialApp(
+          translations: AppTranslations(),
+          locale: const Locale('id', 'ID'),
+          home: const SignLibraryScreen(),
         ),
       );
       await tester.pumpAndSettle();

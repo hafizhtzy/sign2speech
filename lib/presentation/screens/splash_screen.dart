@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_typography.dart';
 import '../../features/settings/controllers/settings_controller.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -42,6 +43,7 @@ class _SplashScreenState extends State<SplashScreen>
     _controller.forward();
 
     Timer(const Duration(milliseconds: 2200), () {
+      if (!mounted) return;
       final settings = Get.find<SettingsController>();
       if (settings.hasCompletedOnboarding.value) {
         Get.offAllNamed(AppRoutes.mainShell);
@@ -101,20 +103,18 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ),
               const SizedBox(height: 28),
-              const Text(
+              Text(
                 'Sign2Speech',
-                style: TextStyle(
-                  fontSize: 32,
+                style: AppTypography.displayLarge.copyWith(
                   fontWeight: FontWeight.w800,
                   color: AppColors.primary,
                   letterSpacing: -0.5,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Berkomunikasi Tanpa Batas',
-                style: TextStyle(
-                  fontSize: 16,
+                style: AppTypography.bodyLarge.copyWith(
                   fontWeight: FontWeight.w500,
                   color: AppColors.muted,
                 ),

@@ -17,7 +17,7 @@ class SignLanguageWidgetPreviews {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: Scaffold(
-        backgroundColor: const Color(0xFF141F24),
+        backgroundColor: AppColors.cameraDark,
         body: Center(
           child: GestureCandidateLoader(
             label: 'Halo',
@@ -35,7 +35,7 @@ class SignLanguageWidgetPreviews {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: Scaffold(
-        backgroundColor: const Color(0xFF141F24),
+        backgroundColor: AppColors.cameraDark,
         body: Center(
           child: GestureCandidateLoader(
             label: 'Terima Kasih',

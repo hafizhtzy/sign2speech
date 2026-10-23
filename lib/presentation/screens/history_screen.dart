@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../core/constants/app_routes.dart';
+import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_card.dart';
 import '../../core/widgets/empty_state_view.dart';
 import '../../features/history/controllers/history_controller.dart';
@@ -21,18 +23,21 @@ class HistoryScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
-        title: const Text('Riwayat Percakapan'),
+        title: Text(
+          AppStrings.historyTitle.tr,
+          style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w700),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_sweep_rounded),
-            tooltip: 'Hapus Semua',
+            tooltip: AppStrings.historyClearAll.tr,
             onPressed: () {
               if (history.items.isEmpty) return;
               Get.defaultDialog(
-                title: 'Hapus Riwayat',
-                middleText: 'Apakah Anda yakin ingin menghapus seluruh riwayat percakapan?',
-                textConfirm: 'Hapus',
-                textCancel: 'Batal',
+                title: AppStrings.historyConfirmClear.tr,
+                middleText: AppStrings.historyConfirmDesc.tr,
+                textConfirm: AppStrings.delete.tr,
+                textCancel: AppStrings.cancel.tr,
                 confirmTextColor: AppColors.surface,
                 buttonColor: AppColors.error,
                 onConfirm: () {
@@ -53,7 +58,7 @@ class HistoryScreen extends StatelessWidget {
               child: Obx(
                 () => Row(
                   children: [
-                    _buildFilterTab(history, 0, 'Semua'),
+                    _buildFilterTab(history, 0, AppStrings.libraryCategoryAll.tr),
                     const SizedBox(width: 8),
                     _buildFilterTab(history, 1, 'Sign to Speech'),
                     const SizedBox(width: 8),
@@ -70,14 +75,15 @@ class HistoryScreen extends StatelessWidget {
 
                 if (list.isEmpty) {
                   return EmptyStateView(
-                    title: 'Belum Ada Riwayat',
-                    subtitle: 'Mulai terjemahan lewat kamera atau mikrofon untuk menyimpan riwayat percakapan.',
-                    actionLabel: 'Mulai Terjemahan',
+                    title: AppStrings.historyEmptyTitle.tr,
+                    subtitle: AppStrings.historyEmptyDesc.tr,
+                    actionLabel: AppStrings.historyStartTranslation.tr,
                     onAction: () => Get.toNamed(AppRoutes.mainShell),
                   );
                 }
 
                 return ListView.separated(
+                  physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20,
                     vertical: 8,
@@ -117,8 +123,7 @@ class HistoryScreen extends StatelessWidget {
                                   const SizedBox(width: 8),
                                   Text(
                                     isS2S ? 'Sign to Speech' : 'Speech to Sign',
-                                    style: const TextStyle(
-                                      fontSize: 13,
+                                    style: AppTypography.labelMedium.copyWith(
                                       fontWeight: FontWeight.w700,
                                       color: AppColors.secondary,
                                     ),
@@ -139,7 +144,7 @@ class HistoryScreen extends StatelessWidget {
                                     ),
                                     child: Text(
                                       item.signLanguageType,
-                                      style: const TextStyle(
+                                      style: AppTypography.labelSmall.copyWith(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
                                         color: AppColors.muted,
@@ -163,8 +168,7 @@ class HistoryScreen extends StatelessWidget {
                           const SizedBox(height: 10),
                           Text(
                             item.translatedContent,
-                            style: const TextStyle(
-                              fontSize: 16,
+                            style: AppTypography.titleMedium.copyWith(
                               fontWeight: FontWeight.w700,
                               color: AppColors.ink,
                               height: 1.35,
@@ -174,8 +178,7 @@ class HistoryScreen extends StatelessWidget {
                             const SizedBox(height: 4),
                             Text(
                               'Asal: ${item.originalContent}',
-                              style: const TextStyle(
-                                fontSize: 12,
+                              style: AppTypography.bodySmall.copyWith(
                                 color: AppColors.muted,
                               ),
                             ),
@@ -186,7 +189,7 @@ class HistoryScreen extends StatelessWidget {
                             children: [
                               Text(
                                 _formatTime(item.timestamp),
-                                style: const TextStyle(
+                                style: AppTypography.bodySmall.copyWith(
                                   fontSize: 11,
                                   color: AppColors.muted,
                                 ),
@@ -199,9 +202,12 @@ class HistoryScreen extends StatelessWidget {
                                     Icons.volume_up_rounded,
                                     size: 16,
                                   ),
-                                  label: const Text(
+                                  label: Text(
                                     'Putar Suara',
-                                    style: TextStyle(fontSize: 12),
+                                    style: AppTypography.labelSmall.copyWith(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                   style: TextButton.styleFrom(
                                     foregroundColor: AppColors.secondary,
@@ -225,9 +231,12 @@ class HistoryScreen extends StatelessWidget {
                                     Icons.play_circle_outline,
                                     size: 16,
                                   ),
-                                  label: const Text(
+                                  label: Text(
                                     'Putar Video',
-                                    style: TextStyle(fontSize: 12),
+                                    style: AppTypography.labelSmall.copyWith(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                   style: TextButton.styleFrom(
                                     foregroundColor: AppColors.secondary,
@@ -267,7 +276,7 @@ class HistoryScreen extends StatelessWidget {
           child: Text(
             title,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: AppTypography.labelSmall.copyWith(
               fontSize: 12,
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
               color: isSelected ? AppColors.textOnDark : AppColors.muted,

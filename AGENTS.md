@@ -6,22 +6,29 @@ Dokumen ini adalah aturan resmi tingkat proyek (*Project Rule*) untuk Google Ant
 
 ## 1. Acuan Visual & Design System
 
-1. **Sumber Kebenaran Visual:**
-   - [DESIGN.md](file:///c:/speech2sign/DESIGN.md) adalah satu-satunya acuan desain visual utama aplikasi.
-   - **Palet Warna "Nordic Ocean Playful Editorial":**
-     - Primary: Mineral Ocean Blue (`#1B3B4B`)
-     - Secondary / Active: Fjord Blue (`#38687D`)
-     - Canvas Background: Warm Alabaster (`#F9F9F7`)
-     - Card / Surfaces: Pure White (`#FFFFFF`)
-     - Chips / Badges: Pale Mist (`#EAF0F2`)
-     - Ink / Linework: Deep Graphite (`#192328`) — hindari hitam murni (`#000000`)
-     - Muted Text: Stone Slate (`#6B7B83`)
-     - Borders: Structural Blue-Gray (`#D1DCE0`)
-   - **Tipografi:** Plus Jakarta Sans untuk seluruh heading, body, label tombol, dan angka (jangan ganti dengan Inter atau Roboto default).
-   - **Bahasa Copywriting UI:** Seluruh copy antarmuka menggunakan **Bahasa Indonesia** baku yang ramah, kecuali nama merek dan istilah teknis resmi (Sign2Speech, BISINDO, SIBI, Sign-to-Speech, Speech-to-Sign).
-   - **Ilustrasi Karakter:** Karakter editorial 2D hitam-putih dengan garis Deep Graphite (`#192328`) dan fill putih hangat (karakter wanita muda berambut ikal cepol dan pria muda berambut pendek). Ilustrasi tangan bersifat kontekstual/edukatif, bukan representasi BISINDO/SIBI yang diverifikasi.
-2. **Integritas Desain Layar:**
-   - Pertahankan desain 12 layar yang telah disetujui dalam storyboard / rancangan desain. Dilarang merombak layout yang sudah disetujui tanpa instruksi eksplisit.
+1. **Sumber Kebenaran Visual (Single Source of Truth):**
+   - **Palet Warna "Cafe Warm Oat Milk / Espresso" ([AppColors](file:///c:/fadli/project/sign2speech/lib/core/theme/app_colors.dart)):**
+     - Primary: Rich Espresso Brown (`#2C1E18` / `AppColors.primary`)
+     - Secondary / Active: Warm Caramel / Cinnamon (`#8C5A3C` / `AppColors.secondary`)
+     - Canvas Background: Warm Oat Milk / Cream (`#FDFBF7` / `AppColors.canvas`)
+     - Card / Surfaces: Pure White (`#FFFFFF` / `AppColors.surface`) & Latte Foam (`#F4EFE6` / `AppColors.bgSurface`)
+     - Chips / Badges: Soft Latte Foam (`#F4EFE6` / `AppColors.paleMist`)
+     - Ink / Headings: Deep Espresso (`#2C1E18` / `AppColors.ink`)
+     - Muted Text: Roasted Mocha (`#6E5A4F` / `AppColors.muted`)
+     - Borders: Warm Sand Border (`#E6DCD2` / `AppColors.border`)
+     - Semantic Accents: Matcha Sage (`#4A6B53` / `AppColors.matcha` untuk offline & success), Amber Gold (`#D97724` / `AppColors.amber` untuk warning & highlight), Deep Espresso Dark (`#191210` / `AppColors.cameraDark` untuk kamera).
+     - **Dilarang Keras Menulis Raw Hex / Color:** Seluruh warna di widget wajib menggunakan `AppColors`.
+   - **Tipografi Dinamis ([AppTypography](file:///c:/fadli/project/sign2speech/lib/core/theme/app_typography.dart)):** 
+     - Google Fonts Plus Jakarta Sans untuk seluruh peran teks (Display, Headline, Title, Body, Label). Dilarang membuat `TextStyle(...)` tanpa melalui `AppTypography`.
+   - **Multi-Bahasa Dinamis (Mandatory Dynamic Localization):**
+     - Dilarang hardcode string teks antarmuka di widget! Seluruh teks antarmuka wajib didaftarkan di [AppStrings](file:///c:/fadli/project/sign2speech/lib/core/localization/app_strings.dart) dan diterjemahkan dalam dua bahasa di [AppTranslations](file:///c:/fadli/project/sign2speech/lib/core/localization/app_translations.dart) (`id_ID` & `en_US`).
+     - Gunakan getter `.tr` reaktif di dalam `Obx(() => ...)` agar UI langsung berganti bahasa tanpa restart aplikasi saat diubah di Pengaturan.
+   - **Aturan Lengkap:** Wajib patuhi panduan terstruktur di [.agents/rules/ui_development_rules.md](file:///c:/fadli/project/sign2speech/.agents/rules/ui_development_rules.md).
+   - **Ilustrasi Karakter:** Karakter editorial 2D dengan garis Espresso (`#2C1E18`) dan fill putih hangat.
+2. **Integritas Desain Layar & Responsif:**
+   - Pertahankan desain alur 12 layar yang telah disetujui.
+   - Setiap layar scrollable wajib menggunakan `SingleChildScrollView(physics: BouncingScrollPhysics())` untuk mencegah *RenderFlex overflow*.
+   - Seluruh elemen interaktif wajib memenuhi standar touch target minimum **$\ge 48$ dp**.
 
 ---
 

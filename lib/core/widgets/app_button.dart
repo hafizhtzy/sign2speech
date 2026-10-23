@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_typography.dart';
 
+/// Primary call-to-action button adhering to the Nordic / Cafe design system.
+/// Features 48dp+ accessibility touch target, pill radius, and dynamic typography.
 class AppPrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -52,10 +55,9 @@ class AppPrimaryButton extends StatelessWidget {
                       label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
+                      style: AppTypography.labelLarge.copyWith(
                         color: AppColors.textOnDark,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -70,6 +72,7 @@ class AppPrimaryButton extends StatelessWidget {
   }
 }
 
+/// Secondary button with thin border, pill shape, and high-contrast typography.
 class AppSecondaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -108,10 +111,9 @@ class AppSecondaryButton extends StatelessWidget {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
+                style: AppTypography.labelLarge.copyWith(
                   color: AppColors.ink,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),

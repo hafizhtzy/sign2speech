@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../core/constants/app_routes.dart';
+import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_card.dart';
 import '../../features/sign_language/controllers/text_to_sign_controller.dart';
@@ -232,7 +233,9 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
-        title: const Text('Perpustakaan Isyarat'),
+        title: Text(
+          AppStrings.libraryTitle.tr,
+        ),
         backgroundColor: AppColors.surface,
         elevation: 0,
         centerTitle: false,
@@ -248,7 +251,7 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                 controller: _searchController,
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
-                  hintText: 'Cari menu, kata, huruf, atau sinonim...',
+                  hintText: AppStrings.librarySearchPlaceholder.tr,
                   hintStyle: const TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 14,
