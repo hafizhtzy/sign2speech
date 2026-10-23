@@ -7,7 +7,6 @@ import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_card.dart';
 import '../../core/widgets/responsive_layout.dart';
 import '../../core/widgets/status_badge.dart';
-import '../../features/cashier_assistance/widgets/cashier_assistant_sheet.dart';
 import '../../features/history/controllers/history_controller.dart';
 import '../../features/settings/controllers/settings_controller.dart';
 import '../../features/sign_language/services/bisindo_tts_service.dart';
@@ -265,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // ── Alat Pintar Kasir & Layar Pelanggan ──────────────
               AppCard(
-                onTap: () => CashierAssistantSheet.show(context),
+                onTap: () => Get.toNamed(AppRoutes.cafeCashierCounter),
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
@@ -434,13 +433,18 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    AppStrings.homeCafeCatalog.tr,
-                    style: AppTypography.titleMedium.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.ink,
+                  Expanded(
+                    child: Text(
+                      AppStrings.homeCafeCatalog.tr,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.titleMedium.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.ink,
+                      ),
                     ),
                   ),
+                  const SizedBox(width: 8),
                   TextButton(
                     onPressed: () => Get.toNamed(AppRoutes.signLibrary),
                     child: Text(
@@ -463,6 +467,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     _buildCategoryPill(
                       'Minuman & Menu',
                       Icons.coffee_rounded,
+                      onTap: () => Get.toNamed(AppRoutes.coffeeDetail),
                     ),
                     const SizedBox(width: 8),
                     _buildCategoryPill(
@@ -473,6 +478,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     _buildCategoryPill(
                       'Kasir & Bayar',
                       Icons.point_of_sale_rounded,
+                      onTap: () => Get.toNamed(AppRoutes.cafeCashierCounter),
                     ),
                     const SizedBox(width: 8),
                     _buildCategoryPill(
@@ -500,13 +506,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          AppStrings.homeRecentConversation.tr,
-                          style: AppTypography.titleMedium.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.ink,
+                        Expanded(
+                          child: Text(
+                            AppStrings.homeRecentConversation.tr,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.titleMedium.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.ink,
+                            ),
                           ),
                         ),
+                        const SizedBox(width: 8),
                         TextButton(
                           onPressed: () => Get.toNamed(AppRoutes.history),
                           child: Text(
@@ -783,9 +794,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildCategoryPill(String title, IconData icon) {
+  Widget _buildCategoryPill(String title, IconData icon, {VoidCallback? onTap}) {
     return GestureDetector(
-      onTap: () => Get.toNamed(AppRoutes.signLibrary),
+      onTap: onTap ?? () => Get.toNamed(AppRoutes.signLibrary),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(

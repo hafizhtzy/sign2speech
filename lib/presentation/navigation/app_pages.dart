@@ -14,6 +14,9 @@ import '../screens/speech_to_sign_result_screen.dart';
 import '../screens/sign_library_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/history_screen.dart';
+import '../../features/cafe_pos/bindings/cafe_pos_binding.dart';
+import '../../features/cafe_pos/screens/cafe_cashier_counter_screen.dart';
+import '../../features/cafe_pos/screens/coffee_detail_screen.dart';
 
 class AppPages {
   AppPages._();
@@ -82,6 +85,18 @@ class AppPages {
     GetPage(
       name: AppRoutes.history,
       page: () => const HistoryScreen(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.cafeCashierCounter,
+      page: () => const CafeCashierCounterScreen(),
+      binding: CafePosBinding(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.coffeeDetail,
+      page: () => const CoffeeDetailScreen(),
+      binding: CafePosBinding(),
       transition: Transition.rightToLeft,
     ),
   ];

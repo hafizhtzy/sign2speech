@@ -39,8 +39,10 @@ class _MainShellScreenState extends State<MainShellScreen> {
       final langKey = settings?.selectedAppLanguage.value ?? 'id';
       final dynamicKey = '${themeKey}_$langKey';
 
+      final size = MediaQuery.sizeOf(context);
+      final isShortLandscape = size.height < 520;
       final isLarge = context.isLargeScreen;
-      final isExpanded = context.isExpanded;
+      final shouldExtendRail = context.isExpanded && !isShortLandscape;
       final screens = _getScreens(dynamicKey);
 
       if (isLarge) {
@@ -52,74 +54,79 @@ class _MainShellScreenState extends State<MainShellScreen> {
               NavigationRail(
                 backgroundColor: AppColors.surface,
                 selectedIndex: _currentIndex,
-              onDestinationSelected: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
-              extended: isExpanded,
-              labelType: isExpanded
-                  ? NavigationRailLabelType.none
-                  : NavigationRailLabelType.all,
-              minWidth: 80,
-              minExtendedWidth: 210,
-              indicatorColor: AppColors.secondary.withValues(alpha: 0.16),
-              selectedIconTheme: IconThemeData(
-                color: AppColors.primary,
-                size: 24,
-              ),
-              unselectedIconTheme: IconThemeData(
-                color: AppColors.muted,
-                size: 22,
-              ),
-              selectedLabelTextStyle: AppTypography.labelMedium.copyWith(
-                fontWeight: FontWeight.w800,
-                color: AppColors.primary,
-              ),
-              unselectedLabelTextStyle: AppTypography.labelMedium.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.muted,
-              ),
-              leading: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary.withValues(alpha: 0.12),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.secondary.withValues(alpha: 0.3),
+                onDestinationSelected: (index) {
+                  setState(() {
+                    _currentIndex = index;
+                  });
+                },
+                extended: shouldExtendRail,
+                labelType: shouldExtendRail
+                    ? NavigationRailLabelType.none
+                    : (isShortLandscape
+                        ? NavigationRailLabelType.selected
+                        : NavigationRailLabelType.all),
+                minWidth: isShortLandscape ? 68 : 80,
+                minExtendedWidth: 210,
+                indicatorColor: AppColors.secondary.withValues(alpha: 0.16),
+                selectedIconTheme: IconThemeData(
+                  color: AppColors.primary,
+                  size: isShortLandscape ? 22 : 24,
+                ),
+                unselectedIconTheme: IconThemeData(
+                  color: AppColors.muted,
+                  size: isShortLandscape ? 20 : 22,
+                ),
+                selectedLabelTextStyle: AppTypography.labelMedium.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.primary,
+                ),
+                unselectedLabelTextStyle: AppTypography.labelMedium.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.muted,
+                ),
+                leading: Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: isShortLandscape ? 8 : 20,
+                    horizontal: 12,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: isShortLandscape ? 36 : 44,
+                        height: isShortLandscape ? 36 : 44,
+                        decoration: BoxDecoration(
+                          color: AppColors.secondary.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.secondary.withValues(alpha: 0.3),
+                          ),
                         ),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.sign_language_rounded,
-                          size: 22,
-                          color: AppColors.secondary,
-                        ),
-                      ),
-                    ),
-                    if (isExpanded) ...[
-                      const SizedBox(width: 12),
-                      Flexible(
-                        child: Text(
-                          AppStrings.appTitle.tr,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTypography.titleMedium.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.ink,
+                        child: Center(
+                          child: Icon(
+                            Icons.sign_language_rounded,
+                            size: isShortLandscape ? 18 : 22,
+                            color: AppColors.secondary,
                           ),
                         ),
                       ),
+                      if (shouldExtendRail) ...[
+                        const SizedBox(width: 12),
+                        Flexible(
+                          child: Text(
+                            AppStrings.appTitle.tr,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.titleMedium.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.ink,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
               destinations: [
                 NavigationRailDestination(
                   icon: const Icon(Icons.home_outlined),

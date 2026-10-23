@@ -187,13 +187,18 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        title,
-                        style: AppTypography.titleLarge.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: isSelected ? AppColors.primary : AppColors.ink,
+                      Expanded(
+                        child: Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.titleLarge.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: isSelected ? AppColors.primary : AppColors.ink,
+                          ),
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,

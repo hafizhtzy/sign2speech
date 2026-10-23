@@ -59,80 +59,94 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final isShortHeight = size.height < 520;
+
     return Scaffold(
       backgroundColor: AppColors.canvas,
       body: SafeArea(
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Spacer(flex: 2),
-              AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  return Opacity(
-                    opacity: _opacityAnimation.value,
-                    child: Transform.scale(
-                      scale: _scaleAnimation.value,
-                      child: child,
-                    ),
-                  );
-                },
-                child: Container(
-                  width: 140,
-                  height: 140,
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.border, width: 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.08),
-                        blurRadius: 24,
-                        offset: const Offset(0, 8),
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (!isShortHeight) const SizedBox(height: 32),
+                AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, child) {
+                    return Opacity(
+                      opacity: _opacityAnimation.value,
+                      child: Transform.scale(
+                        scale: _scaleAnimation.value,
+                        child: child,
                       ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(24),
-                  child: Center(
-                    child: Icon(
-                      Icons.sign_language_rounded,
-                      size: 64,
-                      color: AppColors.secondary,
+                    );
+                  },
+                  child: Container(
+                    width: isShortHeight ? 84 : 140,
+                    height: isShortHeight ? 84 : 140,
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.border, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.08),
+                          blurRadius: isShortHeight ? 12 : 24,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    padding: EdgeInsets.all(isShortHeight ? 14 : 24),
+                    child: Center(
+                      child: Icon(
+                        Icons.sign_language_rounded,
+                        size: isShortHeight ? 38 : 64,
+                        color: AppColors.secondary,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 28),
-              Text(
-                'Sign2Speech',
-                style: AppTypography.displayLarge.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Berkomunikasi Tanpa Batas',
-                style: AppTypography.bodyLarge.copyWith(
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.muted,
-                ),
-              ),
-              const Spacer(flex: 2),
-              SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    AppColors.secondary,
+                SizedBox(height: isShortHeight ? 14 : 28),
+                Text(
+                  'Sign2Speech',
+                  style: (isShortHeight
+                          ? AppTypography.headlineLarge
+                          : AppTypography.displayLarge)
+                      .copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.primary,
+                    letterSpacing: -0.5,
                   ),
                 ),
-              ),
-              const SizedBox(height: 32),
-            ],
+                const SizedBox(height: 6),
+                Text(
+                  'Berkomunikasi Tanpa Batas',
+                  style: (isShortHeight
+                          ? AppTypography.bodyMedium
+                          : AppTypography.bodyLarge)
+                      .copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.muted,
+                  ),
+                ),
+                SizedBox(height: isShortHeight ? 20 : 40),
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppColors.secondary,
+                    ),
+                  ),
+                ),
+                if (!isShortHeight) const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
       ),

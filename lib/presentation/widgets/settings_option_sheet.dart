@@ -73,17 +73,20 @@ class SettingsOptionSheet<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Center(
       child: ResponsiveContentWrapper(
         maxWidth: ResponsiveBreakpoints.maxFormWidth,
         alignment: Alignment.bottomCenter,
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            border: Border.all(color: AppColors.border),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: size.height * 0.90),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              border: Border.all(color: AppColors.border),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: AppColors.isDark ? 0.4 : 0.08),
@@ -193,8 +196,9 @@ class SettingsOptionSheet<T> extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildOptionTile(
     BuildContext context,

@@ -24,9 +24,16 @@ class EmptyStateView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isShortHeight = MediaQuery.sizeOf(context).height < 500;
+    final iconSize = isShortHeight ? 32.0 : 44.0;
+    final circleSize = isShortHeight ? 64.0 : 96.0;
+    final verticalPadding = isShortHeight ? 16.0 : 32.0;
+    final spacing = isShortHeight ? 12.0 : 24.0;
+
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        padding: EdgeInsets.symmetric(horizontal: 24, vertical: verticalPadding),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -34,14 +41,14 @@ class EmptyStateView extends StatelessWidget {
             if (imagePath != null && imagePath!.isNotEmpty)
               Image.asset(
                 imagePath!,
-                height: 140,
+                height: isShortHeight ? 90 : 140,
                 fit: BoxFit.contain,
                 cacheHeight: 280,
               )
             else
               Container(
-                width: 96,
-                height: 96,
+                width: circleSize,
+                height: circleSize,
                 decoration: BoxDecoration(
                   color: AppColors.bgSurface,
                   shape: BoxShape.circle,
@@ -50,31 +57,35 @@ class EmptyStateView extends StatelessWidget {
                 child: Center(
                   child: Icon(
                     icon ?? Icons.inbox_outlined,
-                    size: 44,
+                    size: iconSize,
                     color: AppColors.secondary,
                   ),
                 ),
               ),
-            const SizedBox(height: 24),
+            SizedBox(height: spacing),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: AppTypography.titleLarge.copyWith(
+              style: (isShortHeight
+                      ? AppTypography.titleMedium
+                      : AppTypography.titleLarge)
+                  .copyWith(
                 fontWeight: FontWeight.w700,
                 color: AppColors.ink,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               subtitle,
               textAlign: TextAlign.center,
               style: AppTypography.bodyMedium.copyWith(
                 color: AppColors.muted,
-                height: 1.4,
+                height: 1.35,
+                fontSize: isShortHeight ? 12.5 : 14,
               ),
             ),
             if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: 24),
+              SizedBox(height: spacing),
               AppPrimaryButton(
                 label: actionLabel!,
                 onPressed: onAction,

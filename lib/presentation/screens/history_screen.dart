@@ -102,7 +102,7 @@ class HistoryScreen extends StatelessWidget {
                       gridDelegate:
                           const SliverGridDelegateWithMaxCrossAxisExtent(
                         maxCrossAxisExtent: 460,
-                        mainAxisExtent: 186,
+                        mainAxisExtent: 196,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
                       ),
@@ -164,56 +164,63 @@ class HistoryScreen extends StatelessWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 32,
-                                    height: 32,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.bgSurface,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Icon(
-                                      isS2S
-                                          ? Icons.sign_language_rounded
-                                          : Icons.record_voice_over_rounded,
-                                      size: 18,
-                                      color: AppColors.secondary,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    isS2S ? 'Sign to Speech' : 'Speech to Sign',
-                                    style: AppTypography.labelMedium.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.secondary,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.bgSurface,
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                        color: AppColors.border,
-                                        width: 0.8,
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 32,
+                                      height: 32,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.bgSurface,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Icon(
+                                        isS2S
+                                            ? Icons.sign_language_rounded
+                                            : Icons.record_voice_over_rounded,
+                                        size: 18,
+                                        color: AppColors.secondary,
                                       ),
                                     ),
-                                    child: Text(
-                                      item.signLanguageType,
-                                      style: AppTypography.labelSmall.copyWith(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.muted,
+                                    const SizedBox(width: 8),
+                                    Flexible(
+                                      child: Text(
+                                        isS2S ? 'Sign to Speech' : 'Speech to Sign',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: AppTypography.labelMedium.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.secondary,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.bgSurface,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: AppColors.border,
+                                          width: 0.8,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        item.signLanguageType,
+                                        style: AppTypography.labelSmall.copyWith(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.muted,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
+                              const SizedBox(width: 8),
                               IconButton(
                                 icon: Icon(
                                   Icons.close,
@@ -241,6 +248,8 @@ class HistoryScreen extends StatelessWidget {
                                 children: [
                                   Text(
                                     displayText,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                     style: AppTypography.titleMedium.copyWith(
                                       fontWeight: FontWeight.w700,
                                       color: AppColors.ink,
@@ -366,6 +375,8 @@ class HistoryScreen extends StatelessWidget {
           child: Text(
             title,
             textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: AppTypography.labelSmall.copyWith(
               fontSize: 12,
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,

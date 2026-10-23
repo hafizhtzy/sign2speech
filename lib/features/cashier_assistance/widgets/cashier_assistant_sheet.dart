@@ -152,11 +152,15 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final isShortLandscape = size.height < 520 && size.width >= 580;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.88,
+        maxHeight: isShortLandscape
+            ? size.height * 0.95
+            : size.height * 0.88,
       ),
       margin: EdgeInsets.only(bottom: bottomInset),
       decoration: BoxDecoration(
@@ -365,76 +369,101 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
               ),
             ),
 
-          // Presets Grid
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: filtered.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 8),
-            itemBuilder: (context, index) {
-              final item = filtered[index];
-              return AppCard(
-                padding: const EdgeInsets.all(12),
-                onTap: () => _speakText(item['id']!, item['en']!),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: AppColors.bgSurface,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Center(
-                        child: Text(
-                          item['icon']!,
-                          style: const TextStyle(fontSize: 18),
+          // Presets Grid / List (Adaptive)
+          Builder(
+            builder: (context) {
+              final isWide = MediaQuery.sizeOf(context).width >= 600;
+
+              Widget buildCard(Map<String, String> item) {
+                return AppCard(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  onTap: () => _speakText(item['id']!, item['en']!),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: AppColors.bgSurface,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Center(
+                          child: Text(
+                            item['icon']!,
+                            style: const TextStyle(fontSize: 18),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item['title']!,
-                            style: AppTypography.labelLarge.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.ink,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              item['title']!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.labelLarge.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.ink,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            item['id']!,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTypography.bodySmall.copyWith(
-                              color: AppColors.muted,
+                            const SizedBox(height: 2),
+                            Text(
+                              item['id']!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.bodySmall.copyWith(
+                                color: AppColors.muted,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.volume_up_rounded,
-                          color: AppColors.secondary, size: 20),
-                      onPressed: () => _speakText(item['id']!, item['en']!),
-                      tooltip: 'Ucapkan Suara',
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.screen_rotation_rounded,
-                          color: AppColors.muted, size: 18),
-                      onPressed: () {
-                        setState(() {
-                          _facingDisplayText = item['id']!;
-                        });
-                        _tabController.animateTo(2);
-                      },
-                      tooltip: 'Tampilkan ke Layar Balik',
-                    ),
-                  ],
-                ),
+                      IconButton(
+                        icon: Icon(Icons.volume_up_rounded,
+                            color: AppColors.secondary, size: 20),
+                        onPressed: () => _speakText(item['id']!, item['en']!),
+                        tooltip: 'Ucapkan Suara',
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.screen_rotation_rounded,
+                            color: AppColors.muted, size: 18),
+                        onPressed: () {
+                          setState(() {
+                            _facingDisplayText = item['id']!;
+                          });
+                          _tabController.animateTo(2);
+                        },
+                        tooltip: 'Tampilkan ke Layar Balik',
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              if (isWide) {
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 440,
+                    mainAxisExtent: 72,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 8,
+                  ),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) => buildCard(filtered[index]),
+                );
+              }
+
+              return ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: filtered.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 8),
+                itemBuilder: (context, index) => buildCard(filtered[index]),
               );
             },
           ),
@@ -475,6 +504,147 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
 
   // ── 2. PRICE PAD TAB ──────────────────────────────────────────────────────
   Widget _buildPricePadTab() {
+    final size = MediaQuery.sizeOf(context);
+    final isShortLandscape = size.height < 520 && size.width >= 580;
+
+    if (isShortLandscape) {
+      // 2-Column Split for Landscape Phone / Tablet Low Height
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Left Column: Price Display + Quick Addition Chips + Action Buttons
+            Expanded(
+              flex: 5,
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Price Box
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.secondary, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.secondary.withValues(alpha: 0.08),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            AppStrings.cashierAmountPrompt.tr,
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.muted,
+                              fontSize: 11,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              _formatCurrency(_currentAmount),
+                              style: AppTypography.headlineMedium.copyWith(
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Quick Thousands Addition Chips
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        children: [
+                          _buildQuickAmountChip(1000, '+1rb'),
+                          const SizedBox(width: 4),
+                          _buildQuickAmountChip(5000, '+5rb'),
+                          const SizedBox(width: 4),
+                          _buildQuickAmountChip(10000, '+10rb'),
+                          const SizedBox(width: 4),
+                          _buildQuickAmountChip(20000, '+20rb'),
+                          const SizedBox(width: 4),
+                          _buildQuickAmountChip(50000, '+50rb'),
+                          const SizedBox(width: 4),
+                          _buildQuickAmountChip(100000, '+100rb'),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Action Buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AppPrimaryButton(
+                            label: AppStrings.cashierSpeakAmount.tr,
+                            icon: Icons.record_voice_over_rounded,
+                            onPressed: _currentAmount > 0 ? _speakTotalAmount : null,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton.filledTonal(
+                          onPressed: _currentAmount > 0
+                              ? () => _tabController.animateTo(2)
+                              : null,
+                          icon: const Icon(Icons.screen_rotation_rounded),
+                          tooltip: 'Layar Balik',
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+
+            // Right Column: Numpad Grid
+            Expanded(
+              flex: 5,
+              child: GridView.count(
+                crossAxisCount: 3,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 6,
+                crossAxisSpacing: 6,
+                childAspectRatio: 2.2,
+                children: [
+                  _buildNumpadButton('1', () => _typeDigit(1)),
+                  _buildNumpadButton('2', () => _typeDigit(2)),
+                  _buildNumpadButton('3', () => _typeDigit(3)),
+                  _buildNumpadButton('4', () => _typeDigit(4)),
+                  _buildNumpadButton('5', () => _typeDigit(5)),
+                  _buildNumpadButton('6', () => _typeDigit(6)),
+                  _buildNumpadButton('7', () => _typeDigit(7)),
+                  _buildNumpadButton('8', () => _typeDigit(8)),
+                  _buildNumpadButton('9', () => _typeDigit(9)),
+                  _buildNumpadButton('000', _addThousands),
+                  _buildNumpadButton('0', () => _typeDigit(0)),
+                  _buildNumpadIconButton(
+                    Icons.backspace_outlined,
+                    _backspaceAmount,
+                    onLongPress: _clearAmount,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Single-Column Layout for Portrait
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -661,8 +831,11 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
 
   // ── 3. CUSTOMER-FACING FLIP DISPLAY TAB ──────────────────────────────────
   Widget _buildCustomerDisplayTab() {
+    final size = MediaQuery.sizeOf(context);
+    final isShortLandscape = size.height < 520 && size.width >= 580;
+
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(isShortLandscape ? 12 : 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -735,7 +908,7 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: isShortLandscape ? 8 : 14),
 
           // Big Facing Card Container (Rotates 180 degrees)
           Expanded(
@@ -744,7 +917,7 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
               duration: const Duration(milliseconds: 350),
               curve: Curves.easeInOutCubic,
               child: Container(
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.all(isShortLandscape ? 14 : 24),
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(24),
@@ -772,9 +945,9 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
                         Icon(
                           Icons.visibility_rounded,
                           color: AppColors.secondary,
-                          size: 20,
+                          size: 18,
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Text(
                           AppStrings.cashierCustomerViewBadge.tr,
                           style: AppTypography.labelMedium.copyWith(
@@ -785,7 +958,7 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: isShortLandscape ? 8 : 16),
                     Expanded(
                       child: Center(
                         child: SingleChildScrollView(
@@ -793,16 +966,19 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
                           child: Text(
                             _facingDisplayText,
                             textAlign: TextAlign.center,
-                            style: AppTypography.displayMedium.copyWith(
+                            style: (isShortLandscape
+                                    ? AppTypography.headlineMedium
+                                    : AppTypography.displayMedium)
+                                .copyWith(
                               fontWeight: FontWeight.w800,
                               color: AppColors.ink,
-                              height: 1.3,
+                              height: 1.25,
                             ),
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: isShortLandscape ? 8 : 14),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -819,12 +995,14 @@ class _CashierAssistantSheetState extends State<CashierAssistantSheet>
               ),
             ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            AppStrings.cashierFlipScreenDesc.tr,
-            textAlign: TextAlign.center,
-            style: AppTypography.bodySmall.copyWith(color: AppColors.muted),
-          ),
+          if (!isShortLandscape) ...[
+            const SizedBox(height: 12),
+            Text(
+              AppStrings.cashierFlipScreenDesc.tr,
+              textAlign: TextAlign.center,
+              style: AppTypography.bodySmall.copyWith(color: AppColors.muted),
+            ),
+          ],
         ],
       ),
     );

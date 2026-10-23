@@ -175,4 +175,81 @@ class AppStrings {
   static const String onboarding3Desc = 'onboarding_3_desc';
   static const String onboardingBadgePresets = 'onboarding_badge_presets';
   static const String onboardingBadgeFlipScreen = 'onboarding_badge_flip_screen';
+
+  // Sign to Speech Result
+  static const String signResultTitle = 'sign_result_title';
+  static const String signResultOriginalSign = 'sign_result_original_sign';
+  static const String signResultPlayVoice = 'sign_result_play_voice';
+  static const String signResultCopyText = 'sign_result_copy_text';
+  static const String signResultCopied = 'sign_result_copied';
+  static const String signResultCopiedDesc = 'sign_result_copied_desc';
+  static const String signResultSaveHistory = 'sign_result_save_history';
+  static const String signResultSaved = 'sign_result_saved';
+  static const String signResultSavedDesc = 'sign_result_saved_desc';
+  static const String signResultBackToCamera = 'sign_result_back_to_camera';
+
+  // Cafe POS & 8 Killer Features
+  static const String cafeAutoOrderTitle = 'cafe_auto_order_title';
+  static const String cafeAutoOrderSubtitle = 'cafe_auto_order_subtitle';
+  static const String cafeConfirmToTicket = 'cafe_confirm_to_ticket';
+  static const String cafeParsedSlotDetected = 'cafe_parsed_slot_detected';
+  static const String cafeModifierExtraShot = 'cafe_modifier_extra_shot';
+
+  static const String cafeCupNameTitle = 'cafe_cup_name_title';
+  static const String cafeCupNameSubtitle = 'cafe_cup_name_subtitle';
+  static const String cafeCupNameActive = 'cafe_cup_name_active';
+  static const String cafeCupNameFinish = 'cafe_cup_name_finish';
+  static const String cafeCupNameFor = 'cafe_cup_name_for';
+
+  static const String cafeAiSommelierTitle = 'cafe_ai_sommelier_title';
+  static const String cafeAiSommelierSubtitle = 'cafe_ai_sommelier_subtitle';
+  static const String cafeAiChooseCustomize = 'cafe_ai_choose_customize';
+  static const String cafeAiMatchedReason = 'cafe_ai_matched_reason';
+
+  static const String cafeQueuePagerTitle = 'cafe_queue_pager_title';
+  static const String cafeCallHearing = 'cafe_call_hearing';
+  static const String cafeCallDeaf = 'cafe_call_deaf';
+  static const String cafeOrderReady = 'cafe_order_ready';
+  static const String cafeOrderReadyDesc = 'cafe_order_ready_desc';
+
+  static const String cafeQuickDeckTitle = 'cafe_quick_deck_title';
+  static const String cafeQuickDeckSubtitle = 'cafe_quick_deck_subtitle';
+  static const String quickDeck1 = 'quick_deck_1';
+  static const String quickDeck2 = 'quick_deck_2';
+  static const String quickDeck3 = 'quick_deck_3';
+  static const String quickDeck4 = 'quick_deck_4';
+  static const String quickDeck5 = 'quick_deck_5';
+  static const String quickDeck6 = 'quick_deck_6';
+
+  static const String cafeDietaryAlertTitle = 'cafe_dietary_alert_title';
+  static const String alertLactose = 'alert_lactose';
+  static const String alertDiabetes = 'alert_diabetes';
+  static const String alertNut = 'alert_nut';
+  static const String alertDairy = 'alert_dairy';
+  static const String alertMaag = 'alert_maag';
+
+  static const String cafeTicketTitle = 'cafe_ticket_title';
+  static const String cafeSubtotal = 'cafe_subtotal';
+  static const String cafeTax = 'cafe_tax';
+  static const String cafeGrandTotal = 'cafe_grand_total';
+  static const String cafePaymentQris = 'cafe_payment_qris';
+  static const String cafePaymentCash = 'cafe_payment_cash';
+  static const String cafeAmountReceived = 'cafe_amount_received';
+  static const String cafeChange = 'cafe_change';
+  static const String cafeTranslateBill = 'cafe_translate_bill';
+
+  static const String cafeWaitingChallengeTitle = 'cafe_waiting_challenge_title';
+  static const String cafeWaitingChallengeDesc = 'cafe_waiting_challenge_desc';
+  static const String cafeTryCamera = 'cafe_try_camera';
+  static const String cafeChallengeSuccess = 'cafe_challenge_success';
+  static const String cafeHoldGuide = 'cafe_hold_guide';
+
+  static const String cafeCoffeeDetailTitle = 'cafe_coffee_detail_title';
+  static const String cafeSendToCashier = 'cafe_send_to_cashier';
+  static const String cafeDualViewCustomer = 'cafe_dual_view_customer';
+  static const String cafeDualViewCashier = 'cafe_dual_view_cashier';
+  static const String cafeQueueNumber = 'cafe_queue_number';
+  static const String cafeCompositionOat = 'cafe_composition_oat';
+  static const String cafeCompositionFoam = 'cafe_composition_foam';
+  static const String cafeCompositionEspresso = 'cafe_composition_espresso';
 }

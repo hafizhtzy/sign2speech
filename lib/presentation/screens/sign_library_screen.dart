@@ -244,249 +244,263 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
       body: SafeArea(
         child: ResponsiveContentWrapper(
           maxWidth: ResponsiveBreakpoints.maxDashboardWidth,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-            // ── 1. SEARCH INPUT ──────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  hintText: AppStrings.librarySearchPlaceholder.tr,
-                  hintStyle: TextStyle(
-                    color: AppColors.textMuted,
-                    fontSize: 14,
-                  ),
-                  prefixIcon:
-                      Icon(Icons.search, color: AppColors.textMuted),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: Icon(
-                            Icons.clear,
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              // ── 1. HEADER CONTROLS (SEARCH, FILTERS, DOWNLOAD BANNER) ────
+              SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 1.1 Search Input
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
+                      child: TextField(
+                        controller: _searchController,
+                        onChanged: (_) => setState(() {}),
+                        decoration: InputDecoration(
+                          hintText: AppStrings.librarySearchPlaceholder.tr,
+                          hintStyle: TextStyle(
                             color: AppColors.textMuted,
+                            fontSize: 14,
                           ),
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() {});
-                          },
-                        )
-                      : null,
-                  filled: true,
-                  fillColor: AppColors.surface,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: AppColors.border),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: AppColors.border),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(
-                      color: AppColors.primary,
-                      width: 2,
+                          prefixIcon:
+                              Icon(Icons.search, color: AppColors.textMuted),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: Icon(
+                                    Icons.clear,
+                                    color: AppColors.textMuted,
+                                  ),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() {});
+                                  },
+                                )
+                              : null,
+                          filled: true,
+                          fillColor: AppColors.surface,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(color: AppColors.border),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(color: AppColors.border),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(
+                              color: AppColors.primary,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ),
-            ),
 
-            // ── 2. FILTER SISTEM ISYARAT (BISINDO / SIBI / SEMUA) ─────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: AppColors.bgSurface,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Row(
-                  children: _languages.map((lang) {
-                    final isSelected = _selectedLanguage == lang;
-                    final count = _countByLanguage(lang);
-                    return Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedLanguage = lang;
-                          });
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? AppColors.primary
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: isSelected
-                                ? [
-                                    BoxShadow(
-                                      color: AppColors.primary.withValues(
-                                        alpha: 0.18,
+                    // 1.2 Filter Sistem Isyarat (BISINDO / SIBI / SEMUA)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: AppColors.bgSurface,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Row(
+                          children: _languages.map((lang) {
+                            final isSelected = _selectedLanguage == lang;
+                            final count = _countByLanguage(lang);
+                            return Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _selectedLanguage = lang;
+                                  });
+                                },
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? AppColors.primary
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(10),
+                                    boxShadow: isSelected
+                                        ? [
+                                            BoxShadow(
+                                              color: AppColors.primary.withValues(
+                                                alpha: 0.18,
+                                              ),
+                                              blurRadius: 6,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ]
+                                        : null,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      '$lang ($count)',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w700
+                                            : FontWeight.w600,
+                                        color: isSelected
+                                            ? AppColors.onPrimary
+                                            : AppColors.muted,
                                       ),
-                                      blurRadius: 6,
-                                      offset: const Offset(0, 2),
                                     ),
-                                  ]
-                                : null,
-                          ),
-                          child: Center(
-                            child: Text(
-                              '$lang ($count)',
-                              style: TextStyle(
-                                fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // 1.3 Filter Pill Kategori (Horizontal Scroll)
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        children: _categories.map((cat) {
+                          final isSelected = _selectedCategory == cat;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: ChoiceChip(
+                              label: Text(cat),
+                              selected: isSelected,
+                              onSelected: (_) {
+                                setState(() {
+                                  _selectedCategory = cat;
+                                });
+                              },
+                              selectedColor: AppColors.secondary,
+                              backgroundColor: AppColors.surface,
+                              labelStyle: TextStyle(
+                                color: isSelected
+                                    ? AppColors.textOnDark
+                                    : AppColors.ink,
                                 fontWeight: isSelected
                                     ? FontWeight.w700
                                     : FontWeight.w600,
-                                color: isSelected
-                                    ? AppColors.onPrimary
-                                    : AppColors.muted,
+                                fontSize: 12.5,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                side: BorderSide(
+                                  color: isSelected
+                                      ? AppColors.secondary
+                                      : AppColors.border,
+                                ),
                               ),
                             ),
-                          ),
-                        ),
+                          );
+                        }).toList(),
                       ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
+                    ),
+                    const SizedBox(height: 10),
 
-            // ── 3. FILTER PILL KATEGORI (HORIZONTAL SCROLL) ───────────────────
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: _categories.map((cat) {
-                  final isSelected = _selectedCategory == cat;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      label: Text(cat),
-                      selected: isSelected,
-                      onSelected: (_) {
-                        setState(() {
-                          _selectedCategory = cat;
-                        });
-                      },
-                      selectedColor: AppColors.secondary,
-                      backgroundColor: AppColors.surface,
-                      labelStyle: TextStyle(
-                        color:
-                            isSelected ? AppColors.textOnDark : AppColors.ink,
-                        fontWeight: isSelected
-                            ? FontWeight.w700
-                            : FontWeight.w600,
-                        fontSize: 12.5,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(
-                          color: isSelected
-                              ? AppColors.secondary
-                              : AppColors.border,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            // ── 4. OFFLINE DOWNLOAD BANNER ───────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: AppCard(
-                backgroundColor: AppColors.bgSurface,
-                border: BorderSide(color: AppColors.border),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.download_for_offline_rounded,
-                        color: AppColors.textOnDark,
-                        size: 22,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _isDownloading
-                                ? 'Mengunduh... (${(_downloadProgress * 100).toInt()}%)'
-                                : 'Unduh Filter Ini (${entries.length} video)',
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.ink,
-                            ),
-                          ),
-                          Text(
-                            _isDownloading
-                                ? 'Sedang menyimpan video ke memori lokal'
-                                : 'Kategori $_selectedCategory • $_selectedLanguage',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: AppColors.muted,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: _isDownloading ? null : _downloadFilteredPack,
-                      style: TextButton.styleFrom(
+                    // 1.4 Offline Download Banner
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: AppCard(
+                        backgroundColor: AppColors.bgSurface,
+                        border: BorderSide(color: AppColors.border),
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
+                          horizontal: 14,
+                          vertical: 10,
                         ),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: Text(
-                        _isDownloading ? 'Memproses' : 'Unduh',
-                        style: TextStyle(
-                          color: AppColors.secondary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 38,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                color: AppColors.secondary,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.download_for_offline_rounded,
+                                color: AppColors.textOnDark,
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _isDownloading
+                                        ? 'Mengunduh... (${(_downloadProgress * 100).toInt()}%)'
+                                        : 'Unduh Filter Ini (${entries.length} video)',
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.ink,
+                                    ),
+                                  ),
+                                  Text(
+                                    _isDownloading
+                                        ? 'Sedang menyimpan video ke memori lokal'
+                                        : 'Kategori $_selectedCategory • $_selectedLanguage',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.muted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            TextButton(
+                              onPressed:
+                                  _isDownloading ? null : _downloadFilteredPack,
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: Text(
+                                _isDownloading ? 'Memproses' : 'Unduh',
+                                style: TextStyle(
+                                  color: AppColors.secondary,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
+                    const SizedBox(height: 12),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
 
-            // ── 5. VOCABULARY LIST ───────────────────────────────────────────
-            Expanded(
-              child: entries.isEmpty
-                  ? Center(
+              // ── 2. VOCABULARY LIST OR EMPTY STATE ───────────────────────
+              if (entries.isEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Center(
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
                             Icons.search_off_rounded,
@@ -512,45 +526,52 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                           ),
                         ],
                       ),
-                    )
-                  : LayoutBuilder(
-                      builder: (context, constraints) {
-                        if (constraints.maxWidth >=
-                            ResponsiveBreakpoints.compactMaxWidth) {
-                          return GridView.builder(
-                            padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-                            gridDelegate:
-                                const SliverGridDelegateWithMaxCrossAxisExtent(
-                              maxCrossAxisExtent: 460,
-                              mainAxisExtent: 84,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 10,
-                            ),
-                            itemCount: entries.length,
-                            addRepaintBoundaries: true,
-                            itemBuilder: (context, index) =>
-                                _buildVocabularyCard(context, entries[index]),
-                          );
+                    ),
+                  ),
+                )
+              else if (context.isLargeScreen)
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                  sliver: SliverGrid(
+                    gridDelegate:
+                        const SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 460,
+                      mainAxisExtent: 84,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 10,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) =>
+                          _buildVocabularyCard(context, entries[index]),
+                      childCount: entries.length,
+                    ),
+                  ),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final itemIndex = index ~/ 2;
+                        if (index.isOdd) {
+                          return const SizedBox(height: 8);
                         }
-
-                        return ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-                          itemCount: entries.length,
-                          addRepaintBoundaries: true,
-                          addAutomaticKeepAlives: false,
-                          separatorBuilder: (_, _) => const SizedBox(height: 8),
-                          itemBuilder: (context, index) =>
-                              _buildVocabularyCard(context, entries[index]),
+                        return _buildVocabularyCard(
+                          context,
+                          entries[itemIndex],
                         );
                       },
+                      childCount: entries.isEmpty ? 0 : entries.length * 2 - 1,
                     ),
-            ),
-          ],
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildVocabularyCard(BuildContext context, SignVideoEntry entry) {
     final isSibi = entry.signSystem.toLowerCase().trim() == 'sibi';

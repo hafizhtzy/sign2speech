@@ -185,11 +185,15 @@ class _ChooseRoleScreenState extends State<ChooseRoleScreen> {
                   ),
                   Row(
                     children: [
-                      Text(
-                        title,
-                        style: AppTypography.titleLarge.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.ink,
+                      Flexible(
+                        child: Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.titleLarge.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.ink,
+                          ),
                         ),
                       ),
                       if (isSelected) ...[

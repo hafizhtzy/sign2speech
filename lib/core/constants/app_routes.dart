@@ -14,4 +14,6 @@ class AppRoutes {
   static const String signLibrary = '/sign-library';
   static const String settings = '/settings';
   static const String history = '/history';
+  static const String cafeCashierCounter = '/cafe-cashier-counter';
+  static const String coffeeDetail = '/coffee-detail';
 }
