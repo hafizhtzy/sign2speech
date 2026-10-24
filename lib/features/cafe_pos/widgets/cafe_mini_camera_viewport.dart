@@ -19,6 +19,7 @@ class CafeMiniCameraViewport extends StatelessWidget {
   final Widget? centerOverlay;
   final Widget? bottomBanner;
   final bool showHandSilhouette;
+  final String? modelBadge;
   final CameraFeedService? cameraService;
 
   const CafeMiniCameraViewport({
@@ -30,7 +31,8 @@ class CafeMiniCameraViewport extends StatelessWidget {
     this.onSwitchCamera,
     this.centerOverlay,
     this.bottomBanner,
-    this.showHandSilhouette = true,
+    this.showHandSilhouette = false,
+    this.modelBadge,
     this.cameraService,
   });
 
@@ -66,48 +68,9 @@ class CafeMiniCameraViewport extends StatelessWidget {
             // 1. Camera Feed Viewport (Native CameraX or Fallback)
             Positioned.fill(child: _buildCameraFeed(cam)),
 
-            // 2. Viewfinder Reticle Border
-            Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: AppColors.surface.withValues(alpha: 0.28),
-                      width: 1.5,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            // 3. Center Silhouette / Custom HUD (Isolated with RepaintBoundary)
+            // 2. Custom HUD / Hold Indicator (Isolated with RepaintBoundary)
             if (centerOverlay != null)
-              Center(child: RepaintBoundary(child: centerOverlay!))
-            else if (showHandSilhouette)
-              Center(
-                child: RepaintBoundary(
-                  child: Container(
-                    width: 120,
-                    height: 130,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.35),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Icons.front_hand_outlined,
-                        size: 54,
-                        color: Colors.white.withValues(alpha: 0.32),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              Center(child: RepaintBoundary(child: centerOverlay!)),
 
             // 4. Top Control Bar (Title, Switch Camera, Close)
             Positioned(
@@ -116,47 +79,76 @@ class CafeMiniCameraViewport extends StatelessWidget {
               right: 10,
               child: Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.85),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: AppColors.secondary.withValues(alpha: 0.4),
-                      ),
-                    ),
+                  Expanded(
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Colors.redAccent,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 150),
-                          child: Text(
-                            title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTypography.labelSmall.copyWith(
-                              color: AppColors.surface,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 11,
+                        Flexible(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.85),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: AppColors.secondary.withValues(alpha: 0.4),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.redAccent,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: AppTypography.labelSmall.copyWith(
+                                      color: AppColors.surface,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ),
+                                if (modelBadge != null && modelBadge!.isNotEmpty) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 1.5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.secondary,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      modelBadge!,
+                                      style: AppTypography.labelSmall.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 9.5,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 4),
                   // Switch Camera Button (Touch Target >= 48x48)
                   if (onSwitchCamera != null)
                     Material(

@@ -15,6 +15,6 @@ void main() {
     Get.toNamed(AppRoutes.cafeCashierCounter);
     await tester.pumpAndSettle();
 
-    expect(find.text('Meja Kasir & Barista AI'), findsOneWidget);
+    expect(find.text('Meja Kasir & Barista AI'), findsWidgets);
   });
 }

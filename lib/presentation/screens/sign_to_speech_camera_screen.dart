@@ -93,6 +93,25 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
     signCtrl.onPredictionAccepted = (prediction) {
       recCtrl.handlePrediction(prediction);
     };
+    recCtrl.setModelThresholds(
+      confidenceThreshold:
+          signCtrl.currentModel.value == SignLanguageModel.sibi ? 0.58 : 0.70,
+      stablePredictionsRequired:
+          signCtrl.currentModel.value == SignLanguageModel.sibi ? 2 : 3,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!signCtrl.isContinuousRunning.value) {
+        signCtrl.startContinuous();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    if (signCtrl.isContinuousRunning.value) {
+      signCtrl.stopContinuous();
+    }
+    super.dispose();
   }
 
   void _onSaveAndFinish() {
@@ -303,7 +322,14 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                 label: 'SIBI (72)',
                 icon: Icons.sort_by_alpha_rounded,
                 isSelected: current == SignLanguageModel.sibi,
-                onTap: () => signCtrl.switchModel(SignLanguageModel.sibi),
+                onTap: () {
+                  signCtrl.switchModel(SignLanguageModel.sibi);
+                  recCtrl.setModelThresholds(
+                    confidenceThreshold: 0.58,
+                    stablePredictionsRequired: 2,
+                  );
+                  recCtrl.resetRecognitionState();
+                },
               ),
             ),
             const SizedBox(width: 4),
@@ -313,7 +339,14 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                 label: 'BISINDO (47)',
                 icon: Icons.handshake_rounded,
                 isSelected: current == SignLanguageModel.bisindo,
-                onTap: () => signCtrl.switchModel(SignLanguageModel.bisindo),
+                onTap: () {
+                  signCtrl.switchModel(SignLanguageModel.bisindo);
+                  recCtrl.setModelThresholds(
+                    confidenceThreshold: 0.70,
+                    stablePredictionsRequired: 3,
+                  );
+                  recCtrl.resetRecognitionState();
+                },
               ),
             ),
           ],
@@ -533,7 +566,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                         text: 'Siap — lakukan isyarat',
                         borderColor: AppColors.success,
                         leading: Icon(
-                          Icons.front_hand_rounded,
+                          Icons.videocam_rounded,
                           size: 13,
                           color: Colors.white,
                         ),
@@ -816,40 +849,14 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
 
       // 3. Real Native Hardware Camera Feed Ready
       if (camService.isCameraReady) {
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            // Native Android CameraX PlatformView or Fallback Simulator
-            if (defaultTargetPlatform == TargetPlatform.android)
-              const AndroidView(
-                viewType: 'com.speech2sign.bisindo/camera_preview',
-                creationParamsCodec: StandardMessageCodec(),
-              )
-            else
-              Container(color: AppColors.cameraDark),
-            // Hand placement silhouette guide overlay
-            Center(
-              child: Container(
-                width: 170,
-                height: 190,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.35),
-                    width: 1.5,
-                  ),
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.front_hand_outlined,
-                    size: 64,
-                    color: Colors.white.withValues(alpha: 0.22),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
+        if (defaultTargetPlatform == TargetPlatform.android) {
+          return const AndroidView(
+            viewType: 'com.speech2sign.bisindo/camera_preview',
+            creationParamsCodec: StandardMessageCodec(),
+          );
+        } else {
+          return Container(color: AppColors.cameraDark);
+        }
       }
 
       // 4. Hardware Fallback / Simulator Viewport
@@ -860,14 +867,14 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                Icons.front_hand_rounded,
+                Icons.videocam_rounded,
                 size: 54,
                 color: AppColors.secondary.withValues(alpha: 0.4),
               ),
               const SizedBox(height: 10),
               Text(
                 camService.hasCameraHardware.value
-                    ? 'Kamera Aktif — Posisikan Tangan'
+                    ? 'Kamera Aktif — Siap Deteksi'
                     : 'Mode Simulator (Sensor Tidak Terdeteksi)',
                 style: const TextStyle(
                   color: Colors.white,
@@ -1360,7 +1367,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
                           ? Icons.info_outline_rounded
                           : isRecordingVisual
                               ? Icons.fiber_manual_record_rounded
-                              : Icons.front_hand_rounded,
+                              : Icons.sensors_rounded,
                   size: 18,
                   color: accentColor,
                 ),

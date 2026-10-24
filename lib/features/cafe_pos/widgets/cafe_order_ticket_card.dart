@@ -23,6 +23,7 @@ class CafeOrderTicketCard extends StatelessWidget {
   final bool isQrisProcessing;
   final void Function(int itemIndex, OrderMilkType newMilk)? onSubstituteMilk;
   final void Function(int itemIndex)? onRemoveItem;
+  final bool showPayment;
 
   const CafeOrderTicketCard({
     super.key,
@@ -37,6 +38,7 @@ class CafeOrderTicketCard extends StatelessWidget {
     this.isQrisProcessing = false,
     this.onSubstituteMilk,
     this.onRemoveItem,
+    this.showPayment = true,
   });
 
   @override
@@ -434,9 +436,10 @@ class CafeOrderTicketCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (!isPaid) ...[
-                  // Payment Method Tabs
-                  Row(
+                if (showPayment) ...[
+                  if (!isPaid) ...[
+                    // Payment Method Tabs
+                    Row(
                     children: [
                       Expanded(
                         child: _buildPaymentTab(
@@ -582,7 +585,7 @@ class CafeOrderTicketCard extends StatelessWidget {
                               border: Border.all(color: AppColors.border),
                             ),
                             child: CustomPaint(
-                              painter: _QrisMatrixPainter(seed: ticket.orderId),
+                              painter: QrisMatrixPainter(seed: ticket.orderId),
                               child: Center(
                                 child: Container(
                                   padding: const EdgeInsets.all(4),
@@ -674,10 +677,10 @@ class CafeOrderTicketCard extends StatelessWidget {
                     ),
                   ),
                 ],
-
                 const SizedBox(height: 14),
+              ],
 
-                // Translate Bill & Reset Buttons
+              // Translate Bill & Reset Buttons
                 Row(
                   children: [
                     Expanded(
@@ -914,10 +917,10 @@ class CafeOrderTicketCard extends StatelessWidget {
 }
 
 /// Custom painter to render deterministic crisp QRIS pattern with 3 positioning corners
-class _QrisMatrixPainter extends CustomPainter {
+class QrisMatrixPainter extends CustomPainter {
   final String seed;
 
-  _QrisMatrixPainter({required this.seed});
+  QrisMatrixPainter({required this.seed});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -981,6 +984,6 @@ class _QrisMatrixPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _QrisMatrixPainter oldDelegate) =>
+  bool shouldRepaint(covariant QrisMatrixPainter oldDelegate) =>
       oldDelegate.seed != seed;
 }

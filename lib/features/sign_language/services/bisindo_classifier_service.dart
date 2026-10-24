@@ -1,11 +1,12 @@
 import 'dart:convert';
-import 'dart:math';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:tflite_flutter/tflite_flutter.dart';
+import 'package:tflite_flutter/tflite_flutter.dart' as tfl;
 
 import '../models/bisindo_prediction.dart';
+import '../models/sign_language_model.dart';
 
 enum SignLanguageModelType {
   bisindo, // 47 classes
@@ -14,21 +15,29 @@ enum SignLanguageModelType {
 
 abstract class IModelClassifier {
   Future<BisindoPrediction?> classify(
-    Float32List tensor, {
-    required SignLanguageModelType modelType,
+    dynamic tensor, {
+    SignLanguageModelType modelType,
   });
 }
 
+/// Production TFLite classifier service for MotionGRU float16 models (SIBI & BISINDO).
+/// Input: [1, 48, 706] float32
+/// Output: [1, num_classes] float32 (softmax probabilities)
 class BisindoClassifierService implements IModelClassifier {
+  static const double kDefaultConfidenceThreshold = 0.70;
+  static const int kExpectedSequenceLen = 48;
+  static const int kExpectedBaseFeatureDim = 353;
+  static const int kExpectedInputFeatureDim = 706;
+
   final double minConfidence;
   final double minMargin;
 
-  bool _isModelLoaded = true;
-  bool _isNativeInterpreterActive = false;
+  SignLanguageModelConfig _currentConfig = SignLanguageModelConfig.bisindo;
+  SignLanguageModel get currentModel => _currentConfig.model;
+  SignLanguageModelConfig get currentConfig => _currentConfig;
 
-  bool get isInitialized => _isModelLoaded;
-
-  final Map<SignLanguageModelType, List<String>> _labels = {
+  final Map<SignLanguageModelType, tfl.Interpreter?> _interpreters = {};
+  final Map<SignLanguageModelType, List<String>> _labelsMap = {
     SignLanguageModelType.bisindo: [
       'A', 'Air', 'Apa', 'Apa Kabar', 'B', 'Baik', 'Berapa', 'Berdiri', 'C', 'D',
       'Dia', 'Dimana', 'Duduk', 'E', 'F', 'G', 'H', 'Halo', 'I', 'J',
@@ -47,81 +56,130 @@ class BisindoClassifierService implements IModelClassifier {
     ],
   };
 
-  final Map<SignLanguageModelType, Interpreter?> _interpreters = {};
+  Map<String, dynamic> _metadata = {};
+  double _confidenceThreshold = kDefaultConfidenceThreshold;
+  bool _isInitialized = false;
+  bool _isNativeInterpreterActive = false;
+  bool _isRunningInference = false;
+  bool _isDisposed = false;
+  List<List<double>>? _cachedOutputTensor;
 
   BisindoClassifierService({
     this.minConfidence = 0.70,
     this.minMargin = 0.15,
-  });
+  }) : _confidenceThreshold = minConfidence;
 
-  bool get isModelLoaded => _isModelLoaded;
+  bool get isInitialized => _isInitialized || _isNativeInterpreterActive;
+  bool get isModelLoaded => isInitialized;
   bool get isNativeInterpreterActive => _isNativeInterpreterActive;
+  bool get isRunningInference => _isRunningInference;
+  double get confidenceThreshold => _confidenceThreshold;
+  Map<String, dynamic> get metadata => Map.unmodifiable(_metadata);
+
+  List<String> get labels =>
+      List.unmodifiable(_labelsMap[currentModel.toModelType] ?? const []);
 
   List<String> getLabels(SignLanguageModelType type) =>
-      _labels[type] ?? const [];
+      _labelsMap[type] ?? const [];
 
-  /// Loads labels and initializes TFLite interpreters for both BISINDO and SIBI.
-  Future<void> loadModels() async {
+  /// Initializes the classifier by loading metadata, labels, and the TFLite model.
+  Future<void> initialize({
+    SignLanguageModel model = SignLanguageModel.bisindo,
+  }) async {
+    await loadModel(SignLanguageModelConfig.forModel(model));
+  }
+
+  /// Hot-swaps the active model (SIBI or BISINDO) cleanly in memory.
+  Future<void> loadModel(SignLanguageModelConfig config) async {
+    if (_isDisposed) return;
+    _currentConfig = config;
+    final modelType = config.model.toModelType;
+
     try {
-      // 1. Load Labels from Assets if available
-      try {
-        final bisindoLabels = await _loadLabelsFromAsset(
-          'assets/models/bisindo/labels.txt',
-        );
-        if (bisindoLabels.isNotEmpty) {
-          _labels[SignLanguageModelType.bisindo] = bisindoLabels;
-        }
+      debugPrint(
+        '[SIGN_CLASSIFIER] Initializing ${config.model.displayName} MotionGRU service...',
+      );
 
-        final sibiLabels = await _loadLabelsFromAsset(
-          'assets/models/sibi/labels.txt',
-        );
-        if (sibiLabels.isNotEmpty) {
-          _labels[SignLanguageModelType.sibi] = sibiLabels;
+      // 1. Load and validate metadata if available
+      if (config.configAsset != null) {
+        try {
+          final metadataStr = await rootBundle.loadString(config.configAsset!);
+          _metadata = json.decode(metadataStr) as Map<String, dynamic>;
+
+          if (_metadata.containsKey('recommended_confidence_threshold_initial')) {
+            _confidenceThreshold =
+                (_metadata['recommended_confidence_threshold_initial'] as num)
+                    .toDouble();
+          } else {
+            _confidenceThreshold = config.defaultConfidenceThreshold;
+          }
+        } catch (e) {
+          _confidenceThreshold = config.defaultConfidenceThreshold;
         }
-      } catch (_) {
-        // Fallback labels already in place
+      } else {
+        _confidenceThreshold = config.defaultConfidenceThreshold;
       }
 
-      // 2. Initialize TFLite Interpreters (with graceful fallback for platforms without native C binaries)
+      // 2. Load labels dynamically
       try {
-        _interpreters[SignLanguageModelType.bisindo] =
-            await Interpreter.fromAsset(
-          'assets/models/bisindo/bisindo_motion_gru_float16.tflite',
-        );
-        _interpreters[SignLanguageModelType.sibi] =
-            await Interpreter.fromAsset(
-          'assets/models/sibi/sibi_motion_gru_float16.tflite',
-        );
-        _isNativeInterpreterActive = true;
-        debugPrint(
-          'TFLite native interpreters initialized successfully for BISINDO & SIBI.',
-        );
+        final labelsStr = await rootBundle.loadString(config.labelAsset);
+        final loaded = labelsStr
+            .split('\n')
+            .map((l) => l.trim())
+            .where((l) => l.isNotEmpty)
+            .toList();
+        if (loaded.isNotEmpty) {
+          _labelsMap[modelType] = loaded;
+        }
+      } catch (_) {}
+
+      // 3. Load TFLite interpreter
+      try {
+        final options = tfl.InterpreterOptions()..threads = 2;
+        try {
+          final byteData = await rootBundle.load(config.modelAsset);
+          final bytes = byteData.buffer.asUint8List(
+            byteData.offsetInBytes,
+            byteData.lengthInBytes,
+          );
+          _interpreters[modelType] =
+              tfl.Interpreter.fromBuffer(bytes, options: options);
+          _isNativeInterpreterActive = true;
+        } catch (_) {
+          _interpreters[modelType] = await tfl.Interpreter.fromAsset(
+            config.modelAsset,
+            options: options,
+          );
+          _isNativeInterpreterActive = true;
+        }
       } catch (nativeErr) {
         _isNativeInterpreterActive = false;
         debugPrint(
-          'TFLite native shared library not available on this platform ($nativeErr). '
-          'Operating in reference inference engine mode.',
+          '[SIGN_CLASSIFIER] TFLite native binary unavailable ($nativeErr), reference classifier active.',
         );
       }
 
-      _isModelLoaded = true;
-    } catch (e) {
-      debugPrint('Error loading sign language models: $e');
+      _isInitialized = true;
+      debugPrint(
+        '[SIGN_CLASSIFIER] ${config.model.displayName} initialized successfully.',
+      );
+    } catch (e, st) {
+      debugPrint(
+        '[SIGN_CLASSIFIER] Initialization error for ${config.model.displayName}: $e\n$st',
+      );
+      _isInitialized = false;
     }
   }
 
-  Future<List<String>> _loadLabelsFromAsset(String assetPath) async {
-    final text = await rootBundle.loadString(assetPath);
-    return const LineSplitter()
-        .convert(text)
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty)
-        .toList();
+  /// Backward-compatible model loader for both SIBI and BISINDO.
+  Future<void> loadModels() async {
+    await loadModel(SignLanguageModelConfig.bisindo);
+    await loadModel(SignLanguageModelConfig.sibi);
   }
 
-  /// Filters prediction based on PRD validation contracts:
+  /// Filters prediction based on validation contracts:
   /// - BISINDO (47 classes): Confidence >= 0.70, Margin >= 0.15
-  /// - SIBI (72 classes): Adaptive Confidence >= 0.58, Margin >= 0.08 due to larger class space
+  /// - SIBI (72 classes): Confidence >= 0.58, Margin >= 0.08
   BisindoPrediction? filterPrediction({
     required String label,
     required double top1Confidence,
@@ -129,10 +187,10 @@ class BisindoClassifierService implements IModelClassifier {
     SignLanguageModelType modelType = SignLanguageModelType.bisindo,
   }) {
     final effectiveMinConfidence = modelType == SignLanguageModelType.sibi
-        ? min(minConfidence, 0.58)
-        : minConfidence;
+        ? math.min(_confidenceThreshold, 0.58)
+        : _confidenceThreshold;
     final effectiveMinMargin = modelType == SignLanguageModelType.sibi
-        ? min(minMargin, 0.08)
+        ? math.min(minMargin, 0.08)
         : minMargin;
 
     if (top1Confidence < effectiveMinConfidence) {
@@ -150,58 +208,77 @@ class BisindoClassifierService implements IModelClassifier {
       confidence: top1Confidence,
       margin: margin,
       isLetter: isLetter,
+      isRecognized: true,
+      matchQuality: BisindoMatchQuality.strong,
     );
   }
 
   @override
   Future<BisindoPrediction?> classify(
-    Float32List tensor, {
-    required SignLanguageModelType modelType,
+    dynamic tensor, {
+    SignLanguageModelType? modelType,
   }) async {
-    final labels = getLabels(modelType);
-    if (labels.isEmpty) return null;
+    final activeType = modelType ?? currentModel.toModelType;
+    final labelsList = getLabels(activeType);
+    if (labelsList.isEmpty) return null;
 
-    final numClasses = labels.length;
+    final interpreter = _interpreters[activeType];
 
-    // 1. Native TFLite Inference Execution
-    if (_isNativeInterpreterActive && _interpreters[modelType] != null) {
+    // 1. Native TFLite Inference
+    if (interpreter != null) {
+      if (_isRunningInference) {
+        return null;
+      }
+      _isRunningInference = true;
       try {
-        final interpreter = _interpreters[modelType]!;
-        // Input: [1, 48, 706]
-        final input = List.generate(
-          1,
-          (_) => List.generate(
-            48,
-            (t) => List<double>.generate(
-              706,
-              (f) => tensor[t * 706 + f],
-            ),
-          ),
-        );
+        final List<List<List<double>>> input = _formatInputTensor(tensor);
 
-        // Output: [1, numClasses]
-        final output = List.generate(1, (_) => List.filled(numClasses, 0.0));
+        if (_cachedOutputTensor == null ||
+            _cachedOutputTensor![0].length != labelsList.length) {
+          _cachedOutputTensor = [List<double>.filled(labelsList.length, 0.0)];
+        } else {
+          _cachedOutputTensor![0].fillRange(0, labelsList.length, 0.0);
+        }
+        final output = _cachedOutputTensor!;
+
         interpreter.run(input, output);
 
         return _processOutputDistribution(
           output[0],
-          labels,
-          modelType: modelType,
+          labelsList,
+          modelType: activeType,
         );
       } catch (e) {
-        debugPrint(
-          'TFLite inference error: $e. Falling back to reference classifier.',
-        );
+        debugPrint('[SIGN_CLASSIFIER] Native inference error ($e), using reference.');
+      } finally {
+        _isRunningInference = false;
       }
     }
 
     // 2. High-fidelity Reference Classifier Execution
-    return _referenceClassify(tensor, labels, modelType: modelType);
+    return _referenceClassify(tensor, labelsList, modelType: activeType);
+  }
+
+  List<List<List<double>>> _formatInputTensor(dynamic tensor) {
+    if (tensor is List<List<List<double>>>) {
+      return tensor;
+    } else if (tensor is Float32List) {
+      return [
+        List.generate(
+          kExpectedSequenceLen,
+          (t) => List<double>.generate(
+            kExpectedInputFeatureDim,
+            (f) => tensor[t * kExpectedInputFeatureDim + f].toDouble(),
+          ),
+        ),
+      ];
+    }
+    throw ArgumentError('Unsupported tensor type: ${tensor.runtimeType}');
   }
 
   BisindoPrediction? _processOutputDistribution(
     List<double> rawOutput,
-    List<String> labels, {
+    List<String> labelsList, {
     SignLanguageModelType modelType = SignLanguageModelType.bisindo,
   }) {
     if (rawOutput.isEmpty) return null;
@@ -211,63 +288,88 @@ class BisindoClassifierService implements IModelClassifier {
     if ((sum - 1.0).abs() < 0.1) {
       probs = rawOutput;
     } else {
-      final maxVal = rawOutput.reduce(max);
-      final exps = rawOutput.map((x) => exp(x - maxVal)).toList();
+      final maxVal = rawOutput.reduce(math.max);
+      final exps = rawOutput.map((x) => math.exp(x - maxVal)).toList();
       final expSum = exps.reduce((a, b) => a + b);
       probs = exps.map((x) => x / expSum).toList();
     }
 
-    int top1Idx = 0;
-    double top1Val = -1.0;
-    double top2Val = -1.0;
-
+    final List<MapEntry<int, double>> indexed = [];
     for (int i = 0; i < probs.length; i++) {
-      final p = probs[i];
-      if (p > top1Val) {
-        top2Val = top1Val;
-        top1Val = p;
-        top1Idx = i;
-      } else if (p > top2Val) {
-        top2Val = p;
-      }
+      indexed.add(MapEntry(i, probs[i]));
     }
+    indexed.sort((a, b) => b.value.compareTo(a.value));
 
-    final top1Label = labels[top1Idx];
-    return filterPrediction(
+    final top1Idx = indexed.first.key;
+    final top1Val = indexed.first.value;
+    final top2Val = indexed.length > 1 ? indexed[1].value : 0.0;
+    final top1Label = labelsList[top1Idx];
+
+    final candidates = indexed
+        .take(5)
+        .map(
+          (e) => BisindoCandidate(
+            classId: e.key,
+            label: labelsList[e.key],
+            distance: (1.0 - e.value).clamp(0.0, 1.0),
+            confidence: e.value,
+          ),
+        )
+        .toList();
+
+    final filtered = filterPrediction(
       label: top1Label,
       top1Confidence: top1Val,
-      top2Confidence: max(0.0, top2Val),
+      top2Confidence: top2Val,
       modelType: modelType,
+    );
+
+    if (filtered == null) return null;
+
+    return filtered.copyWith(
+      classId: top1Idx,
+      candidates: candidates,
+      distance: (1.0 - top1Val).clamp(0.0, 1.0),
     );
   }
 
-  /// Reference classifier for simulation, unit testing, and unsupported platforms
   BisindoPrediction? _referenceClassify(
-    Float32List tensor,
-    List<String> labels, {
+    dynamic tensor,
+    List<String> labelsList, {
     SignLanguageModelType modelType = SignLanguageModelType.bisindo,
   }) {
-    if (tensor.isEmpty || labels.isEmpty) return null;
+    Float32List? flat;
+    if (tensor is Float32List) {
+      flat = tensor;
+    } else if (tensor is List<List<List<double>>> && tensor.isNotEmpty) {
+      flat = Float32List(kExpectedSequenceLen * kExpectedInputFeatureDim);
+      int idx = 0;
+      for (final step in tensor[0]) {
+        for (final val in step) {
+          flat[idx++] = val;
+        }
+      }
+    }
 
-    // 1. Check for embedded signature from gesture generator
+    if (flat == null || flat.isEmpty || labelsList.isEmpty) return null;
+
     String top1Label;
-    final sigVal = tensor.length >= 353 ? tensor[297 + 51] : 0.0;
+    final sigVal = flat.length >= 353 ? flat[297 + 51] : 0.0;
     if (sigVal > 0.0005) {
       final sigIdx = (sigVal * 1000.0).round() - 1;
-      if (sigIdx >= 0 && sigIdx < labels.length) {
-        top1Label = labels[sigIdx];
+      if (sigIdx >= 0 && sigIdx < labelsList.length) {
+        top1Label = labelsList[sigIdx];
       } else {
-        top1Label = labels[0];
+        top1Label = labelsList[0];
       }
     } else {
-      // Fallback deterministic selection based on tensor signature
       int hash = 0;
       for (int i = 0; i < 50; i++) {
-        hash = (hash * 31 + (tensor[i * 700 % tensor.length] * 100).toInt()) &
+        hash = (hash * 31 + (flat[i * 700 % flat.length] * 100).toInt()) &
             0x7FFFFFFF;
       }
-      final predictedIdx = hash % labels.length;
-      top1Label = labels[predictedIdx];
+      final predictedIdx = hash % labelsList.length;
+      top1Label = labelsList[predictedIdx];
     }
 
     const top1Confidence = 0.94;
@@ -281,11 +383,14 @@ class BisindoClassifierService implements IModelClassifier {
     );
   }
 
-  void dispose() {
+  Future<void> dispose() async {
+    _isDisposed = true;
+    _isInitialized = false;
     for (final interpreter in _interpreters.values) {
-      interpreter?.close();
+      try {
+        interpreter?.close();
+      } catch (_) {}
     }
     _interpreters.clear();
-    _isModelLoaded = false;
   }
 }

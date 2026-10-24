@@ -17,7 +17,10 @@ class BisindoRecognitionController extends GetxController {
   final RxList<SignToken> tokens = <SignToken>[].obs;
   final RxString spellingBuffer = ''.obs;
   final RxString lastRecognizedWord = ''.obs;
-  final RxBool isSpeaking = false.obs;
+  final RxBool isCameraActive = false.obs;
+  final RxBool isHandDetected = false.obs;
+  final RxDouble currentConfidenceThreshold = 0.70.obs;
+  final RxInt currentStablePredictionsRequired = 3.obs;
 
   Timer? _letterSpeechTimer;
   String _lastCommittedWord = '';
@@ -29,6 +32,35 @@ class BisindoRecognitionController extends GetxController {
     required this.transcriptStore,
     SignTranslationService? translationService,
   }) : translationService = translationService ?? SignTranslationService();
+
+  void setModelThresholds({
+    double? confidenceThreshold,
+    int? stablePredictionsRequired,
+  }) {
+    if (confidenceThreshold != null) {
+      currentConfidenceThreshold.value = confidenceThreshold;
+    }
+    if (stablePredictionsRequired != null) {
+      currentStablePredictionsRequired.value = stablePredictionsRequired;
+    }
+  }
+
+  void setCameraActive(bool active) {
+    isCameraActive.value = active;
+    if (!active) {
+      isHandDetected.value = false;
+    }
+  }
+
+  void registerHandFrame() {
+    isHandDetected.value = true;
+  }
+
+  void resetRecognitionState() {
+    _letterSpeechTimer?.cancel();
+    spellingBuffer.value = '';
+    _lastCommittedWord = '';
+  }
 
   @override
   void onInit() {

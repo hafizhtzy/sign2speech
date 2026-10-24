@@ -88,6 +88,7 @@ Muat persona agent atau skill secara spesifik sesuai tugas (*progressive disclos
 | **Testing & Otomasi QA** | `agency-test-automation-engineer` | `test-driven-development`, `flutter-add-widget-test`, `verification-before-completion` | Jalankan alur TDD, tulis tes gagal -> implementasi -> verifikasi hijau dengan mock fixtures. |
 | **Performa & Benchmark** | `agency-performance-benchmarker` | `performance-profiling`, `diagnose-android-overheating` | Pantau komputasi kamera/TFLite di background Isolate; dilarang membuat klaim metrik fiktif tanpa benchmark riil. |
 | **Dokumentasi & Platform** | `android-dev`, `kotlin-coroutines-expert` | `context7-mcp`, `context7-cli`, `find-docs` | Dokumentasi resmi dependency riil di `pubspec.yaml` dan bridging native CameraX non-blocking. |
+| **Firebase Backend & Security** | `firebase-backend-engineer` | `firebase-basics`, `firebase-firestore`, `firestore-rules-creation`, `firebase-security-rules-auditor`, `firebase-crashlytics` | Wajib patuhi panduan di [.agents/rules/firebase-development-rules.md](file:///c:/fadli/project/sign2speech/.agents/rules/firebase-development-rules.md). Clean Architecture Data Layer, zero open access rules, dan Dart 3 sealed class. |
 
 ---
 
@@ -100,3 +101,25 @@ Muat persona agent atau skill secara spesifik sesuai tugas (*progressive disclos
    - Dilarang mengklaim akurasi ($\ge 92\%$), latency ($\le 45\text{ ms}$), FPS ($60\text{ FPS}$), atau kompatibilitas hardware tanpa hasil pengujian riil / benchmark pada target device.
 3. **Larangan Membuat Skill MotionGRU Khusus:**
    - Dilarang membuat skill custom MotionGRU pada tahap ini sebelum kontrak model dan kode training diverifikasi secara definitif.
+
+---
+
+## 5. Standar Wajib Pengembangan & Keamanan Firebase (Best Practices)
+
+Setiap agen yang membuat atau memodifikasi fitur yang bersangkutan dengan Firebase **wajib mengikuti aturan baku ini**:
+
+1. **Pemanggilan Skill Terkurasi:**
+   - Setup, CLI, & App Config: Wajib gunakan `firebase-basics`.
+   - Firestore Query, Batch, & Data Modeling: Wajib gunakan `firebase-firestore`.
+   - Pembuatan & Perubahan `firestore.rules`: Wajib gunakan `firestore-rules-creation`.
+   - Audit Keamanan Rules: Wajib gunakan `firebase-security-rules-auditor`.
+   - Crash Reporting & Monitoring: Wajib gunakan `firebase-crashlytics`.
+2. **Arsitektur Kode di Flutter (Clean Architecture + GetX):**
+   - Layanan Firebase **HANYA boleh berada di Data Layer** (`lib/features/<feature>/services/` atau `lib/data/datasources/`). Dilarang mengimpor `cloud_firestore` di widget/view atau domain entity.
+   - Gunakan **Dart 3 `sealed class`** (`FirestoreResult<T>`, `FirestoreSuccess<T>`, `FirestoreFailure<T>`) untuk pemodelan hasil Firestore dan tangani dengan exhaustive `switch`.
+   - Terapkan **defensive initialization (lazy null-safe getter)** pada service Firestore agar unit test & widget test dapat berjalan tanpa crash `[core/no-app]`.
+3. **Keamanan Mutlak (Zero Open Access):**
+   - **Dilarang keras** menulis `allow read, write: if true;` pada data pengguna/riwayat.
+   - Wajib memvalidasi kepemilikan user (`request.auth.uid == userId`) dan skema data pada operasi write.
+   - Setiap perubahan rules wajib dikompilasi dan divalidasi via `firebase deploy --only firestore:rules`.
+4. **Aturan Lengkap:** Baca panduan terperinci di [.agents/rules/firebase-development-rules.md](file:///c:/fadli/project/sign2speech/.agents/rules/firebase-development-rules.md).

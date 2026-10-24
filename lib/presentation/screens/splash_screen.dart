@@ -100,12 +100,20 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                       ],
                     ),
-                    padding: EdgeInsets.all(isShortHeight ? 14 : 24),
+                    padding: EdgeInsets.all(isShortHeight ? 8 : 16),
                     child: Center(
-                      child: Icon(
-                        Icons.sign_language_rounded,
-                        size: isShortHeight ? 38 : 64,
-                        color: AppColors.secondary,
+                      child: ClipOval(
+                        child: Image.asset(
+                          'assets/icon/app_icon.png',
+                          width: isShortHeight ? 68 : 108,
+                          height: isShortHeight ? 68 : 108,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Icon(
+                            Icons.sign_language_rounded,
+                            size: isShortHeight ? 38 : 64,
+                            color: AppColors.secondary,
+                          ),
+                        ),
                       ),
                     ),
                   ),

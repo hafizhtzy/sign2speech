@@ -20,8 +20,14 @@ void main() {
 
     await tester.pumpAndSettle();
 
+    expect(find.text('Meja Kasir & Barista AI'), findsWidgets);
+    expect(find.text('Mulai Terima Pesanan'), findsOneWidget);
+
+    // Tap Mulai Terima Pesanan to enter ordering stage
+    await tester.tap(find.text('Mulai Terima Pesanan'));
+    await tester.pumpAndSettle();
+
     expect(find.text('Live Kamera & Suara Pesanan'), findsOneWidget);
-    expect(find.text('Meja Kasir & Barista AI'), findsOneWidget);
     expect(find.byIcon(Icons.videocam_outlined), findsWidgets);
   });
 }

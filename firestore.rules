@@ -1,0 +1,173 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model & Schema Definitions
+// ===============================================================
+//
+// 1. /translations_history/{historyId}
+//    - id: string (<= 100 chars)
+//    - originalContent: string (<= 1000 chars)
+//    - translatedContent: string (<= 1000 chars)
+//    - direction: string ('signToSpeech' | 'speechToSign')
+//    - signLanguageType: string ('BISINDO' | 'SIBI')
+//    - timestamp: string or timestamp
+//    - createdAt: timestamp (serverTimestamp)
+//
+// 2. /cafe_orders/{orderId}
+//    - orderId: string (<= 100 chars)
+//    - queueNumber: string (<= 20 chars)
+//    - customerName: string (<= 100 chars)
+//    - customerNotes: string (<= 500 chars)
+//    - items: list (<= 50 items)
+//    - status: string ('draft' | 'confirmed' | 'preparing' | 'ready' | 'completed' | 'cancelled')
+//    - paymentMethod: string ('qris' | 'cash' | 'debitCard' | 'creditCard' | 'eWallet')
+//    - amountPaid: int (>= 0)
+//    - subtotal, taxAmount, grandTotal, changeAmount: int (>= 0)
+//    - createdAt, updatedAt: timestamp
+//
+// 3. /user_settings/{userId}
+//    - userId: string (<= 100 chars)
+//    - role: string (<= 50 chars)
+//    - signLanguage: string ('BISINDO' | 'SIBI')
+//    - appLanguage: string ('id' | 'en')
+//    - themeMode: string ('system' | 'light' | 'dark')
+//    - ttsSpeed, videoSpeed: number (0.25 to 3.0)
+//    - hasCompletedOnboarding: bool
+//    - updatedAt: timestamp
+//
+// 4. /sign_transcripts/{transcriptId}
+//    - sessionId: string (<= 100 chars)
+//    - tokens: list (<= 200 items)
+//    - fullSentence: string (<= 1000 chars)
+//    - tokenCount: int (>= 0)
+//    - languageType: string ('BISINDO' | 'SIBI')
+//    - sessionNotes: string (<= 500 chars)
+//    - createdAt: timestamp
+//
+// 5. /user_loyalty/{userId}
+//    - customerId: string (<= 100 chars)
+//    - stampsCount: int (>= 0)
+//    - updatedAt: timestamp
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny for all unmatched paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ── Helper Validation Functions ──────────────────────────────
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // ── Validation: Translation History ──────────────────────────
+    function isValidHistory(data) {
+      return data.originalContent is string
+          && data.originalContent.size() <= 1000
+          && data.translatedContent is string
+          && data.translatedContent.size() <= 1000
+          && data.direction in ['signToSpeech', 'speechToSign']
+          && data.signLanguageType in ['BISINDO', 'SIBI'];
+    }
+
+    match /translations_history/{historyId} {
+      allow read: if true;
+      allow create: if isValidHistory(request.resource.data);
+      allow update: if isValidHistory(request.resource.data)
+                    && request.resource.data.direction == resource.data.direction;
+      allow delete: if true;
+    }
+
+    // ── Validation: Cafe POS Orders ──────────────────────────────
+    function isValidCafeOrder(data) {
+      return data.orderId is string
+          && data.orderId.size() <= 100
+          && data.queueNumber is string
+          && data.queueNumber.size() <= 20
+          && data.status in ['draft', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled']
+          && data.paymentMethod in ['qris', 'cash', 'debitCard', 'creditCard', 'eWallet']
+          && data.amountPaid is int
+          && data.amountPaid >= 0
+          && data.items is list
+          && data.items.size() <= 50;
+    }
+
+    match /cafe_orders/{orderId} {
+      allow read: if true;
+      allow create: if isValidCafeOrder(request.resource.data);
+      allow update: if isValidCafeOrder(request.resource.data)
+                    && request.resource.data.orderId == resource.data.orderId;
+      allow delete: if true;
+    }
+
+    // ── Validation: User Settings ────────────────────────────────
+    function isValidUserSettings(data) {
+      return data.userId is string
+          && data.userId.size() <= 100
+          && (!('role' in data) || (data.role is string && data.role.size() <= 50))
+          && (!('signLanguage' in data) || data.signLanguage in ['BISINDO', 'SIBI'])
+          && (!('appLanguage' in data) || data.appLanguage in ['id', 'en'])
+          && (!('themeMode' in data) || data.themeMode in ['system', 'light', 'dark'])
+          && (!('ttsSpeed' in data) || (data.ttsSpeed is number && data.ttsSpeed >= 0.25 && data.ttsSpeed <= 3.0))
+          && (!('videoSpeed' in data) || (data.videoSpeed is number && data.videoSpeed >= 0.25 && data.videoSpeed <= 3.0))
+          && (!('hasCompletedOnboarding' in data) || data.hasCompletedOnboarding is bool);
+    }
+
+    match /user_settings/{userId} {
+      allow read: if true;
+      allow create: if isValidUserSettings(request.resource.data);
+      allow update: if isValidUserSettings(request.resource.data)
+                    && request.resource.data.userId == resource.data.userId;
+      allow delete: if isOwner(userId);
+    }
+
+    // ── Validation: Sign Transcripts Archive ─────────────────────
+    function isValidTranscript(data) {
+      return data.sessionId is string
+          && data.sessionId.size() <= 100
+          && data.fullSentence is string
+          && data.fullSentence.size() <= 1000
+          && data.tokens is list
+          && data.tokens.size() <= 200
+          && data.languageType in ['BISINDO', 'SIBI'];
+    }
+
+    match /sign_transcripts/{transcriptId} {
+      allow read: if true;
+      allow create: if isValidTranscript(request.resource.data);
+      allow update: if isValidTranscript(request.resource.data)
+                    && request.resource.data.sessionId == resource.data.sessionId;
+      allow delete: if true;
+    }
+
+    // ── Validation: Digital Loyalty Stamps ───────────────────────
+    function isValidLoyalty(data) {
+      return data.customerId is string
+          && data.customerId.size() <= 100
+          && data.stampsCount is int
+          && data.stampsCount >= 0;
+    }
+
+    match /user_loyalty/{userId} {
+      allow read: if true;
+      allow create, update: if isValidLoyalty(request.resource.data);
+      allow delete: if false;
+    }
+
+    // ── Health Probe ─────────────────────────────────────────────
+    match /test_connection/{docId} {
+      allow read: if true;
+      allow create, update: if request.resource.data.client is string
+                            && request.resource.data.client.size() <= 100;
+      allow delete: if false;
+    }
+  }
+}

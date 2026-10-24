@@ -7,7 +7,10 @@ environment:
   sdk: ^3.13.0
 
 dependencies:
+  cloud_firestore: ^7.1.0
   dio: ^5.11.1
+  firebase_auth: ^7.0.1
+  firebase_core: ^5.1.0
   flutter:
     sdk: flutter
   flutter_localizations:
@@ -25,10 +28,12 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
   assets:
+    - assets/icon/
     - assets/komponen_img/
     - assets/models/bisindo/
     - assets/models/sibi/
@@ -36,3 +41,12 @@ flutter:
     - assets/sign_language/offline/bisindo/alfabet/
     - assets/sign_language/offline/bisindo/kalimat/
     - assets/sign_language/offline/sibi/kalimat/
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/icon/app_icon.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#2C1E18"
+  adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"

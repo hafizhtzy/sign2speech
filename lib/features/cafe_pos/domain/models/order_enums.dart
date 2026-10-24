@@ -1,6 +1,91 @@
 /// Enums defining standard Cafe POS attributes.
 enum OrderTemperature { hot, iced }
 
+// ── MASTER PROMPT V2: 3-Stage Order State Machine ──────────────────────────
+
+/// 3 tahap alur pesanan kasir.
+/// [idle] → belum ada pesanan aktif (tampilkan landing)
+/// [ordering] → Tahap 1: Pesanan & AI (kamera + mic + quick deck)
+/// [naming] → Tahap 2: Nama Cup & Bayar (eja nama + tiket + QRIS)
+/// [pickup] → Tahap 3: Ambil Kopi (banner antrean + challenge isyarat)
+enum CafeOrderStage {
+  idle,
+  ordering,
+  naming,
+  pickup,
+}
+
+extension CafeOrderStageExtension on CafeOrderStage {
+  String get labelId {
+    switch (this) {
+      case CafeOrderStage.idle:
+        return 'Siap Menerima';
+      case CafeOrderStage.ordering:
+        return 'Pesan & AI';
+      case CafeOrderStage.naming:
+        return 'Nama & Bayar';
+      case CafeOrderStage.pickup:
+        return 'Ambil Kopi';
+    }
+  }
+
+  String get labelEn {
+    switch (this) {
+      case CafeOrderStage.idle:
+        return 'Ready';
+      case CafeOrderStage.ordering:
+        return 'Order & AI';
+      case CafeOrderStage.naming:
+        return 'Name & Pay';
+      case CafeOrderStage.pickup:
+        return 'Pickup';
+    }
+  }
+
+  int get stepIndex {
+    switch (this) {
+      case CafeOrderStage.idle:
+        return -1;
+      case CafeOrderStage.ordering:
+        return 0;
+      case CafeOrderStage.naming:
+        return 1;
+      case CafeOrderStage.pickup:
+        return 2;
+    }
+  }
+}
+
+// ── MASTER PROMPT V2: Counter Device Mode ──────────────────────────────────
+
+/// Mode perangkat kasir:
+/// [singleTabletSwitch] → 1 tablet, geser antar tab Kasir/Pembeli
+/// [dualTabletLocked] → 2 tablet, 1 khusus Kasir, 1 khusus Pembeli (paired)
+enum CounterDeviceMode {
+  singleTabletSwitch,
+  dualTabletLocked,
+}
+
+extension CounterDeviceModeExtension on CounterDeviceMode {
+  String get labelId {
+    switch (this) {
+      case CounterDeviceMode.singleTabletSwitch:
+        return '1 Tablet (Geser Tab)';
+      case CounterDeviceMode.dualTabletLocked:
+        return '2 Tablet (Paired)';
+    }
+  }
+
+  String get labelEn {
+    switch (this) {
+      case CounterDeviceMode.singleTabletSwitch:
+        return '1 Tablet (Tab Switch)';
+      case CounterDeviceMode.dualTabletLocked:
+        return '2 Tablets (Paired)';
+    }
+  }
+}
+
 enum OrderCupSize {
   small, // 8oz / 250ml
   medium, // 12oz / 350ml

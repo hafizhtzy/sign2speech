@@ -22,6 +22,7 @@ class CupNameSpellingCard extends StatelessWidget {
   final VoidCallback? onSwitchCamera;
   final String? detectedLetter;
   final double letterHoldProgress;
+  final String? modelBadge;
   final CameraFeedService? cameraService;
 
   const CupNameSpellingCard({
@@ -39,6 +40,7 @@ class CupNameSpellingCard extends StatelessWidget {
     this.onSwitchCamera,
     this.detectedLetter,
     this.letterHoldProgress = 0.0,
+    this.modelBadge,
     this.cameraService,
   });
 
@@ -107,7 +109,7 @@ class CupNameSpellingCard extends StatelessWidget {
                 onPressed: onStartSpelling,
                 icon: const Icon(Icons.spellcheck, size: 18),
                 label: Text(
-                  AppStrings.cafeCupNameActive.tr,
+                  currentName.isNotEmpty ? 'Eja Ulang' : AppStrings.cafeSpellingCameraTitle.tr,
                   style: AppTypography.labelMedium.copyWith(
                     color: AppColors.secondary,
                     fontWeight: FontWeight.bold,
@@ -208,6 +210,7 @@ class CupNameSpellingCard extends StatelessWidget {
             onClose: onCancelSpelling ?? onFinishSpelling,
             onSwitchCamera: onSwitchCamera,
             cameraService: cameraService,
+            modelBadge: modelBadge,
             centerOverlay: (detectedLetter != null && detectedLetter!.isNotEmpty)
                 ? RepaintBoundary(
                     child: Column(
@@ -425,7 +428,7 @@ class CupNameSpellingCard extends StatelessWidget {
                     onPressed: onFinishSpelling,
                     icon: const Icon(Icons.check_circle_outline, size: 20),
                     label: Text(
-                      AppStrings.cafeCupNameFinish.tr,
+                      'Simpan Nama Cup',
                       style: AppTypography.labelLarge.copyWith(
                         fontWeight: FontWeight.bold,
                         color: AppColors.surface,

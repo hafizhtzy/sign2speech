@@ -4,6 +4,9 @@ import 'package:get/get.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
 import 'core/constants/app_routes.dart';
 import 'core/localization/app_translations.dart';
 import 'core/theme/app_theme.dart';
@@ -12,6 +15,15 @@ import 'presentation/navigation/app_pages.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase Cloud Services
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint('Firebase initialization notice: $e');
+  }
 
   // Load user saved language & theme preferences before running app
   final prefs = await SharedPreferences.getInstance();

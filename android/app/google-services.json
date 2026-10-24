@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "758641728613",
+    "project_id": "sign2speech-937e2",
+    "storage_bucket": "sign2speech-937e2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:758641728613:android:91a6afadd6e7301e5e3a8c",
+        "android_client_info": {
+          "package_name": "com.example.speech2sign"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMTibqlD7RiCKoEdTSajQ5ylacinhdmvs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

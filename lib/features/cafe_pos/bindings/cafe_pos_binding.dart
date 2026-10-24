@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:speech2sign/features/sign_language/controllers/sign_language_controller.dart';
 import 'package:speech2sign/features/sign_language/controllers/text_to_sign_controller.dart';
 import 'package:speech2sign/features/sign_language/services/bisindo_tts_service.dart';
 import 'package:speech2sign/features/sign_language/services/camera_feed_service.dart';
@@ -75,6 +76,10 @@ class CafePosBinding extends Bindings {
         queuePagerService: Get.find<QueuePagerService>(),
         ttsService: Get.find<BisindoTtsService>(),
         speechService: Get.find<SpeechService>(),
+        cameraFeedService: Get.find<CameraFeedService>(),
+        signLanguageController: Get.isRegistered<SignLanguageController>()
+            ? Get.find<SignLanguageController>()
+            : null,
         localDataSource: Get.find<CafePosLocalDataSource>(),
       ),
       fenix: true,

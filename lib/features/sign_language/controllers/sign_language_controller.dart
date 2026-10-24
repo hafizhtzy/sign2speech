@@ -16,7 +16,7 @@ import '../services/bisindo_sequence_buffer.dart';
 import '../services/bisindo_synthetic_gesture_generator.dart';
 import '../services/camera_feed_service.dart';
 
-/// Lifecycle states of the Sign Language (BISINDO & SIBI) recognizer.
+/// Lifecycle of the Sign Language (BISINDO & SIBI) recognizer.
 enum BisindoLiveState {
   initializing,
   stopped,
@@ -30,8 +30,9 @@ enum BisindoLiveState {
   error,
 }
 
-/// SignLanguageController manages the camera state, continuous gesture segmentation,
-/// streaming preview, and MotionGRU TFLite classification.
+/// SignLanguageController manages continuous sign spotting ([BisindoSegmenter]),
+/// streaming live preview inference with hold-to-confirm, and MotionGRU TFLite classification
+/// matching the HajiCare high-accuracy pipeline 1:1.
 class SignLanguageController extends GetxController {
   final BisindoClassifierService classifierService;
   final BisindoSegmenter segmenter;
@@ -62,8 +63,8 @@ class SignLanguageController extends GetxController {
   }
 
   static const Duration kManualCaptureDuration = Duration(milliseconds: 2800);
-  static const Duration kRecognizedHold = Duration(milliseconds: 450);
-  static const Duration kRejectedHold = Duration(milliseconds: 1200);
+  static const Duration kRecognizedHold = Duration(milliseconds: 700);
+  static const Duration kRejectedHold = Duration(milliseconds: 1400);
 
   // Reactive UI States
   final currentModel = SignLanguageModel.bisindo.obs;
@@ -93,7 +94,7 @@ class SignLanguageController extends GetxController {
   final captureQuality = const SignCaptureQuality().obs;
   final latestPrediction = Rx<BisindoPrediction?>(null);
 
-  // Backward compatibility alias for existing widgets
+  // Backward compatibility alias
   Rx<SignLanguageModelType> get activeModel => Rx<SignLanguageModelType>(
         currentModel.value.toModelType,
       );
@@ -110,15 +111,15 @@ class SignLanguageController extends GetxController {
   DateTime? _segmentStartDateTime;
   int _lastInferenceDurationMs = 0;
   bool _isCommittedForCurrentSegment = false;
+  BisindoSegment? _pendingSegment;
   Timer? _transientTimer;
-  List<double>? _prevHandLandmarks;
 
-  // Performance & Anti-Lag Optimization: 25 FPS frame budget
+  // Frame timing
   int _lastFrameTimestampMs = 0;
-  int _lastUiProgressUpdateMs = 0;
-  static const int kMinFrameIntervalMs = 38;
+  static const int kMinFrameIntervalMs = 33; // ~30 FPS
 
   // Manual pipeline
+  final List<LandmarkFrame> _manualFrames = [];
   Timer? _countdownTimer;
   Timer? _captureTimer;
   Timer? _progressTicker;
@@ -195,7 +196,7 @@ class SignLanguageController extends GetxController {
     state.value = BisindoLiveState.initializing;
     try {
       final target = model ?? currentModel.value;
-      await classifierService.loadModels();
+      await classifierService.loadModel(target.config);
       currentModel.value = target;
       if (_isDisposed) return;
       state.value = isContinuousRunning.value
@@ -214,9 +215,12 @@ class SignLanguageController extends GetxController {
 
   /// Seamlessly switches between SIBI and BISINDO models in memory.
   Future<void> switchModel(SignLanguageModel targetModel) async {
-    if (currentModel.value == targetModel) return;
+    if (currentModel.value == targetModel && classifierService.isInitialized) {
+      return;
+    }
     try {
       currentModel.value = targetModel;
+      await classifierService.loadModel(targetModel.config);
       segmenter.reset();
       sequenceBuffer.clear();
       detectedLabel.value = '';
@@ -239,7 +243,7 @@ class SignLanguageController extends GetxController {
       statusMessage.value =
           'Model ${targetModel.displayName} aktif (${targetModel.classCount} kelas)';
       debugPrint(
-        '[SIGN_LANGUAGE_CONTROLLER] Switched to ${targetModel.displayName} ✅',
+        '[SIGN_LANGUAGE_CONTROLLER] Switched to ${targetModel.displayName} successfully.',
       );
     } catch (e) {
       debugPrint('[SIGN_LANGUAGE_CONTROLLER] Switch model error: $e');
@@ -263,10 +267,6 @@ class SignLanguageController extends GetxController {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // Continuous mode & Camera controls
-  // ---------------------------------------------------------------------------
-
   void toggleCameraActive() {
     if (isContinuousRunning.value) {
       stopContinuous();
@@ -282,12 +282,11 @@ class SignLanguageController extends GetxController {
     }
   }
 
-  /// Retries activating the camera (e.g. after user grants permission).
   Future<void> retryStartCamera() async {
     await startContinuous();
   }
 
-  /// Starts hands-free detection and activates camera feed.
+  /// Starts hands-free continuous detection and native CameraX feed.
   Future<void> startContinuous() async {
     if (_isDisposed) return;
     isContinuousRunning.value = true;
@@ -308,22 +307,23 @@ class SignLanguageController extends GetxController {
     state.value = BisindoLiveState.listening;
     statusMessage.value = 'Siap — lakukan isyarat';
 
-    // Start native CameraX feed and landmark stream
     final ok = await cameraFeedService.startCamera();
     if (!ok && cameraFeedService.errorMessage.value.isNotEmpty) {
       statusMessage.value = cameraFeedService.errorMessage.value;
     }
   }
 
-  /// Stops detection (camera stop / paused).
+  /// Stops detection and releases camera feed.
   Future<void> stopContinuous() async {
     if (_isDisposed) return;
     isContinuousRunning.value = false;
     isCameraActive.value = false;
     _cancelManualTimers();
+    _manualFrames.clear();
     _transientTimer?.cancel();
     segmenter.reset();
     sequenceBuffer.clear();
+    _pendingSegment = null;
     framesCollected.value = 0;
     captureProgress.value = 0.0;
     holdProgress.value = 0.0;
@@ -340,84 +340,35 @@ class SignLanguageController extends GetxController {
     }
   }
 
-  /// Ingests a camera landmark frame with 25 FPS anti-lag budget.
+  /// Ingests a camera landmark frame from native EventChannel.
   void onIncomingLandmarkFrame(LandmarkFrame frame, {int? nowMs}) {
     if (_isDisposed) return;
+
+    if (state.value == BisindoLiveState.manualCapturing) {
+      _manualFrames.add(frame);
+      framesCollected.value = _manualFrames.length;
+      return;
+    }
 
     if (!isContinuousRunning.value || !isReadyForInput || isManualActive) {
       return;
     }
 
     final currentMs = nowMs ?? DateTime.now().millisecondsSinceEpoch;
-    // Throttle frame processing to 25 FPS to keep device cool and prevent main thread lag
     if (currentMs - _lastFrameTimestampMs < kMinFrameIntervalMs) {
       return;
     }
     _lastFrameTimestampMs = currentMs;
 
-    final baseFeature = BisindoFeatureExtractor.extract(frame);
-    final hasHand = frame.landmarks.length >= 225 &&
-        frame.landmarks.sublist(99, 225).any((v) => v != 0.0);
+    // Segment frame using pure-Dart BisindoSegmenter
+    final segment = segmenter.add(frame, nowMs: currentMs);
+    framesCollected.value = segmenter.activeFrameCount;
+    captureProgress.value = segmenter.isActive
+        ? (segmenter.activeFrameCount / BisindoSequenceBuffer.kSequenceLength)
+            .clamp(0.0, 1.0)
+        : 0.0;
 
-    double motionEnergy = 0.0;
-    if (hasHand) {
-      if (_prevHandLandmarks != null && _prevHandLandmarks!.length == 126) {
-        double totalDelta = 0.0;
-        int deltaPoints = 0;
-        // Key points in hand coordinates: wrist, MCPs, and fingertips
-        const keyIndices = [0, 5, 9, 12, 21, 26, 30, 33];
-        for (final ki in keyIndices) {
-          final idx = 99 + ki * 3;
-          if (idx + 2 < frame.landmarks.length && idx + 2 < 225) {
-            final cx = frame.landmarks[idx];
-            final cy = frame.landmarks[idx + 1];
-            final cz = frame.landmarks[idx + 2];
-            final px = _prevHandLandmarks![ki * 3];
-            final py = _prevHandLandmarks![ki * 3 + 1];
-            final pz = _prevHandLandmarks![ki * 3 + 2];
-            if ((cx != 0 || cy != 0 || cz != 0) &&
-                (px != 0 || py != 0 || pz != 0)) {
-              final d = math.sqrt((cx - px) * (cx - px) +
-                  (cy - py) * (cy - py) +
-                  (cz - pz) * (cz - pz));
-              totalDelta += d;
-              deltaPoints++;
-            }
-          }
-        }
-        final avgDelta = deltaPoints > 0 ? (totalDelta / deltaPoints) : 0.0;
-        // Natural stillness threshold per frame
-        if (avgDelta < 0.015) {
-          motionEnergy = 0.01; // Below minMotionEnergy (0.05), triggers stillness timer
-        } else {
-          motionEnergy = (avgDelta * 12.0).clamp(0.08, 0.85);
-        }
-      } else {
-        motionEnergy = 0.20;
-      }
-      _prevHandLandmarks = frame.landmarks.sublist(99, 225);
-    } else {
-      _prevHandLandmarks = null;
-    }
-
-    final event = segmenter.processFrame(
-      frame,
-      isHandDetected: hasHand,
-      motionEnergy: motionEnergy,
-    );
-
-    if (segmenter.isSigningActive) {
-      sequenceBuffer.addFrame(baseFeature);
-
-      // Throttled UI reactive updates (every ~65ms) to prevent Obx rendering thrashing
-      if (currentMs - _lastUiProgressUpdateMs >= 65 || sequenceBuffer.frameCount <= 1) {
-        _lastUiProgressUpdateMs = currentMs;
-        framesCollected.value = sequenceBuffer.frameCount;
-        captureProgress.value =
-            (sequenceBuffer.frameCount / BisindoSequenceBuffer.targetTimesteps)
-                .clamp(0.0, 1.0);
-      }
-
+    if (segmenter.isActive) {
       if (state.value == BisindoLiveState.listening ||
           state.value == BisindoLiveState.recognized ||
           state.value == BisindoLiveState.rejected) {
@@ -426,8 +377,9 @@ class SignLanguageController extends GetxController {
         _isCommittedForCurrentSegment = false;
         isCandidateConfirmed.value = false;
         _segmentStartDateTime = DateTime.now();
+      } else {
+        _segmentStartDateTime ??= DateTime.now();
       }
-
       _maybeRunStreamingPreview();
     } else {
       _segmentStartDateTime = null;
@@ -439,32 +391,47 @@ class SignLanguageController extends GetxController {
       }
     }
 
-    if (event == SegmentEventType.offset && sequenceBuffer.frameCount >= 5) {
-      _classifyActiveSegment();
+    if (segment != null) {
+      _enqueueSegment(segment);
     }
   }
 
-  Future<void> _classifyActiveSegment() async {
+  void _enqueueSegment(BisindoSegment segment) {
+    if (_isClassifying) {
+      _pendingSegment = segment;
+      return;
+    }
+    unawaited(_classifySegment(segment));
+  }
+
+  Future<void> _classifySegment(BisindoSegment segment) async {
     if (_isCommittedForCurrentSegment) {
-      sequenceBuffer.clear();
+      segmenter.reset();
       return;
     }
     _isClassifying = true;
     state.value = BisindoLiveState.classifying;
     try {
-      final inputTensor = await sequenceBuffer.buildModelTensorAsync();
       final isSibi = currentModel.value == SignLanguageModel.sibi;
       final effectiveMargin = isSibi
           ? math.min(minContinuousMargin, 0.08)
           : minContinuousMargin;
-      await _classifyTensor(
-        inputTensor,
+
+      await _classifyFrames(
+        segment.frames,
         minMargin: effectiveMargin,
-        source: 'auto/offset',
+        source: 'auto/${segment.reason.name}',
       );
     } finally {
       _isClassifying = false;
-      sequenceBuffer.clear();
+      final next = _pendingSegment;
+      _pendingSegment = null;
+      if (state.value == BisindoLiveState.classifying) {
+        _settleIdleState();
+      }
+      if (next != null && !_isDisposed && isContinuousRunning.value) {
+        unawaited(_classifySegment(next));
+      }
     }
   }
 
@@ -481,23 +448,31 @@ class SignLanguageController extends GetxController {
       return;
     }
 
-    if (sequenceBuffer.frameCount < 5) return;
+    final activeFrames = segmenter.activeFrames;
+    if (activeFrames.length < 8) return;
 
     final now = DateTime.now();
-    final minInterval = _lastInferenceDurationMs > 75
-        ? math.min(220, _lastInferenceDurationMs + 45)
-        : 130;
+    final minInterval = math.max(
+      280,
+      _lastInferenceDurationMs > 50 ? _lastInferenceDurationMs + 90 : 280,
+    );
     if (now.difference(_lastPreviewTime).inMilliseconds < minInterval) return;
     _lastPreviewTime = now;
 
-    unawaited(_runPreviewInference());
+    unawaited(_runPreviewInference(List<LandmarkFrame>.of(activeFrames)));
   }
 
-  Future<void> _runPreviewInference() async {
+  Future<void> _runPreviewInference(List<LandmarkFrame> frames) async {
     _isPreviewing = true;
     final stopwatch = Stopwatch()..start();
     try {
-      final inputTensor = await sequenceBuffer.buildModelTensorAsync();
+      final buffer = BisindoSequenceBuffer();
+      for (final frame in frames) {
+        buffer.addBaseFeature(
+          BisindoFeatureExtractor.extractBaseFeature(frame),
+        );
+      }
+      final inputTensor = buffer.prepareModelInput();
       final prediction = await classifierService.classify(
         inputTensor,
         modelType: currentModel.value.toModelType,
@@ -506,7 +481,7 @@ class SignLanguageController extends GetxController {
       _lastInferenceDurationMs = stopwatch.elapsedMilliseconds;
 
       if (_isDisposed ||
-          !segmenter.isSigningActive ||
+          !segmenter.isActive ||
           _isCommittedForCurrentSegment ||
           prediction == null) {
         return;
@@ -514,8 +489,8 @@ class SignLanguageController extends GetxController {
 
       final isSibi = currentModel.value == SignLanguageModel.sibi;
       final candidateThreshold = isSibi
-          ? 0.32
-          : (classifierService.minConfidence * 0.58).clamp(0.32, 0.52);
+          ? 0.35
+          : (classifierService.confidenceThreshold * 0.58).clamp(0.35, 0.52);
 
       if (prediction.isRecognized &&
           prediction.label.isNotEmpty &&
@@ -526,20 +501,27 @@ class SignLanguageController extends GetxController {
         final newCandidate = prediction.cleanLabel;
         final newConfidence = prediction.confidence;
 
+        // Anti-jitter hysteresis & candidate stabilization for camera noise
         if (_lastCandidateLabel.isEmpty) {
           _lastCandidateLabel = newCandidate;
           _lastCandidateConfidence = newConfidence;
           _candidateStreak = 1;
+          _pendingCandidateLabel = '';
+          _pendingCandidateCount = 0;
         } else if (newCandidate == _lastCandidateLabel) {
           _candidateStreak++;
           _lastCandidateConfidence =
               0.65 * _lastCandidateConfidence + 0.35 * newConfidence;
+          _pendingCandidateLabel = '';
+          _pendingCandidateCount = 0;
         } else {
           if (newConfidence > _lastCandidateConfidence + 0.18 ||
               _candidateStreak <= 1) {
             _lastCandidateLabel = newCandidate;
             _lastCandidateConfidence = newConfidence;
             _candidateStreak = 1;
+            _pendingCandidateLabel = '';
+            _pendingCandidateCount = 0;
           } else {
             if (_pendingCandidateLabel == newCandidate) {
               _pendingCandidateCount++;
@@ -561,7 +543,7 @@ class SignLanguageController extends GetxController {
 
         final elapsedMs = _segmentStartDateTime != null
             ? DateTime.now().difference(_segmentStartDateTime!).inMilliseconds
-            : (sequenceBuffer.frameCount * 50);
+            : (frames.length * 50);
 
         final streakFactor = (_candidateStreak / 4.0).clamp(0.0, 1.0);
         final timeFactor = (elapsedMs / 700.0).clamp(0.0, 1.0);
@@ -573,10 +555,10 @@ class SignLanguageController extends GetxController {
         holdProgress.value = combinedProgress;
 
         final targetCommitConfidence = isSibi
-            ? math.min(classifierService.minConfidence, 0.58)
-            : classifierService.minConfidence;
+            ? math.min(classifierService.confidenceThreshold, 0.58)
+            : classifierService.confidenceThreshold;
 
-        if (combinedProgress >= 0.90 &&
+        if (combinedProgress >= 0.92 &&
             prediction.confidence >= targetCommitConfidence &&
             !_isCommittedForCurrentSegment) {
           _confirmAndCommitCandidate(prediction);
@@ -616,7 +598,7 @@ class SignLanguageController extends GetxController {
       if (_isDisposed) return;
       isCandidateConfirmed.value = false;
       _resetStreamingPreviewState();
-      if (segmenter.isSigningActive) {
+      if (segmenter.isActive) {
         state.value = BisindoLiveState.signing;
       } else {
         state.value = isContinuousRunning.value
@@ -639,7 +621,113 @@ class SignLanguageController extends GetxController {
   }
 
   // ---------------------------------------------------------------------------
-  // Gesture Simulation (Realistic 706-D synthetic sequence for testing)
+  // Shared classification
+  // ---------------------------------------------------------------------------
+
+  Future<void> _classifyFrames(
+    List<LandmarkFrame> frames, {
+    required double minMargin,
+    required String source,
+  }) async {
+    if (_isDisposed) return;
+    if (_isCommittedForCurrentSegment) {
+      _settleIdleState();
+      return;
+    }
+    try {
+      final quality = SignCaptureQuality.fromFrames(frames);
+      lastQuality.value = quality;
+      final qualityCheck = quality.validate();
+      if (!qualityCheck.isValid) {
+        _reject(
+          qualityCheck.userErrorMessage ??
+              'Gagal mendeteksi: gerakan tangan kurang jelas. Silakan ulangi.',
+        );
+        return;
+      }
+
+      final buffer = BisindoSequenceBuffer();
+      for (final frame in frames) {
+        buffer.addBaseFeature(
+          BisindoFeatureExtractor.extractBaseFeature(frame),
+        );
+      }
+      final inputTensor = buffer.prepareModelInput();
+      final prediction = await classifierService.classify(
+        inputTensor,
+        modelType: currentModel.value.toModelType,
+      );
+
+      if (_isDisposed || _isCommittedForCurrentSegment) {
+        if (state.value == BisindoLiveState.classifying) {
+          _settleIdleState();
+        }
+        return;
+      }
+
+      if (prediction == null) {
+        _reject('Gerakan belum dikenali. Silakan ulangi.');
+        return;
+      }
+
+      confidenceScore.value = prediction.confidence;
+      topCandidates.assignAll(prediction.candidates);
+
+      final isSibi = currentModel.value == SignLanguageModel.sibi;
+      final minConfidenceReq = isSibi ? 0.45 : 0.50;
+
+      if (prediction.confidence < minConfidenceReq) {
+        _reject(
+          'Gagal mendeteksi gestur (Keyakinan ${(prediction.confidence * 100).toStringAsFixed(0)}% < ${(minConfidenceReq * 100).toStringAsFixed(0)}%). Silakan ulangi.',
+        );
+        return;
+      }
+
+      final accepted = prediction.isRecognized &&
+          prediction.label.isNotEmpty &&
+          prediction.margin >= minMargin;
+
+      if (!accepted) {
+        _reject('Gerakan belum dikenali. Silakan ulangi gerakan.');
+        return;
+      }
+
+      guidanceMessage.value = '';
+      _confirmAndCommitCandidate(prediction);
+    } catch (e, st) {
+      debugPrint('[SIGN_LANGUAGE_CONTROLLER] Processing error: $e\n$st');
+      _reject('Terjadi kesalahan pemrosesan gerakan. Silakan coba lagi.');
+    }
+  }
+
+  void _reject(String message) {
+    _resetStreamingPreviewState();
+    guidanceMessage.value = message;
+    _showTransient(BisindoLiveState.rejected, kRejectedHold);
+  }
+
+  void _showTransient(BisindoLiveState transient, Duration hold) {
+    if (_isDisposed) return;
+    _transientTimer?.cancel();
+    state.value = transient;
+    _transientTimer = Timer(hold, () {
+      if (_isDisposed || state.value != transient) return;
+      _settleIdleState();
+    });
+  }
+
+  void _settleIdleState() {
+    if (!isContinuousRunning.value) {
+      state.value = BisindoLiveState.stopped;
+    } else {
+      state.value = segmenter.isActive
+          ? BisindoLiveState.signing
+          : BisindoLiveState.listening;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Gesture Simulation (Realistic synthetic tensor for testing)
   // ---------------------------------------------------------------------------
 
   Future<BisindoPrediction?> simulateGesture(String label) async {
@@ -667,7 +755,7 @@ class SignLanguageController extends GetxController {
     return prediction;
   }
 
-  Future<BisindoPrediction?> runInference(Float32List tensor) async {
+  Future<BisindoPrediction?> runInference(dynamic tensor) async {
     isInferring.value = true;
     try {
       final prediction = await classifierService.classify(
@@ -700,10 +788,14 @@ class SignLanguageController extends GetxController {
     _cancelManualTimers();
     _transientTimer?.cancel();
     segmenter.reset();
-    sequenceBuffer.clear();
+    _pendingSegment = null;
+    _manualFrames.clear();
     framesCollected.value = 0;
     captureProgress.value = 0.0;
     guidanceMessage.value = '';
+    _isCommittedForCurrentSegment = false;
+    isCandidateConfirmed.value = false;
+    _resetStreamingPreviewState();
 
     if (skipCountdown) {
       _beginManualRecording();
@@ -727,6 +819,8 @@ class SignLanguageController extends GetxController {
 
   void _beginManualRecording() {
     if (_isDisposed) return;
+    _isCommittedForCurrentSegment = false;
+    isCandidateConfirmed.value = false;
     state.value = BisindoLiveState.manualCapturing;
     _captureStartTime = DateTime.now();
 
@@ -750,79 +844,20 @@ class SignLanguageController extends GetxController {
   Future<void> _finishManualRecording() async {
     if (_isDisposed) return;
     captureProgress.value = 1.0;
+    final frames = List<LandmarkFrame>.of(_manualFrames);
+    _manualFrames.clear();
     _isClassifying = true;
+    _isCommittedForCurrentSegment = false;
+    isCandidateConfirmed.value = false;
     state.value = BisindoLiveState.classifying;
     try {
-      final inputTensor = sequenceBuffer.buildModelTensor();
-      await _classifyTensor(inputTensor, minMargin: 0.0, source: 'manual');
+      await _classifyFrames(frames, minMargin: 0.0, source: 'manual');
     } finally {
       _isClassifying = false;
-      sequenceBuffer.clear();
       segmenter.reset();
-    }
-  }
-
-  Future<void> _classifyTensor(
-    Float32List tensor, {
-    required double minMargin,
-    required String source,
-  }) async {
-    if (_isDisposed || _isCommittedForCurrentSegment) return;
-    try {
-      final prediction = await classifierService.classify(
-        tensor,
-        modelType: currentModel.value.toModelType,
-      );
-      if (_isDisposed || _isCommittedForCurrentSegment) return;
-
-      if (prediction == null) {
-        _reject('Gerakan belum dikenali. Silakan ulangi.');
-        return;
+      if (state.value == BisindoLiveState.classifying) {
+        _settleIdleState();
       }
-
-      confidenceScore.value = prediction.confidence;
-      topCandidates.assignAll(prediction.candidates);
-
-      final accepted = prediction.isRecognized &&
-          prediction.label.isNotEmpty &&
-          prediction.margin >= minMargin;
-
-      if (!accepted) {
-        _reject('Gerakan belum dikenali. Silakan ulangi.');
-        return;
-      }
-
-      guidanceMessage.value = '';
-      _confirmAndCommitCandidate(prediction);
-    } catch (e) {
-      debugPrint('[SIGN_LANGUAGE_CONTROLLER] Processing error: $e');
-      _reject('Terjadi kesalahan pemrosesan gerakan. Silakan coba lagi.');
-    }
-  }
-
-  void _reject(String message) {
-    _resetStreamingPreviewState();
-    guidanceMessage.value = message;
-    _showTransient(BisindoLiveState.rejected, kRejectedHold);
-  }
-
-  void _showTransient(BisindoLiveState transient, Duration hold) {
-    if (_isDisposed) return;
-    _transientTimer?.cancel();
-    state.value = transient;
-    _transientTimer = Timer(hold, () {
-      if (_isDisposed || state.value != transient) return;
-      _settleIdleState();
-    });
-  }
-
-  void _settleIdleState() {
-    if (!isContinuousRunning.value) {
-      state.value = BisindoLiveState.stopped;
-    } else {
-      state.value = segmenter.isSigningActive
-          ? BisindoLiveState.signing
-          : BisindoLiveState.listening;
     }
   }
 
@@ -840,9 +875,10 @@ class SignLanguageController extends GetxController {
     _isDisposed = true;
     _cancelManualTimers();
     _transientTimer?.cancel();
-    sequenceBuffer.clear();
+    _manualFrames.clear();
     segmenter.reset();
-    cameraFeedService.stopCamera();
+    _pendingSegment = null;
+    unawaited(classifierService.dispose());
     super.onClose();
   }
 }

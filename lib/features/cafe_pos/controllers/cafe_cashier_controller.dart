@@ -1,16 +1,23 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:speech2sign/core/theme/app_colors.dart';
+import 'package:speech2sign/features/settings/controllers/settings_controller.dart';
 import 'package:speech2sign/features/sign_language/controllers/sign_language_controller.dart';
 import 'package:speech2sign/features/sign_language/controllers/text_to_sign_controller.dart';
 import 'package:speech2sign/features/sign_language/models/bisindo_prediction.dart';
+import 'package:speech2sign/features/sign_language/models/sign_language_model.dart';
 import 'package:speech2sign/features/sign_language/services/bisindo_tts_service.dart';
 import 'package:speech2sign/features/sign_language/services/camera_feed_service.dart';
 import 'package:speech2sign/features/translator/services/speech_service.dart';
 
+import '../../../core/firebase/firestore_result.dart';
 import '../../../core/localization/app_translations.dart';
 import '../data/datasources/cafe_pos_local_data_source.dart';
+import '../data/datasources/firestore_cafe_pos_service.dart';
+import '../data/datasources/firestore_counter_session_service.dart';
 import '../domain/models/cafe_order_ticket.dart';
 import '../domain/models/coffee_customization_draft.dart';
 import '../domain/models/coffee_menu_item.dart';
@@ -21,6 +28,7 @@ import '../domain/models/parsed_cafe_order_slot.dart';
 import '../domain/services/coffee_recommender_service.dart';
 import '../domain/services/order_slot_parser_service.dart';
 import '../domain/services/queue_pager_service.dart';
+
 
 enum CafeCameraActiveFeature {
   none,
@@ -36,8 +44,25 @@ class CafeCashierController extends GetxController {
   final BisindoTtsService _ttsService;
   final SpeechService _speechService;
   CameraFeedService? _cameraFeedService;
-  final SignLanguageController? _signLanguageController;
+  SignLanguageController? _signLanguageController;
   final CafePosLocalDataSource _localDataSource;
+  final FirestoreCafePosService? _firestoreCafePosService;
+  final FirestoreCounterSessionService? _counterSessionService;
+
+  SignLanguageController? get signLanguageController {
+    if (_signLanguageController != null) return _signLanguageController;
+    if (Get.isRegistered<SignLanguageController>()) {
+      try {
+        final found = Get.find<SignLanguageController>();
+        _signLanguageController = found;
+        return found;
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  final Rx<SignLanguageModel> _activeSignModel = SignLanguageModel.bisindo.obs;
+  SignLanguageModel get activeSignModel => _activeSignModel.value;
 
   CameraFeedService get cameraFeedService {
     if (_cameraFeedService != null) return _cameraFeedService!;
@@ -57,7 +82,10 @@ class CafeCashierController extends GetxController {
   }
 
   CafePosLocalDataSource get localDataSource => _localDataSource;
+  FirestoreCafePosService? get firestoreCafePosService => _firestoreCafePosService;
+  FirestoreCounterSessionService? get counterSessionService => _counterSessionService;
   Worker? _ticketStorageWorker;
+  StreamSubscription<dynamic>? _sessionStreamSub;
 
   CafeCashierController({
     OrderSlotParserService? orderSlotParserService,
@@ -68,6 +96,8 @@ class CafeCashierController extends GetxController {
     CameraFeedService? cameraFeedService,
     SignLanguageController? signLanguageController,
     CafePosLocalDataSource? localDataSource,
+    FirestoreCafePosService? firestoreCafePosService,
+    FirestoreCounterSessionService? counterSessionService,
   })  : _orderSlotParserService =
             orderSlotParserService ?? OrderSlotParserService(),
         _coffeeRecommenderService =
@@ -92,7 +122,15 @@ class CafeCashierController extends GetxController {
         _localDataSource = localDataSource ??
             (Get.isRegistered<CafePosLocalDataSource>()
                 ? Get.find<CafePosLocalDataSource>()
-                : CafePosLocalDataSource());
+                : CafePosLocalDataSource()),
+        _firestoreCafePosService = firestoreCafePosService ??
+            (Get.isRegistered<FirestoreCafePosService>()
+                ? Get.find<FirestoreCafePosService>()
+                : null),
+        _counterSessionService = counterSessionService ??
+            (Get.isRegistered<FirestoreCounterSessionService>()
+                ? Get.find<FirestoreCounterSessionService>()
+                : null);
 
 
   // ── 1. ACTIVE ORDER TICKET STATE ──────────────────────────────────────────
@@ -153,6 +191,20 @@ class CafeCashierController extends GetxController {
     'PANAS',
     'SAMA-SAMA',
   ];
+
+  static const List<String> sibiChallengeVocabulary = [
+    'TERIMA',
+    'KASIH',
+    'MINUM',
+    'AIR',
+    'MAKAN',
+  ];
+
+  List<String> get currentChallengeVocabulary =>
+      _activeSignModel.value == SignLanguageModel.sibi
+          ? sibiChallengeVocabulary
+          : challengeVocabulary;
+
   final RxInt challengeWordIndex = 0.obs;
   final RxString activeChallengeSign = 'TERIMA KASIH'.obs;
   final RxDouble challengeProgress = 0.0.obs;
@@ -175,6 +227,28 @@ class CafeCashierController extends GetxController {
   String _lastDetectedCandidate = '';
   int _letterStreakCount = 0;
 
+  // ── 11. MASTER PROMPT V2: 3-STAGE STATE MACHINE ───────────────────────────
+  /// Tahap alur pesanan aktif (idle / ordering / naming / pickup).
+  final Rx<CafeOrderStage> currentStage = CafeOrderStage.idle.obs;
+
+  /// Mode perangkat (1-tablet geser / 2-tablet paired).
+  final Rx<CounterDeviceMode> deviceMode =
+      CounterDeviceMode.singleTabletSwitch.obs;
+
+  /// Counter ID permanen untuk pairing (default: KAFE-01).
+  static const String defaultCounterId = 'KAFE-01';
+  final RxString counterId = defaultCounterId.obs;
+
+  /// Status auth PIN staff (Quick Staff PIN offline-first).
+  final RxBool staffPinAuthenticated = false.obs;
+  final RxString staffPin = ''.obs; // Offline PIN (4 digit)
+
+  /// Flag apakah alergi susu sudah di-auto-switch ke Oat Milk.
+  final RxBool dairyAllergyAutoSwitched = false.obs;
+
+  /// Pesan notif auto-switch susu untuk ditampilkan di UI.
+  final RxString dairyAllergyBannerMessage = ''.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -182,8 +256,72 @@ class CafeCashierController extends GetxController {
     // Default initial recommendation
     activeRecommendation.value =
         _coffeeRecommenderService.recommendCoffee('kopi susu oat');
+    _syncModelWithSettings();
+    if (Get.isRegistered<SettingsController>()) {
+      ever(Get.find<SettingsController>().selectedSignLanguage, (lang) {
+        _syncModelWithSettings();
+      });
+    }
     _connectSignLanguageFeed();
     loadPersistedTicket();
+    // V2: Sync stage to Firestore whenever it changes
+    ever<CafeOrderStage>(currentStage, (stage) {
+      _counterSessionService?.syncStage(
+        counterId.value,
+        stage,
+        currentOrderId: currentTicket.value.orderId,
+      );
+    });
+  }
+
+  Future<void> _syncModelWithSettings() async {
+    SignLanguageModel targetModel = SignLanguageModel.bisindo;
+    if (Get.isRegistered<SettingsController>()) {
+      final settings = Get.find<SettingsController>();
+      if (settings.selectedSignLanguage.value.toUpperCase() == 'SIBI') {
+        targetModel = SignLanguageModel.sibi;
+      }
+    }
+    _activeSignModel.value = targetModel;
+    _syncChallengeVocabularyForModel(targetModel);
+
+    final signCtrl = signLanguageController;
+    if (signCtrl != null) {
+      if (signCtrl.currentModel.value != targetModel ||
+          !signCtrl.classifierService.isInitialized) {
+        try {
+          await signCtrl.switchModel(targetModel);
+        } catch (_) {}
+      }
+    }
+  }
+
+  Future<void> switchSignLanguageModel(SignLanguageModel model) async {
+    _activeSignModel.value = model;
+    _syncChallengeVocabularyForModel(model);
+    if (Get.isRegistered<SettingsController>()) {
+      Get.find<SettingsController>().setSignLanguage(
+        model == SignLanguageModel.sibi ? 'SIBI' : 'BISINDO',
+      );
+    }
+    final signCtrl = signLanguageController;
+    if (signCtrl != null) {
+      try {
+        await signCtrl.switchModel(model);
+      } catch (_) {}
+    }
+  }
+
+  void _syncChallengeVocabularyForModel(SignLanguageModel model) {
+    final vocab = model == SignLanguageModel.sibi
+        ? sibiChallengeVocabulary
+        : challengeVocabulary;
+    if (challengeWordIndex.value >= vocab.length) {
+      challengeWordIndex.value = 0;
+    }
+    activeChallengeSign.value = vocab[challengeWordIndex.value];
+    challengeProgress.value = 0.0;
+    isChallengeCompleted.value = false;
   }
 
   /// Restores active ticket from local storage and initiates auto-save worker.
@@ -218,15 +356,151 @@ class CafeCashierController extends GetxController {
   void onClose() {
     _ticketStorageWorker?.dispose();
     _ticketStorageWorker = null;
+    _sessionStreamSub?.cancel();
+    _sessionStreamSub = null;
     _spellingInactivityTimer?.cancel();
     _countdownTicker?.cancel();
     if (isListening.value) {
       _speechService.stopListening();
     }
     try {
+      final signCtrl = signLanguageController;
+      if (signCtrl != null && signCtrl.isContinuousRunning.value) {
+        signCtrl.stopContinuous();
+      }
       _cameraFeedService?.stopCamera();
     } catch (_) {}
     super.onClose();
+  }
+
+  // ── MASTER PROMPT V2: 3-STAGE STATE MACHINE METHODS ────────────────────────
+
+  /// Maju ke tahap berikutnya: idle → ordering → naming → pickup → idle
+  void advanceStage() {
+    switch (currentStage.value) {
+      case CafeOrderStage.idle:
+        currentStage.value = CafeOrderStage.ordering;
+        break;
+      case CafeOrderStage.ordering:
+        if (currentTicket.value.items.isNotEmpty) {
+          currentStage.value = CafeOrderStage.naming;
+        } else {
+          Get.snackbar(
+            'Pesanan Masih Kosong',
+            'Silakan konfirmasi minimal 1 item pesanan sebelum lanjut ke tahap penamaan cup.',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: AppColors.primary,
+            colorText: AppColors.surface,
+            margin: const EdgeInsets.all(16),
+            borderRadius: 12,
+            duration: const Duration(seconds: 3),
+          );
+        }
+        break;
+      case CafeOrderStage.naming:
+        currentStage.value = CafeOrderStage.pickup;
+        break;
+      case CafeOrderStage.pickup:
+        // Selesai → bersihkan tiket dan kembali ke idle
+        clearTicket();
+        currentStage.value = CafeOrderStage.idle;
+        break;
+    }
+  }
+
+  /// Lompat langsung ke tahap tertentu (dipanggil dari UI button).
+  void goToStage(CafeOrderStage stage) {
+    currentStage.value = stage;
+  }
+
+  /// Reset ke idle & bersihkan semua state.
+  void resetToIdle() {
+    currentStage.value = CafeOrderStage.idle;
+    dairyAllergyAutoSwitched.value = false;
+    dairyAllergyBannerMessage.value = '';
+    clearTicket();
+  }
+
+  // ── MASTER PROMPT V2: QUICK STAFF PIN ──────────────────────────────────────
+
+  /// Verifikasi PIN staff (4 digit, offline-first).
+  /// PIN default '0000' jika belum pernah diset.
+  bool verifyStaffPin(String inputPin) {
+    final savedPin = staffPin.value.isEmpty ? '0000' : staffPin.value;
+    final authenticated = inputPin == savedPin;
+    staffPinAuthenticated.value = authenticated;
+    return authenticated;
+  }
+
+  /// Set PIN baru staff (hanya setelah authenticated).
+  bool setNewStaffPin(String newPin) {
+    if (newPin.length != 4) return false;
+    staffPin.value = newPin;
+    return true;
+  }
+
+  /// Logout staff (reset authenticated state).
+  void logoutStaff() {
+    staffPinAuthenticated.value = false;
+  }
+
+  // ── MASTER PROMPT V2: DAIRY ALLERGY AUTO-SWITCH ───────────────────────────
+
+  /// Auto-switch susu sapi ke Oat Milk jika ada alergi dairy terdeteksi.
+  /// Dipanggil dari onTranscriptReceived saat allergy terdeteksi.
+  void _checkAndAutoSwitchDairyAllergy(List<DietaryAlertTag> alerts) {
+    if (dairyAllergyAutoSwitched.value) return;
+    final hasDairyAllergy = alerts.any((a) =>
+        a.type == DietaryAlertType.dairyAllergy ||
+        a.type == DietaryAlertType.lactoseIntolerant);
+    if (!hasDairyAllergy) return;
+
+    // Auto-switch semua item yang menggunakan freshDairy ke oatMilk
+    final updatedItems = currentTicket.value.items.map((item) {
+      if (item.milkType == OrderMilkType.freshDairy) {
+        return item.copyWith(milkType: OrderMilkType.oatMilk);
+      }
+      return item;
+    }).toList();
+
+    currentTicket.value = currentTicket.value.copyWith(items: updatedItems);
+    dairyAllergyAutoSwitched.value = true;
+    dairyAllergyBannerMessage.value =
+        '⚠️ Alergi susu terdeteksi — otomatis diganti ke Susu Oat';
+  }
+
+  // ── MASTER PROMPT V2: DEVICE PAIRING ───────────────────────────────────────
+
+  /// Switch mode perangkat (1-tablet <-> 2-tablet).
+  Future<void> setDeviceMode(CounterDeviceMode mode) async {
+    deviceMode.value = mode;
+    await _counterSessionService?.pairDevices(
+      counterId: counterId.value,
+      cashierTabletId: 'cashier-${counterId.value}',
+      customerTabletId: mode == CounterDeviceMode.dualTabletLocked
+          ? 'customer-${counterId.value}'
+          : '',
+      mode: mode,
+    );
+  }
+
+  /// Set pairing code / counter ID.
+  void setPairingCounterId(String id) {
+    counterId.value = id.trim().toUpperCase();
+  }
+
+  /// Mulai listen real-time session dari Firestore (untuk tablet pembeli).
+  void startSessionStream() {
+    _sessionStreamSub?.cancel();
+    final svc = _counterSessionService;
+    if (svc == null) return;
+    _sessionStreamSub =
+        svc.streamSession(counterId.value).listen((session) {
+      // Sinkronisasi stage dari cloud ke tablet pembeli
+      if (session.stage != currentStage.value) {
+        currentStage.value = session.stage;
+      }
+    });
   }
 
 
@@ -241,14 +515,29 @@ class CafeCashierController extends GetxController {
     } else if (feature == CafeCameraActiveFeature.waitingChallenge) {
       isMiniCameraModalOpen.value = true;
     }
-    await cameraFeedService.startCamera();
+
+    await _syncModelWithSettings();
     _connectSignLanguageFeed();
+
+    final signCtrl = signLanguageController;
+    if (signCtrl != null) {
+      await signCtrl.startContinuous();
+    } else {
+      await cameraFeedService.startCamera();
+    }
   }
 
   Future<void> closeCamera() async {
     activeCameraFeature.value = CafeCameraActiveFeature.none;
     isMiniCameraModalOpen.value = false;
-    await cameraFeedService.stopCamera();
+
+    final signCtrl = signLanguageController;
+    if (signCtrl != null && signCtrl.isContinuousRunning.value) {
+      await signCtrl.stopContinuous();
+    } else {
+      await cameraFeedService.stopCamera();
+    }
+
     letterHoldProgress.value = 0.0;
     detectedSpellingLetter.value = '';
     _lastDetectedCandidate = '';
@@ -260,7 +549,7 @@ class CafeCashierController extends GetxController {
   }
 
   void _connectSignLanguageFeed() {
-    final controller = _signLanguageController;
+    final controller = signLanguageController;
     if (controller != null) {
       controller.onPredictionAccepted = _handleLivePrediction;
     }
@@ -296,8 +585,8 @@ class CafeCashierController extends GetxController {
       detectedSpellingLetter.value = upper;
       if (_lastDetectedCandidate == upper) {
         _letterStreakCount++;
-        letterHoldProgress.value = (_letterStreakCount / 3).clamp(0.0, 1.0);
-        if (_letterStreakCount >= 3) {
+        letterHoldProgress.value = (_letterStreakCount / 2).clamp(0.0, 1.0);
+        if (_letterStreakCount >= 2) {
           addSpellingLetter(upper);
           _letterStreakCount = 0;
           letterHoldProgress.value = 0.0;
@@ -308,7 +597,7 @@ class CafeCashierController extends GetxController {
       } else {
         _lastDetectedCandidate = upper;
         _letterStreakCount = 1;
-        letterHoldProgress.value = 0.33;
+        letterHoldProgress.value = 0.5;
       }
     }
   }
@@ -321,7 +610,7 @@ class CafeCashierController extends GetxController {
     if (!isMatch) {
       final targetWords = target.split(' ');
       for (final tw in targetWords) {
-        if (tw.length >= 3 && current.contains(tw)) {
+        if (tw.length >= 3 && (current.contains(tw) || tw.contains(current))) {
           isMatch = true;
           break;
         }
@@ -341,9 +630,19 @@ class CafeCashierController extends GetxController {
     liveTranscript.value = transcript.trim();
     if (transcript.trim().isEmpty) return;
 
+    // V2: Auto-advance dari idle ke ordering saat ada input pertama
+    if (currentStage.value == CafeOrderStage.idle) {
+      currentStage.value = CafeOrderStage.ordering;
+    }
+
     // Feature 1 & 6: Parse structured slot & dietary alerts
     final parsed = _orderSlotParserService.parseTranscript(transcript);
     activeParsedSlot.value = parsed;
+
+    // V2: Auto-switch susu sapi ke Oat Milk jika alergi dairy terdeteksi
+    if (parsed.dietaryAlerts.isNotEmpty) {
+      _checkAndAutoSwitchDairyAllergy(parsed.dietaryAlerts);
+    }
 
     // Feature 3: Evaluate Barista Sommelier Recommendation
     final recommendation =
@@ -786,10 +1085,18 @@ class CafeCashierController extends GetxController {
     isQrisProcessing.value = false;
     isOrderCompleted.value = true;
     final total = currentTicket.value.grandTotal;
-    currentTicket.value = currentTicket.value.copyWith(
+    final completedTicket = currentTicket.value.copyWith(
       amountPaid: total,
       status: OrderStatus.completed,
     );
+    currentTicket.value = completedTicket;
+
+    // Persist completed order to Cloud Firestore (offloads long-term data from local storage)
+    final firestoreService = _firestoreCafePosService;
+    if (firestoreService != null) {
+      unawaited(firestoreService.saveOrder(completedTicket));
+    }
+
     try {
       await HapticFeedback.mediumImpact();
     } catch (_) {}
@@ -803,7 +1110,15 @@ class CafeCashierController extends GetxController {
     final ticket = currentTicket.value;
     if (ticket.amountPaid < ticket.grandTotal) return;
     isOrderCompleted.value = true;
-    currentTicket.value = ticket.copyWith(status: OrderStatus.completed);
+    final completedTicket = ticket.copyWith(status: OrderStatus.completed);
+    currentTicket.value = completedTicket;
+
+    // Persist completed order to Cloud Firestore
+    final firestoreService = _firestoreCafePosService;
+    if (firestoreService != null) {
+      unawaited(firestoreService.saveOrder(completedTicket));
+    }
+
     try {
       await HapticFeedback.mediumImpact();
     } catch (_) {}
@@ -811,6 +1126,40 @@ class CafeCashierController extends GetxController {
       'Pembayaran tunai diterima, kembalian ${ticket.changeAmount} rupiah.',
       languageCode: 'id-ID',
     );
+  }
+
+  /// Resets state for a new order and cleans up local active ticket storage to save local space
+  Future<void> resetToNewOrder() async {
+    isOrderCompleted.value = false;
+    final nextId = 'ORD-${DateTime.now().millisecondsSinceEpoch}';
+    final nextQueue = 'A-${100 + (DateTime.now().second % 900)}';
+    currentTicket.value = CafeOrderTicket(
+      orderId: nextId,
+      queueNumber: nextQueue,
+      customerName: '',
+      items: const [],
+      status: OrderStatus.draft,
+      paymentMethod: OrderPaymentMethod.qris,
+      amountPaid: 0,
+      createdAt: DateTime.now(),
+    );
+    await _localDataSource.clearActiveTicket();
+  }
+
+  /// Realtime stream of active cloud orders (barista/kitchen display)
+  Stream<List<CafeOrderTicket>>? streamCloudActiveOrders() =>
+      _firestoreCafePosService?.streamActiveOrders();
+
+  /// Fetches recent orders directly from Cloud Firestore without consuming local storage
+  Future<List<CafeOrderTicket>> fetchCloudOrders({int limit = 50}) async {
+    if (_firestoreCafePosService == null) return [];
+    final res = await _firestoreCafePosService.fetchRecentOrders(limit: limit);
+    switch (res) {
+      case FirestoreSuccess(:final data):
+        return data;
+      case FirestoreFailure():
+        return [];
+    }
   }
 
   Future<void> translateBillToSignAndSpeech() async {
@@ -830,9 +1179,10 @@ class CafeCashierController extends GetxController {
   }
 
   void cycleNextChallengeWord() {
+    final vocab = currentChallengeVocabulary;
     challengeWordIndex.value =
-        (challengeWordIndex.value + 1) % challengeVocabulary.length;
-    activeChallengeSign.value = challengeVocabulary[challengeWordIndex.value];
+        (challengeWordIndex.value + 1) % vocab.length;
+    activeChallengeSign.value = vocab[challengeWordIndex.value];
     challengeProgress.value = 0.0;
     isChallengeCompleted.value = false;
     showTrophyDialog.value = false;
@@ -858,6 +1208,10 @@ class CafeCashierController extends GetxController {
       try {
         final newStamps = await _localDataSource.addLoyaltyStamp();
         loyaltyStampsCount.value = newStamps;
+        final firestoreService = _firestoreCafePosService;
+        if (firestoreService != null) {
+          unawaited(firestoreService.syncLoyaltyStamps('guest_user', newStamps));
+        }
         await HapticFeedback.mediumImpact();
       } catch (_) {}
       await _ttsService.speak(

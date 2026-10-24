@@ -18,6 +18,7 @@ class WaitingSignChallengeCard extends StatefulWidget {
   final VoidCallback? onCloseCamera;
   final VoidCallback? onSwitchCamera;
   final bool isCameraActive;
+  final String? modelBadge;
   final CameraFeedService? cameraService;
 
   const WaitingSignChallengeCard({
@@ -31,6 +32,7 @@ class WaitingSignChallengeCard extends StatefulWidget {
     this.onCloseCamera,
     this.onSwitchCamera,
     this.isCameraActive = false,
+    this.modelBadge,
     this.cameraService,
   });
 
@@ -299,45 +301,30 @@ class _WaitingSignChallengeCardState extends State<WaitingSignChallengeCard> {
                   onClose: _stopCamera,
                   onSwitchCamera: widget.onSwitchCamera,
                   cameraService: widget.cameraService,
-                  centerOverlay: RepaintBoundary(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        HoldConfirmRing(
-                          progress: widget.progress,
-                          size: 72,
-                          child: Icon(
-                            widget.progress >= 1.0
-                                ? Icons.check_circle_rounded
-                                : Icons.sign_language_rounded,
-                            size: 32,
-                            color: widget.progress >= 1.0
-                                ? AppColors.matcha
-                                : AppColors.secondary,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Container(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.85),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: AppColors.secondary.withValues(alpha: 0.4),
+                  modelBadge: widget.modelBadge,
+                  centerOverlay: (widget.progress >= 1.0 || widget.isCompleted)
+                      ? RepaintBoundary(
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.matcha.withValues(alpha: 0.92),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.matcha.withValues(alpha: 0.45),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
-                          ),
-                          child: Text(
-                            AppStrings.cafeMatchPercentage.trParams({'percent': '${(widget.progress * 100).toInt()}'}),
-                            style: AppTypography.labelSmall.copyWith(
+                            child: const Icon(
+                              Icons.check_rounded,
+                              size: 44,
                               color: Colors.white,
-                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
+                        )
+                      : null,
                 );
               },
             ),

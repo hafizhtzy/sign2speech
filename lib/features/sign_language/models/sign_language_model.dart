@@ -3,49 +3,127 @@ import '../services/bisindo_classifier_service.dart';
 /// Supported Sign Language models in the system.
 enum SignLanguageModel {
   sibi,
-  bisindo,
-}
+  bisindo;
 
-class SignLanguageModelConfig {
-  final String modelName;
-  final int classCount;
-  final double defaultConfidenceThreshold;
-  final double minMargin;
-
-  const SignLanguageModelConfig({
-    required this.modelName,
-    required this.classCount,
-    this.defaultConfidenceThreshold = 0.70,
-    this.minMargin = 0.15,
-  });
-
-  static SignLanguageModelConfig forModel(SignLanguageModel model) {
-    switch (model) {
-      case SignLanguageModel.bisindo:
-        return const SignLanguageModelConfig(
-          modelName: 'BISINDO',
-          classCount: 47,
-          defaultConfidenceThreshold: 0.70,
-          minMargin: 0.15,
-        );
+  String get displayName {
+    switch (this) {
       case SignLanguageModel.sibi:
-        return const SignLanguageModelConfig(
-          modelName: 'SIBI',
-          classCount: 72,
-          defaultConfidenceThreshold: 0.70,
-          minMargin: 0.15,
-        );
+        return 'SIBI';
+      case SignLanguageModel.bisindo:
+        return 'BISINDO';
     }
   }
-}
 
-extension SignLanguageModelExt on SignLanguageModel {
-  String get displayName => this == SignLanguageModel.sibi ? 'SIBI' : 'BISINDO';
+  String get fullTitle {
+    switch (this) {
+      case SignLanguageModel.sibi:
+        return 'SIBI (Sistem Isyarat Bahasa Indonesia)';
+      case SignLanguageModel.bisindo:
+        return 'BISINDO (Bahasa Isyarat Indonesia)';
+    }
+  }
+
+  String get description {
+    switch (this) {
+      case SignLanguageModel.sibi:
+        return 'Penerjemah huruf alfabet dan kosakata SIBI.';
+      case SignLanguageModel.bisindo:
+        return 'Penerjemah gerakan kosakata BISINDO.';
+    }
+  }
+
   int get classCount => this == SignLanguageModel.sibi ? 72 : 47;
+
   SignLanguageModelConfig get config => SignLanguageModelConfig.forModel(this);
 
   SignLanguageModelType get toModelType =>
       this == SignLanguageModel.sibi
           ? SignLanguageModelType.sibi
           : SignLanguageModelType.bisindo;
+}
+
+/// Central configuration for each sign language model (Single Source of Truth).
+class SignLanguageModelConfig {
+  final SignLanguageModel model;
+  final String modelName;
+  final String modelAsset;
+  final String labelAsset;
+  final String? configAsset;
+  final double defaultConfidenceThreshold;
+  final double minMargin;
+  final int windowSize;
+  final int minimumFrames;
+  final int inferenceStride;
+  final Duration throttleDuration;
+  final int expectedInputFeatures;
+  final int classCount;
+
+  const SignLanguageModelConfig({
+    required this.model,
+    required this.modelName,
+    required this.modelAsset,
+    required this.labelAsset,
+    this.configAsset,
+    required this.defaultConfidenceThreshold,
+    this.minMargin = 0.15,
+    required this.windowSize,
+    required this.minimumFrames,
+    this.inferenceStride = 2,
+    this.throttleDuration = const Duration(milliseconds: 180),
+    required this.expectedInputFeatures,
+    required this.classCount,
+  });
+
+  /// SIBI Model: MotionGRU model (48 frames x 706 features: 353 base + 353 motion)
+  /// Output: 72 classes (alphabet + vocabulary).
+  static const SignLanguageModelConfig sibi = SignLanguageModelConfig(
+    model: SignLanguageModel.sibi,
+    modelName: 'SIBI',
+    modelAsset: 'assets/models/sibi/sibi_motion_gru_float16.tflite',
+    labelAsset: 'assets/models/sibi/labels.txt',
+    configAsset: 'assets/models/sibi/model_metadata.json',
+    defaultConfidenceThreshold: 0.70,
+    minMargin: 0.08,
+    windowSize: 48,
+    minimumFrames: 24,
+    inferenceStride: 2,
+    throttleDuration: Duration(milliseconds: 180),
+    expectedInputFeatures: 706,
+    classCount: 72,
+  );
+
+  /// BISINDO Model: MotionGRU model (48 frames x 706 features: 353 base + 353 motion)
+  /// Output: 47 classes vocabulary.
+  static const SignLanguageModelConfig bisindo = SignLanguageModelConfig(
+    model: SignLanguageModel.bisindo,
+    modelName: 'BISINDO',
+    modelAsset: 'assets/models/bisindo/bisindo_motion_gru_float16.tflite',
+    labelAsset: 'assets/models/bisindo/labels.txt',
+    configAsset: 'assets/models/bisindo/model_metadata.json',
+    defaultConfidenceThreshold: 0.70,
+    minMargin: 0.15,
+    windowSize: 48,
+    minimumFrames: 24,
+    inferenceStride: 2,
+    throttleDuration: Duration(milliseconds: 180),
+    expectedInputFeatures: 706,
+    classCount: 47,
+  );
+
+  static SignLanguageModelConfig forModel(SignLanguageModel model) {
+    switch (model) {
+      case SignLanguageModel.sibi:
+        return sibi;
+      case SignLanguageModel.bisindo:
+        return bisindo;
+    }
+  }
+
+  @override
+  String toString() =>
+      'SignLanguageModelConfig(model: ${model.displayName}, asset: $modelAsset, window: $windowSize, minFrames: $minimumFrames)';
+}
+
+extension SignLanguageModelExt on SignLanguageModel {
+  // Maintained for backward compatibility
 }

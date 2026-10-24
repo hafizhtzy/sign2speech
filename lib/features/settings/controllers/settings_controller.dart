@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -6,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../sign_language/services/bisindo_tts_service.dart';
+import '../services/firestore_settings_service.dart';
 
 class SettingsController extends GetxController with WidgetsBindingObserver {
   static const String _keyRole = 'user_selected_role';
@@ -17,6 +19,8 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
   static const String _keyOnboarded = 'has_completed_onboarding';
   static const String _keyThemeMode = 'user_selected_theme_mode';
 
+  final FirestoreSettingsService? _firestoreSettingsService;
+
   final RxString selectedRole = 'Teman Tuli'.obs;
   final RxString selectedSignLanguage = 'BISINDO'.obs;
   final RxString selectedAppLanguage = 'id'.obs;
@@ -24,6 +28,12 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
   final RxDouble videoSpeed = 1.0.obs;
   final RxBool hasCompletedOnboarding = false.obs;
   final Rx<ThemeMode> themeMode = ThemeMode.system.obs;
+
+  SettingsController({FirestoreSettingsService? firestoreSettingsService})
+      : _firestoreSettingsService = firestoreSettingsService ??
+            (Get.isRegistered<FirestoreSettingsService>()
+                ? Get.find<FirestoreSettingsService>()
+                : null);
 
   bool get isDarkMode {
     if (themeMode.value == ThemeMode.dark) return true;
@@ -140,6 +150,7 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
       if (mode == ThemeMode.dark) modeStr = 'dark';
       await prefs.setString(_keyThemeMode, modeStr);
     } catch (_) {}
+    _syncToCloud();
   }
 
   Future<void> testTtsVoice() async {
@@ -198,18 +209,21 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
       await prefs.setString(_keyAppLang, langCode);
       await prefs.setString(_keyAppLangLegacy, langCode);
     } catch (_) {}
+    _syncToCloud();
   }
 
   Future<void> setRole(String role) async {
     selectedRole.value = role;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyRole, role);
+    _syncToCloud();
   }
 
   Future<void> setSignLanguage(String lang) async {
     selectedSignLanguage.value = lang;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keySignLang, lang);
+    _syncToCloud();
   }
 
   Future<void> setTtsSpeed(double speed) async {
@@ -219,17 +233,34 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
     if (Get.isRegistered<BisindoTtsService>()) {
       await Get.find<BisindoTtsService>().setSpeechRate(speed);
     }
+    _syncToCloud();
   }
 
   Future<void> setVideoSpeed(double speed) async {
     videoSpeed.value = speed;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble(_keyVideoSpeed, speed);
+    _syncToCloud();
   }
 
   Future<void> completeOnboarding() async {
     hasCompletedOnboarding.value = true;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keyOnboarded, true);
+    _syncToCloud();
+  }
+
+  void _syncToCloud() {
+    if (_firestoreSettingsService == null) return;
+    final payload = {
+      'role': selectedRole.value,
+      'signLanguage': selectedSignLanguage.value,
+      'appLanguage': selectedAppLanguage.value,
+      'themeMode': themeMode.value.name,
+      'ttsSpeed': ttsSpeed.value,
+      'videoSpeed': videoSpeed.value,
+      'hasCompletedOnboarding': hasCompletedOnboarding.value,
+    };
+    unawaited(_firestoreSettingsService.saveSettings('default_user', payload));
   }
 }

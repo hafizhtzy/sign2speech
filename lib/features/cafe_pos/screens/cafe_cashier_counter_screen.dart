@@ -7,19 +7,23 @@ import 'package:speech2sign/core/theme/app_colors.dart';
 import 'package:speech2sign/core/theme/app_typography.dart';
 import 'package:speech2sign/core/utils/currency_formatter.dart';
 import 'package:speech2sign/core/widgets/responsive_layout.dart';
+import 'package:speech2sign/features/sign_language/models/sign_language_model.dart';
 
 import '../controllers/cafe_cashier_controller.dart';
 import '../domain/models/coffee_menu_item.dart';
 import '../domain/models/order_enums.dart';
 import '../widgets/auto_order_slot_tray.dart';
 import '../widgets/cafe_mini_camera_viewport.dart';
+import '../widgets/cafe_order_stage_stepper.dart';
 import '../widgets/cafe_order_ticket_card.dart';
+import '../widgets/cafe_staff_pin_dialog.dart';
 import '../widgets/cashier_quick_deck.dart';
 import '../widgets/coffee_recommendation_card.dart';
 import '../widgets/cup_name_spelling_card.dart';
 import '../widgets/dual_mode_queue_pager.dart';
 import '../widgets/order_ready_banner.dart';
 import '../widgets/waiting_sign_challenge_card.dart';
+
 
 class CafeCashierCounterScreen extends StatefulWidget {
   const CafeCashierCounterScreen({super.key});
@@ -172,20 +176,27 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
     AppTranslations.ensureLoaded();
     final isLargeScreen = context.isLargeScreen;
 
-    return Scaffold(
-      backgroundColor: AppColors.canvas,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          color: AppColors.primary,
-          tooltip: AppStrings.cafeBackTooltip.tr,
-          onPressed: () => Get.back(),
-        ),
-        title: Obx(() {
-          final ticket = controller.currentTicket.value;
-          return Column(
+    return Obx(() {
+      final stage = controller.currentStage.value;
+      final mode = controller.deviceMode.value;
+      final isDual = mode == CounterDeviceMode.dualTabletLocked;
+      final isIdle = stage == CafeOrderStage.idle;
+      final double bottomHeight = isDual ? (isIdle ? 0.0 : 56.0) : (isIdle ? 56.0 : 112.0);
+      final ticket = controller.currentTicket.value;
+      final isCashier = controller.isCashierView.value;
+
+      return Scaffold(
+        backgroundColor: AppColors.canvas,
+        appBar: AppBar(
+          backgroundColor: AppColors.surface,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded),
+            color: AppColors.primary,
+            tooltip: AppStrings.cafeBackTooltip.tr,
+            onPressed: () => Get.back(),
+          ),
+          title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -196,6 +207,7 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
                 style: AppTypography.titleMedium.copyWith(
                   color: AppColors.ink,
                   fontWeight: FontWeight.bold,
+                  fontSize: 15,
                 ),
               ),
               Text(
@@ -203,79 +215,241 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
                 style: AppTypography.labelSmall.copyWith(
                   color: AppColors.secondary,
                   fontWeight: FontWeight.w700,
+                  fontSize: 11,
                 ),
               ),
             ],
-          );
-        }),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            color: AppColors.muted,
-            tooltip: AppStrings.cafeClearTicketTooltip.tr,
-            onPressed: () {
-              controller.clearTicket();
-              _textEditController.clear();
-            },
           ),
-          const SizedBox(width: 4),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(56),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              border: Border(
-                bottom: BorderSide(color: AppColors.border, width: 1),
+          actions: [
+            // Dairy allergy auto-switch icon badge
+            if (controller.dairyAllergyAutoSwitched.value)
+              Tooltip(
+                message: 'Susu diganti ke Oat Milk (alergi terdeteksi)',
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 2),
+                  child: Icon(
+                    Icons.swap_horiz_rounded,
+                    size: 18,
+                    color: AppColors.amber,
+                  ),
+                ),
               ),
-            ),
-            child: Obx(() {
-              final isCashier = controller.isCashierView.value;
+            // Compact Sign Language Model Badge
+            Builder(builder: (context) {
+              final activeModel = controller.activeSignModel;
+              final isSibi = activeModel == SignLanguageModel.sibi;
               return Container(
-                height: 40,
+                margin: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
                   color: AppColors.paleMist,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: AppColors.border),
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _buildSegmentButton(
-                        label: AppStrings.cafeDualViewCashier.tr,
-                        icon: Icons.point_of_sale_rounded,
-                        isSelected: isCashier,
-                        onTap: () => controller.isCashierView.value = true,
-                      ),
+                child: InkWell(
+                  onTap: () {
+                    final nextModel = isSibi
+                        ? SignLanguageModel.bisindo
+                        : SignLanguageModel.sibi;
+                    controller.switchSignLanguageModel(nextModel);
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.sign_language_rounded,
+                          size: 13,
+                          color: AppColors.secondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          activeModel.displayName,
+                          style: AppTypography.labelSmall.copyWith(
+                            color: AppColors.ink,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        ),
+                        const SizedBox(width: 2),
+                        Icon(
+                          Icons.swap_horiz_rounded,
+                          size: 12,
+                          color: AppColors.muted,
+                        ),
+                      ],
                     ),
-                    Expanded(
-                      child: _buildSegmentButton(
-                        label: AppStrings.cafeDualViewCustomer.tr,
-                        icon: Icons.person_pin_rounded,
-                        isSelected: !isCashier,
-                        onTap: () => controller.isCashierView.value = false,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               );
             }),
-          ),
+            // Staff PIN lock/unlock button
+            IconButton(
+              constraints: const BoxConstraints(minWidth: 38, minHeight: 38),
+              padding: EdgeInsets.zero,
+              icon: Icon(
+                controller.staffPinAuthenticated.value
+                    ? Icons.lock_open_rounded
+                    : Icons.lock_rounded,
+                size: 18,
+              ),
+              color: controller.staffPinAuthenticated.value
+                  ? AppColors.matcha
+                  : AppColors.muted,
+              tooltip: controller.staffPinAuthenticated.value
+                  ? 'Keluar Staff'
+                  : 'Masuk PIN Staff',
+              onPressed: () async {
+                if (controller.staffPinAuthenticated.value) {
+                  controller.logoutStaff();
+                } else {
+                  await CafeStaffPinDialog.show(
+                    context,
+                    onVerify: controller.verifyStaffPin,
+                    title: 'PIN Staf Kasir',
+                    subtitle: 'Masukkan PIN untuk melanjutkan',
+                  );
+                }
+              },
+            ),
+            IconButton(
+              constraints: const BoxConstraints(minWidth: 38, minHeight: 38),
+              padding: EdgeInsets.zero,
+              icon: const Icon(Icons.refresh_rounded, size: 20),
+              color: AppColors.muted,
+              tooltip: AppStrings.cafeClearTicketTooltip.tr,
+              onPressed: () {
+                controller.resetToIdle();
+                _textEditController.clear();
+              },
+            ),
+            const SizedBox(width: 4),
+          ],
+          bottom: bottomHeight > 0
+              ? PreferredSize(
+                  preferredSize: Size.fromHeight(bottomHeight),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // V2: 3-Stage Stepper (shown when not idle)
+                      if (!isIdle)
+                        CafeOrderStageStepper(
+                          currentStage: stage,
+                        ),
+                      // Cashier / Customer tab toggle (only in singleTabletSwitch mode)
+                      if (!isDual)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            border: Border(
+                              bottom:
+                                  BorderSide(color: AppColors.border, width: 1),
+                            ),
+                          ),
+                          child: Container(
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: AppColors.paleMist,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: _buildSegmentButton(
+                                    label: AppStrings.cafeDualViewCashier.tr,
+                                    icon: Icons.point_of_sale_rounded,
+                                    isSelected: isCashier,
+                                    onTap: () => controller.isCashierView.value = true,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: _buildSegmentButton(
+                                    label: AppStrings.cafeDualViewCustomer.tr,
+                                    icon: Icons.person_pin_rounded,
+                                    isSelected: !isCashier,
+                                    onTap: () =>
+                                        controller.isCashierView.value = false,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                )
+              : null,
         ),
-      ),
+
       body: SafeArea(
         child: Stack(
           children: [
-            SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
-              child: ResponsiveContentWrapper(
-                maxWidth: ResponsiveBreakpoints.maxDashboardWidth,
-                child: isLargeScreen
-                    ? _buildTabletLandscapeLayout()
-                    : _buildMobilePortraitLayout(),
-              ),
+            // V2: Stage-aware body content
+            Obx(() {
+              final stage = controller.currentStage.value;
+              if (stage == CafeOrderStage.idle) {
+                return _buildIdleLandingView();
+              }
+              return SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                child: ResponsiveContentWrapper(
+                  maxWidth: ResponsiveBreakpoints.maxDashboardWidth,
+                  child: isLargeScreen
+                      ? _buildTabletLandscapeLayout(stage)
+                      : _buildStageAwareMobileLayout(stage),
+                ),
+              );
+            }),
+
+            // V2: Dairy allergy auto-switch banner
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Obx(() {
+                final msg = controller.dairyAllergyBannerMessage.value;
+                if (msg.isEmpty) return const SizedBox.shrink();
+                return AnimatedSlide(
+                  offset: msg.isEmpty ? const Offset(0, -1) : Offset.zero,
+                  duration: const Duration(milliseconds: 300),
+                  child: Material(
+                    elevation: 4,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
+                      color: AppColors.amber.withValues(alpha: 0.95),
+                      child: Row(
+                        children: [
+                          Icon(Icons.swap_horiz_rounded,
+                              color: AppColors.surface, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              msg,
+                              style: AppTypography.labelSmall.copyWith(
+                                color: AppColors.surface,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () => controller
+                                .dairyAllergyBannerMessage.value = '',
+                            child: Icon(Icons.close_rounded,
+                                color: AppColors.surface, size: 18),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
             ),
 
             // High-Contrast Visual Call Modal for Deaf Customer
@@ -402,10 +576,207 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
                 );
               }),
             ),
+
+            // V2: Floating Action — Next Stage button
+            Positioned(
+              bottom: 16,
+              right: 16,
+              child: Obx(() {
+                final stage = controller.currentStage.value;
+                if (stage == CafeOrderStage.idle) return const SizedBox.shrink();
+                // Only cashier view has controls to advance stage
+                if (!controller.isCashierView.value) return const SizedBox.shrink();
+                // When actively spelling customer name, hide FAB so it doesn't overlap keys
+                if (controller.isSpellingCustomerName.value) return const SizedBox.shrink();
+                final (label, icon) = switch (stage) {
+                  CafeOrderStage.ordering => (
+                      'Lanjut: Nama & Bayar',
+                      Icons.arrow_forward_rounded
+                    ),
+                  CafeOrderStage.naming => (
+                      'Lanjut: Ambil Kopi',
+                      Icons.coffee_rounded
+                    ),
+                  CafeOrderStage.pickup => (
+                      'Selesai & Order Baru',
+                      Icons.check_rounded
+                    ),
+                  CafeOrderStage.idle => ('', Icons.add),
+                };
+                if (label.isEmpty) return const SizedBox.shrink();
+                return FloatingActionButton.extended(
+                  heroTag: 'cafe_stage_advance',
+                  onPressed: controller.advanceStage,
+                  backgroundColor: AppColors.secondary,
+                  foregroundColor: AppColors.surface,
+                  icon: Icon(icon, size: 18),
+                  label: Text(
+                    label,
+                    style: AppTypography.labelMedium.copyWith(
+                      color: AppColors.surface,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                );
+              }),
+            ),
           ],
         ),
       ),
     );
+    });
+  }
+
+  // ── V2: IDLE LANDING VIEW ──────────────────────────────────────────────────
+  Widget _buildIdleLandingView() {
+    return Center(
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.all(32),
+        child: ResponsiveContentWrapper(
+          maxWidth: 520,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppColors.secondary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.coffee_rounded,
+                  size: 56,
+                  color: AppColors.secondary,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Meja Kasir & Barista AI',
+                style: AppTypography.headlineMedium.copyWith(
+                  color: AppColors.ink,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Gunakan kamera bahasa isyarat atau mikrofon untuk menerima pesanan.',
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.muted,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton.icon(
+                  onPressed: () =>
+                      controller.goToStage(CafeOrderStage.ordering),
+                  icon: const Icon(Icons.play_arrow_rounded, size: 22),
+                  label: Text(
+                    'Mulai Terima Pesanan',
+                    style: AppTypography.titleSmall.copyWith(
+                      color: AppColors.surface,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.secondary,
+                    foregroundColor: AppColors.surface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 2,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Obx(() => Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.bgSurface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.devices_rounded,
+                            size: 16, color: AppColors.muted),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            '${controller.deviceMode.value.labelId} • Counter #${controller.counterId.value}',
+                            style: AppTypography.labelSmall.copyWith(
+                              color: AppColors.muted,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── V2: STAGE-AWARE MOBILE LAYOUT ─────────────────────────────────────────
+  Widget _buildStageAwareMobileLayout(CafeOrderStage stage) {
+    return Obx(() {
+      final isCashier = controller.isCashierView.value;
+      switch (stage) {
+        case CafeOrderStage.ordering:
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (isCashier) ...[
+                _buildCashierOrderingStage(),
+                const SizedBox(height: 16),
+                _buildOrderTicketWidget(showPayment: false),
+              ] else ...[
+                _buildCustomerOrderingStage(),
+              ],
+            ],
+          );
+
+        case CafeOrderStage.naming:
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (isCashier) ...[
+                _buildCashierNamingStage(),
+                const SizedBox(height: 16),
+                _buildOrderTicketWidget(showPayment: true),
+              ] else ...[
+                _buildCustomerNamingStage(),
+              ],
+            ],
+          );
+
+        case CafeOrderStage.pickup:
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (isCashier) ...[
+                _buildCashierPickupStage(),
+                const SizedBox(height: 16),
+                _buildOrderTicketWidget(showPayment: true),
+              ] else ...[
+                _buildCustomerPickupStage(),
+              ],
+            ],
+          );
+
+        case CafeOrderStage.idle:
+          return const SizedBox.shrink();
+      }
+    });
   }
 
   Widget _buildSegmentButton({
@@ -457,76 +828,103 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
             ),
           ],
         ),
+
       ),
     );
   }
 
-  /// Mobile portrait 1-column layout
-  Widget _buildMobilePortraitLayout() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Voice STT & Live Order Input Bar
-        _buildTranscriptInputBar(),
-
-        const SizedBox(height: 16),
-
-        // Main Content: Cashier View or Customer View
-        Obx(() {
-          final isCashier = controller.isCashierView.value;
-          return isCashier ? _buildCashierSide() : _buildCustomerSide();
-        }),
-
-        const SizedBox(height: 24),
-
-        // Active Order Ticket
-        _buildOrderTicketWidget(),
-      ],
-    );
-  }
-
   /// Tablet / Landscape 2-column side-by-side POS layout
-  Widget _buildTabletLandscapeLayout() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Left Column (Controls & Decks)
-        Expanded(
-          flex: 11,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+  Widget _buildTabletLandscapeLayout(CafeOrderStage stage) {
+    return Obx(() {
+      final isCashier = controller.isCashierView.value;
+      switch (stage) {
+        case CafeOrderStage.ordering:
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildTranscriptInputBar(),
-              const SizedBox(height: 16),
-              Obx(() {
-                final isCashier = controller.isCashierView.value;
-                return isCashier ? _buildCashierSide() : _buildCustomerSide();
-              }),
+              // Left Column (Controls & Decks)
+              Expanded(
+                flex: 11,
+                child: isCashier
+                    ? _buildCashierOrderingStage()
+                    : _buildCustomerOrderingStage(),
+              ),
+              const SizedBox(width: 20),
+              // Right Column (Order Ticket / Bill)
+              Expanded(
+                flex: 9,
+                child: isCashier
+                    ? _buildOrderTicketWidget(showPayment: false)
+                    : _buildCustomerBillDisplay(),
+              ),
             ],
-          ),
-        ),
+          );
 
-        const SizedBox(width: 20),
-
-        // Right Column (Sticky Active Order Ticket)
-        Expanded(
-          flex: 9,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+        case CafeOrderStage.naming:
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildOrderTicketWidget(),
+              // Left Column
+              Expanded(
+                flex: 11,
+                child: isCashier
+                    ? _buildCashierNamingStage()
+                    : SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        child: Column(
+                          children: [
+                            _buildCustomerCupNamingDisplay(),
+                            const SizedBox(height: 14),
+                            _buildCustomerPaymentCard(),
+                          ],
+                        ),
+                      ),
+              ),
+              const SizedBox(width: 20),
+              // Right Column
+              Expanded(
+                flex: 9,
+                child: isCashier
+                    ? _buildOrderTicketWidget(showPayment: true)
+                    : _buildCustomerBillDisplay(),
+              ),
             ],
-          ),
-        ),
-      ],
-    );
+          );
+
+        case CafeOrderStage.pickup:
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Left Column
+              Expanded(
+                flex: 11,
+                child: isCashier
+                    ? _buildCashierPickupStage()
+                    : _buildCustomerPickupWaitingBanner(),
+              ),
+              const SizedBox(width: 20),
+              // Right Column
+              Expanded(
+                flex: 9,
+                child: isCashier
+                    ? _buildOrderTicketWidget(showPayment: true)
+                    : _buildWaitingSignChallengeWidget(),
+              ),
+            ],
+          );
+
+        case CafeOrderStage.idle:
+          return const SizedBox.shrink();
+      }
+    });
   }
 
-  Widget _buildOrderTicketWidget() {
+  Widget _buildOrderTicketWidget({bool showPayment = true}) {
     return Obx(() {
       final ticket = controller.currentTicket.value;
       return CafeOrderTicketCard(
         ticket: ticket,
+        showPayment: showPayment,
         onPaymentMethodChanged: controller.setPaymentMethod,
         onAddCash: controller.addCashNominal,
         onTranslateBill: controller.translateBillToSignAndSpeech,
@@ -645,6 +1043,7 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
                 onClose: controller.closeCamera,
                 onSwitchCamera: controller.switchCameraLens,
                 cameraService: controller.cameraFeedService,
+                modelBadge: controller.activeSignModel.displayName,
                 bottomBanner: Obx(() {
                   final text = controller.liveTranscript.value;
                   if (text.isEmpty) return const SizedBox.shrink();
@@ -869,211 +1268,514 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
     );
   }
 
-  // ── SISI KASIR ─────────────────────────────────────────────────────────────
-  Widget _buildCashierSide() {
+  // ── 6 MODULAR STAGE BUILDERS (V2 ARCHITECTURE) ─────────────────────────────
+
+  /// Stage 1: Kasir - Menerima Pesanan & Konfirmasi Slot
+  Widget _buildCashierOrderingStage() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Live Customer Feedback Notification Banner
+        _buildTranscriptInputBar(),
+        const SizedBox(height: 14),
         _buildCustomerReplyAlertBanner(),
-
-        // 1-Tap Cashier Quick Deck (Fitur 5)
-        CashierQuickDeck(
+        Obx(() => AutoOrderSlotTray(
+          slot: controller.activeParsedSlot.value,
+          onConfirm: controller.confirmParsedSlotToTicket,
+        )),
+        const SizedBox(height: 14),
+        Obx(() => CashierQuickDeck(
           activeIndex: controller.activeQuickDeckIndex.value,
           onExecute: controller.executeQuickDeck,
-        ),
-
-        const SizedBox(height: 16),
-
-        // Dual-Mode Queue Pager (Fitur 4)
-        DualModeQueuePager(
-          queueNumber: controller.currentTicket.value.queueNumber,
-          customerName: controller.currentTicket.value.customerName,
-          onCallHearing: controller.callHearingCustomer,
-          onCallDeaf: controller.callDeafCustomer,
-        ),
-
-        const SizedBox(height: 16),
-
-        // Fingerspelling Cup Name Card (Fitur 2)
-        CupNameSpellingCard(
-          isSpelling: controller.isSpellingCustomerName.value,
-          currentName: controller.currentTicket.value.customerName,
-          buffer: controller.customerCupNameBuffer.value,
-          remainingMs: controller.spellingRemainingMs.value,
-          onStartSpelling: controller.startCustomerNameSpelling,
-          onFinishSpelling: controller.finishCustomerNameSpelling,
-          onAddLetter: controller.addSpellingLetter,
-          onDeleteLetter: controller.deleteSpellingLetter,
-          onClearBuffer: controller.clearSpellingBuffer,
-          onCancelSpelling: controller.closeCamera,
-          onSwitchCamera: controller.switchCameraLens,
-          detectedLetter: controller.detectedSpellingLetter.value,
-          letterHoldProgress: controller.letterHoldProgress.value,
-          cameraService: controller.cameraFeedService,
-        ),
+        )),
       ],
     );
   }
 
-  // ── SISI PEMBELI ───────────────────────────────────────────────────────────
-  Widget _buildCustomerSide() {
+  /// Stage 1: Pembeli - Melihat Nota Live, Balasan Cepat, & Rekomendasi Menu
+  Widget _buildCustomerOrderingStage() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Dedicated Customer-Facing Live Bill & Status Card
         _buildCustomerBillDisplay(),
+        _buildCustomerQuickRepliesSection(),
+        _buildCoffeeRecommendationWidget(),
+      ],
+    );
+  }
 
-        // Interactive 2-Way Quick Deck Response Card (Fitur 5)
-        if (controller.activeCustomerQuickReplies.isNotEmpty) ...[
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.secondary, width: 1.5),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.secondary.withValues(alpha: 0.1),
-                  blurRadius: 14,
-                  offset: const Offset(0, 4),
+  /// Stage 2: Kasir - Mengeja Nama Cup (Fokus & Bebas Gangguan)
+  Widget _buildCashierNamingStage() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildCupNameSpellingCardWidget(),
+      ],
+    );
+  }
+
+  /// Stage 2: Pembeli - Tampilan Cup dengan Nama yang Dieja & Total Bayar & QRIS
+  Widget _buildCustomerNamingStage() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildCustomerCupNamingDisplay(),
+        const SizedBox(height: 14),
+        _buildCustomerBillDisplay(),
+        const SizedBox(height: 14),
+        _buildCustomerPaymentCard(),
+      ],
+    );
+  }
+
+  /// Stage 3: Kasir - Dual Mode Queue Pager & Serahkan Pesanan
+  Widget _buildCashierPickupStage() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildDualModeQueuePagerWidget(),
+        const SizedBox(height: 14),
+        _buildCashierOrderReadyActionCard(),
+      ],
+    );
+  }
+
+  /// Stage 3: Pembeli - Banner Menunggu Diracik & Tantangan Isyarat
+  Widget _buildCustomerPickupStage() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildCustomerPickupWaitingBanner(),
+        const SizedBox(height: 14),
+        _buildWaitingSignChallengeWidget(),
+      ],
+    );
+  }
+
+  // ── REUSABLE STAGE COMPONENTS ──────────────────────────────────────────────
+
+  Widget _buildCupNameSpellingCardWidget() {
+    return Obx(() => CupNameSpellingCard(
+      isSpelling: controller.isSpellingCustomerName.value,
+      currentName: controller.currentTicket.value.customerName,
+      buffer: controller.customerCupNameBuffer.value,
+      remainingMs: controller.spellingRemainingMs.value,
+      onStartSpelling: controller.startCustomerNameSpelling,
+      onFinishSpelling: controller.finishCustomerNameSpelling,
+      onAddLetter: controller.addSpellingLetter,
+      onDeleteLetter: controller.deleteSpellingLetter,
+      onClearBuffer: controller.clearSpellingBuffer,
+      onCancelSpelling: controller.closeCamera,
+      onSwitchCamera: controller.switchCameraLens,
+      detectedLetter: controller.detectedSpellingLetter.value,
+      letterHoldProgress: controller.letterHoldProgress.value,
+      cameraService: controller.cameraFeedService,
+      modelBadge: controller.activeSignModel.displayName,
+    ));
+  }
+
+  Widget _buildDualModeQueuePagerWidget() {
+    return Obx(() => DualModeQueuePager(
+      queueNumber: controller.currentTicket.value.queueNumber,
+      customerName: controller.currentTicket.value.customerName,
+      onCallHearing: controller.callHearingCustomer,
+      onCallDeaf: controller.callDeafCustomer,
+    ));
+  }
+
+  Widget _buildWaitingSignChallengeWidget() {
+    return Obx(() => WaitingSignChallengeCard(
+      signWord: controller.activeChallengeSign.value,
+      progress: controller.challengeProgress.value,
+      isCompleted: controller.isChallengeCompleted.value,
+      onProgressChanged: controller.updateChallengeProgress,
+      onNextWord: controller.cycleNextChallengeWord,
+      onStartCamera: () => controller
+          .openCameraFor(CafeCameraActiveFeature.waitingChallenge),
+      onCloseCamera: controller.closeCamera,
+      onSwitchCamera: controller.switchCameraLens,
+      isCameraActive: controller.activeCameraFeature.value ==
+          CafeCameraActiveFeature.waitingChallenge,
+      cameraService: controller.cameraFeedService,
+      modelBadge: controller.activeSignModel.displayName,
+    ));
+  }
+
+  Widget _buildCoffeeRecommendationWidget() {
+    return Obx(() => CoffeeRecommendationCard(
+      recommendation: controller.activeRecommendation.value,
+      selectedTag: controller.selectedSommelierTag.value,
+      onTagSelected: controller.filterSommelierByTag,
+      onAddDirectly: controller.addRecommendedItemToTicket,
+      onSelect: () {
+        final rec = controller.activeRecommendation.value;
+        if (rec != null) {
+          Get.toNamed(
+            AppRoutes.coffeeDetail,
+            arguments: rec.item,
+          );
+        }
+      },
+    ));
+  }
+
+  Widget _buildCustomerQuickRepliesSection() {
+    return Obx(() {
+      if (controller.activeCustomerQuickReplies.isEmpty) {
+        return const SizedBox.shrink();
+      }
+      return Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.secondary, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.secondary.withValues(alpha: 0.1),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.question_answer_outlined,
+                    size: 20, color: AppColors.secondary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Pertanyaan dari Barista:',
+                    style: AppTypography.titleSmall.copyWith(
+                      color: AppColors.ink,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+            const SizedBox(height: 6),
+            Text(
+              controller.activeQuickDeckIndex.value >= 0 &&
+                      controller.activeQuickDeckIndex.value <
+                          CafeCashierController.quickDeckTextsId.length
+                  ? CafeCashierController.quickDeckTextsId[
+                      controller.activeQuickDeckIndex.value]
+                  : '',
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.secondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: controller.activeCustomerQuickReplies.map((reply) {
+                final isSelected =
+                    controller.lastCustomerReply.value == reply;
+                return ChoiceChip(
+                  selected: isSelected,
+                  label: Text(reply),
+                  labelStyle: AppTypography.labelMedium.copyWith(
+                    color:
+                        isSelected ? AppColors.surface : AppColors.primary,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.w600,
+                  ),
+                  selectedColor: AppColors.secondary,
+                  backgroundColor: AppColors.paleMist,
+                  onSelected: (_) =>
+                      controller.onCustomerSelectReply(reply),
+                );
+              }).toList(),
+            ),
+            Obx(() {
+              final feedback = controller.lastCustomerActionFeedback.value;
+              if (feedback.isEmpty) return const SizedBox.shrink();
+              return Container(
+                margin: const EdgeInsets.only(top: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.matcha.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.matcha, width: 1.2),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.question_answer_outlined,
-                        size: 20, color: AppColors.secondary),
-                    const SizedBox(width: 8),
-                    Expanded(
+                    Icon(Icons.check_circle_rounded, color: AppColors.matcha, size: 16),
+                    const SizedBox(width: 6),
+                    Flexible(
                       child: Text(
-                        'Pertanyaan dari Barista:',
-                        style: AppTypography.titleSmall.copyWith(
-                          color: AppColors.ink,
+                        feedback,
+                        style: AppTypography.labelSmall.copyWith(
+                          color: AppColors.matcha,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  controller.activeQuickDeckIndex.value >= 0 &&
-                          controller.activeQuickDeckIndex.value <
-                              CafeCashierController.quickDeckTextsId.length
-                      ? CafeCashierController.quickDeckTextsId[
-                          controller.activeQuickDeckIndex.value]
-                      : '',
-                  style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.secondary,
-                    fontWeight: FontWeight.w600,
+              );
+            }),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildCustomerCupNamingDisplay() {
+    return Obx(() {
+      final name = controller.currentTicket.value.customerName;
+      final buffer = controller.customerCupNameBuffer.value;
+      final displayName = name.isNotEmpty ? name : (buffer.isNotEmpty ? buffer : '');
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.secondary, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.secondary.withValues(alpha: 0.08),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.paleMist,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.coffee_rounded,
+                size: 48,
+                color: AppColors.secondary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              displayName.isNotEmpty
+                  ? 'Halo, Kak $displayName!'
+                  : 'Nama di Gelas Kopi Kamu',
+              textAlign: TextAlign.center,
+              style: AppTypography.titleMedium.copyWith(
+                color: AppColors.ink,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              displayName.isNotEmpty
+                  ? 'Nama ini akan ditulis barista di cup kopimu ☕'
+                  : 'Barista sedang menulis namamu di gelas kopi...',
+              textAlign: TextAlign.center,
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.muted,
+              ),
+            ),
+            if (buffer.isNotEmpty && name.isEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.bgSurface,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Mengeja: $buffer',
+                      style: AppTypography.labelMedium.copyWith(
+                        color: AppColors.secondary,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildCustomerPickupWaitingBanner() {
+    return Obx(() {
+      final ticket = controller.currentTicket.value;
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.amber, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.amber.withValues(alpha: 0.1),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.amber.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.hourglass_top_rounded,
+                      color: AppColors.amber, size: 28),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Pesanan Sedang Dibuat Barista ☕',
+                        style: AppTypography.titleSmall.copyWith(
+                          color: AppColors.ink,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'Antrean #${ticket.queueNumber} • ${ticket.customerName.isNotEmpty ? ticket.customerName : "Pelanggan"}',
+                        style: AppTypography.bodySmall.copyWith(
+                          color: AppColors.secondary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 6,
-                  children: controller.activeCustomerQuickReplies.map((reply) {
-                    final isSelected =
-                        controller.lastCustomerReply.value == reply;
-                    return ChoiceChip(
-                      selected: isSelected,
-                      label: Text(reply),
-                      labelStyle: AppTypography.labelMedium.copyWith(
-                        color:
-                            isSelected ? AppColors.surface : AppColors.primary,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.w600,
-                      ),
-                      selectedColor: AppColors.secondary,
-                      backgroundColor: AppColors.paleMist,
-                      onSelected: (_) =>
-                          controller.onCustomerSelectReply(reply),
-                    );
-                  }).toList(),
-                ),
-                Obx(() {
-                  final feedback = controller.lastCustomerActionFeedback.value;
-                  if (feedback.isEmpty) return const SizedBox.shrink();
-                  return Container(
-                    margin: const EdgeInsets.only(top: 10),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.matcha.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.matcha, width: 1.2),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.check_circle_rounded, color: AppColors.matcha, size: 16),
-                        const SizedBox(width: 6),
-                        Flexible(
-                          child: Text(
-                            feedback,
-                            style: AppTypography.labelSmall.copyWith(
-                              color: AppColors.matcha,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
               ],
             ),
-          ),
-          const SizedBox(height: 16),
-        ],
-
-        // Auto-Order Slot Tray (Fitur 1 & 6)
-        AutoOrderSlotTray(
-          slot: controller.activeParsedSlot.value,
-          onConfirm: controller.confirmParsedSlotToTicket,
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.bgSurface,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'Sambil menunggu pesananmu selesai, yuk coba tantangan bahasa isyarat di bawah untuk mengumpulkan stempel Sahabat Tuli! 🏆',
+                textAlign: TextAlign.center,
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.muted,
+                ),
+              ),
+            ),
+          ],
         ),
+      );
+    });
+  }
 
-        const SizedBox(height: 16),
-
-        // AI Barista Sommelier (Fitur 3)
-        CoffeeRecommendationCard(
-          recommendation: controller.activeRecommendation.value,
-          selectedTag: controller.selectedSommelierTag.value,
-          onTagSelected: controller.filterSommelierByTag,
-          onAddDirectly: controller.addRecommendedItemToTicket,
-          onSelect: () {
-            final rec = controller.activeRecommendation.value;
-            if (rec != null) {
-              Get.toNamed(
-                AppRoutes.coffeeDetail,
-                arguments: rec.item,
-              );
-            }
-          },
+  Widget _buildCashierOrderReadyActionCard() {
+    return Obx(() {
+      final ticket = controller.currentTicket.value;
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.matcha, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.matcha.withValues(alpha: 0.08),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-
-        const SizedBox(height: 16),
-
-        // Waiting Sign Challenge (Fitur 8)
-        WaitingSignChallengeCard(
-          signWord: controller.activeChallengeSign.value,
-          progress: controller.challengeProgress.value,
-          isCompleted: controller.isChallengeCompleted.value,
-          onProgressChanged: controller.updateChallengeProgress,
-          onNextWord: controller.cycleNextChallengeWord,
-          onStartCamera: () => controller
-              .openCameraFor(CafeCameraActiveFeature.waitingChallenge),
-          onCloseCamera: controller.closeCamera,
-          onSwitchCamera: controller.switchCameraLens,
-          isCameraActive: controller.activeCameraFeature.value ==
-              CafeCameraActiveFeature.waitingChallenge,
-          cameraService: controller.cameraFeedService,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.matcha.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.check_circle_rounded,
+                      color: AppColors.matcha, size: 22),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Pesanan Siap Diserahkan',
+                        style: AppTypography.titleSmall.copyWith(
+                          color: AppColors.ink,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'Antrean ${ticket.queueNumber} • ${ticket.customerName.isNotEmpty ? ticket.customerName : "Pelanggan"}',
+                        style: AppTypography.bodySmall.copyWith(
+                          color: AppColors.muted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton.icon(
+                onPressed: () => controller.advanceStage(),
+                icon: const Icon(Icons.done_all_rounded, size: 20),
+                label: Text(
+                  'Pesanan Telah Diambil (Selesai)',
+                  style: AppTypography.titleSmall.copyWith(
+                    color: AppColors.surface,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.matcha,
+                  foregroundColor: AppColors.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 1,
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
-    );
+      );
+    });
   }
 
   Widget _buildCustomerReplyAlertBanner() {
@@ -1360,6 +2062,206 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
                 ),
               ],
             ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildCustomerPaymentCard() {
+    return Obx(() {
+      final ticket = controller.currentTicket.value;
+      final isPaid = ticket.status == OrderStatus.completed;
+      final isQris = ticket.paymentMethod == OrderPaymentMethod.qris;
+      final isProcessing = controller.isQrisProcessing.value;
+
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isPaid ? AppColors.matcha : AppColors.secondary,
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: (isPaid ? AppColors.matcha : AppColors.secondary)
+                  .withValues(alpha: 0.08),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            if (isPaid) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.matcha.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.check_circle_rounded,
+                    color: AppColors.matcha, size: 36),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Pembayaran Berhasil! (LUNAS)',
+                style: AppTypography.titleMedium.copyWith(
+                  color: AppColors.matcha,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Terima kasih! Barista segera meracik pesanan kopimu ☕',
+                textAlign: TextAlign.center,
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.muted,
+                ),
+              ),
+            ] else if (isQris) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      'QRIS',
+                      style: AppTypography.labelSmall.copyWith(
+                        color: AppColors.surface,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Pindai QRIS untuk Membayar',
+                    style: AppTypography.titleSmall.copyWith(
+                      color: AppColors.ink,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              // QR Code Graphic container
+              Container(
+                width: 170,
+                height: 170,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.border, width: 1.2),
+                ),
+                child: CustomPaint(
+                  painter: QrisMatrixPainter(seed: ticket.orderId),
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.coffee_rounded,
+                        size: 22,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Nominal: ${formatRupiah(ticket.grandTotal)}',
+                style: AppTypography.titleMedium.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Buka aplikasi BCA, GoPay, OVO, ShopeePay, atau m-Banking kamu',
+                textAlign: TextAlign.center,
+                style: AppTypography.labelSmall.copyWith(
+                  color: AppColors.muted,
+                ),
+              ),
+              const SizedBox(height: 14),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed:
+                      isProcessing ? null : controller.processQrisPayment,
+                  icon: isProcessing
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.verified_rounded, size: 20),
+                  label: Text(
+                    isProcessing
+                        ? 'Memproses Verifikasi...'
+                        : 'Simulasi Bayar QRIS (Pelanggan)',
+                    style: AppTypography.labelMedium.copyWith(
+                      color: AppColors.surface,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.matcha,
+                    foregroundColor: AppColors.surface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+            ] else ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.payments_outlined,
+                      color: AppColors.secondary, size: 28),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Metode Tunai Dipilih',
+                    style: AppTypography.titleSmall.copyWith(
+                      color: AppColors.ink,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Silakan serahkan uang tunai sebesar ${formatRupiah(ticket.grandTotal)} ke kasir',
+                textAlign: TextAlign.center,
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.muted,
+                ),
+              ),
+            ],
           ],
         ),
       );
