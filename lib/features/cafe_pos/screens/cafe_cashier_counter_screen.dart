@@ -16,6 +16,7 @@ import '../widgets/auto_order_slot_tray.dart';
 import '../widgets/cafe_mini_camera_viewport.dart';
 import '../widgets/cafe_order_stage_stepper.dart';
 import '../widgets/cafe_order_ticket_card.dart';
+import '../widgets/cafe_menu_catalog_sheet.dart';
 import '../widgets/cafe_staff_pin_dialog.dart';
 import '../widgets/cashier_quick_deck.dart';
 import '../widgets/coffee_recommendation_card.dart';
@@ -69,122 +70,11 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
   }
 
   void _showMenuCatalogSheet() {
-    showModalBottomSheet(
+    CafeMenuCatalogSheet.show(
       context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (ctx) {
-        return Container(
-          height: MediaQuery.of(ctx).size.height * 0.75,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.border,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Icon(Icons.menu_book_rounded,
-                      color: AppColors.secondary, size: 22),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Katalog Menu Kafe',
-                    style: AppTypography.titleMedium.copyWith(
-                      color: AppColors.ink,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Expanded(
-                child: ListView.separated(
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: CoffeeMenuItem.standardCatalog.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 10),
-                  itemBuilder: (_, index) {
-                    final item = CoffeeMenuItem.standardCatalog[index];
-                    return Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.bgSurface,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item.nameId,
-                                  style: AppTypography.titleSmall.copyWith(
-                                    color: AppColors.ink,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  item.descriptionId,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: AppTypography.labelSmall.copyWith(
-                                    color: AppColors.muted,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  formatRupiah(item.basePrice),
-                                  style: AppTypography.labelMedium.copyWith(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          SizedBox(
-                            height: 40,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                controller.addRecommendedItemToTicket(item);
-                                Navigator.pop(ctx);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                foregroundColor: AppColors.surface,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                              child: Text(AppStrings.cafeSelect.tr),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
+      catalog: CoffeeMenuItem.standardCatalog,
+      onSelectItem: (item) {
+        controller.addRecommendedItemToTicket(item);
       },
     );
   }
@@ -1209,78 +1099,281 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header with Live Status Badge
           Row(
             children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: AppColors.secondary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.sensors_rounded,
+                  size: 18,
+                  color: AppColors.secondary,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  AppStrings.cafeLiveOrderCameraTitle.tr,
+                  style: AppTypography.titleSmall.copyWith(
+                    color: AppColors.ink,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
               Obx(() {
                 final isListening = controller.isListening.value;
                 final isLiveCamera = controller.activeCameraFeature.value ==
                     CafeCameraActiveFeature.liveOrder;
-                return Icon(
-                  isLiveCamera
-                      ? Icons.videocam_rounded
-                      : (isListening ? Icons.mic : Icons.camera_alt_outlined),
-                  size: 20,
-                  color: isLiveCamera
-                      ? AppColors.matcha
-                      : (isListening ? AppColors.amber : AppColors.secondary),
-                );
+                if (isLiveCamera) {
+                  return Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.matcha.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.matcha, width: 1),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: AppColors.matcha,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          'Kamera Live',
+                          style: AppTypography.labelSmall.copyWith(
+                            color: AppColors.matcha,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                if (isListening) {
+                  return Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.amber.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.amber, width: 1),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: AppColors.amber,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          'Mic Aktif',
+                          style: AppTypography.labelSmall.copyWith(
+                            color: AppColors.amber,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
               }),
-              const SizedBox(width: 8),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // 3 Mode Action Tiles: Kamera Isyarat, Suara (Mic), & Katalog Menu
+          Row(
+            children: [
+              // 1. Kamera Isyarat Tile
               Expanded(
                 child: Obx(() {
-                  final isListening = controller.isListening.value;
                   final isLiveCamera = controller.activeCameraFeature.value ==
                       CafeCameraActiveFeature.liveOrder;
-                  return Text(
-                    isLiveCamera
-                        ? AppStrings.cafeCameraListeningGestures.tr
-                        : (isListening
-                            ? AppStrings.cafeListeningVoiceNow.tr
-                            : AppStrings.cafeLiveOrderCameraTitle.tr),
-                    style: AppTypography.labelSmall.copyWith(
-                      color: isLiveCamera
-                          ? AppColors.matcha
-                          : (isListening
-                              ? AppColors.amber
-                              : AppColors.secondary),
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
+                  return Material(
+                    color: isLiveCamera
+                        ? AppColors.matcha.withValues(alpha: 0.12)
+                        : AppColors.bgSurface,
+                    borderRadius: BorderRadius.circular(14),
+                    child: InkWell(
+                      onTap: () {
+                        if (isLiveCamera) {
+                          controller.closeCamera();
+                        } else {
+                          controller.openCameraFor(
+                            CafeCameraActiveFeature.liveOrder,
+                          );
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        height: 48,
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: isLiveCamera
+                                ? AppColors.matcha
+                                : AppColors.border,
+                            width: isLiveCamera ? 1.5 : 1.1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              isLiveCamera
+                                  ? Icons.videocam_rounded
+                                  : Icons.videocam_outlined,
+                              size: 19,
+                              color: isLiveCamera
+                                  ? AppColors.matcha
+                                  : AppColors.secondary,
+                            ),
+                            const SizedBox(width: 5),
+                            Flexible(
+                              child: Text(
+                                AppStrings.cafeModeSignCamera.tr,
+                                style: AppTypography.labelSmall.copyWith(
+                                  color: isLiveCamera
+                                      ? AppColors.matcha
+                                      : AppColors.ink,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   );
                 }),
               ),
-              // Toggle Live Order Camera Button
-              Obx(() {
-                final isLiveCamera = controller.activeCameraFeature.value ==
-                    CafeCameraActiveFeature.liveOrder;
-                return IconButton(
-                  icon: Icon(
-                    isLiveCamera
-                        ? Icons.videocam_off_outlined
-                        : Icons.videocam_outlined,
-                    size: 20,
+              const SizedBox(width: 8),
+
+              // 2. Suara (Mic) Tile
+              Expanded(
+                child: Obx(() {
+                  final isListening = controller.isListening.value;
+                  return Material(
+                    color: isListening
+                        ? AppColors.amber.withValues(alpha: 0.15)
+                        : AppColors.bgSurface,
+                    borderRadius: BorderRadius.circular(14),
+                    child: InkWell(
+                      onTap: controller.toggleListening,
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        height: 48,
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: isListening
+                                ? AppColors.amber
+                                : AppColors.border,
+                            width: isListening ? 1.5 : 1.1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              isListening
+                                  ? Icons.mic_rounded
+                                  : Icons.mic_none_rounded,
+                              size: 19,
+                              color: isListening
+                                  ? AppColors.amber
+                                  : AppColors.secondary,
+                            ),
+                            const SizedBox(width: 5),
+                            Flexible(
+                              child: Text(
+                                AppStrings.cafeModeVoiceStt.tr,
+                                style: AppTypography.labelSmall.copyWith(
+                                  color: isListening
+                                      ? AppColors.amber
+                                      : AppColors.ink,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(width: 8),
+
+              // 3. Modern Menu Catalog Tile
+              Expanded(
+                child: Material(
+                  color: AppColors.bgSurface,
+                  borderRadius: BorderRadius.circular(14),
+                  child: InkWell(
+                    onTap: _showMenuCatalogSheet,
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      height: 48,
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: AppColors.border,
+                          width: 1.1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.menu_book_rounded,
+                            size: 19,
+                            color: AppColors.secondary,
+                          ),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              AppStrings.cafeModeMenuCatalog.tr,
+                              style: AppTypography.labelSmall.copyWith(
+                                color: AppColors.ink,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  color: isLiveCamera ? AppColors.matcha : AppColors.secondary,
-                  tooltip: isLiveCamera
-                      ? AppStrings.cafeCloseLiveCamera.tr
-                      : AppStrings.cafeOpenLiveCamera.tr,
-                  onPressed: () {
-                    if (isLiveCamera) {
-                      controller.closeCamera();
-                    } else {
-                      controller.openCameraFor(
-                        CafeCameraActiveFeature.liveOrder,
-                      );
-                    }
-                  },
-                );
-              }),
-              // Catalog Drawer Button
-              IconButton(
-                icon: const Icon(Icons.menu_book_rounded, size: 20),
-                color: AppColors.secondary,
-                tooltip: AppStrings.cafeOpenMenuCatalog.tr,
-                onPressed: _showMenuCatalogSheet,
+                ),
               ),
             ],
           ),
@@ -1515,160 +1608,134 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
             );
           }),
 
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              // Live Camera Toggle Quick Button (Touch Target >= 48x48)
-              Obx(() {
-                final isLiveCamera = controller.activeCameraFeature.value ==
-                    CafeCameraActiveFeature.liveOrder;
-                return SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (isLiveCamera) {
-                        controller.closeCamera();
-                      } else {
-                        controller.openCameraFor(
-                          CafeCameraActiveFeature.liveOrder,
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      backgroundColor: isLiveCamera
-                          ? AppColors.matcha
-                          : AppColors.bgSurface,
-                      foregroundColor: isLiveCamera
-                          ? AppColors.surface
-                          : AppColors.secondary,
-                      side: BorderSide(
-                        color: isLiveCamera
-                            ? AppColors.matcha
-                            : AppColors.secondary,
-                        width: 1.2,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Icon(
-                      isLiveCamera
-                          ? Icons.videocam_rounded
-                          : Icons.videocam_outlined,
-                      size: 22,
-                    ),
-                  ),
-                );
-              }),
-              const SizedBox(width: 8),
+          const SizedBox(height: 12),
 
-              // Live Microphone STT Button (Touch Target >= 48x48)
-              Obx(() {
-                final isListening = controller.isListening.value;
-                return SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: controller.toggleListening,
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      backgroundColor: isListening
-                          ? AppColors.amber
-                          : AppColors.secondary,
-                      foregroundColor: AppColors.surface,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+          // Full-Width Modern Smart Input Bar
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.bgSurface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.border, width: 1.2),
+            ),
+            child: Row(
+              children: [
+                const SizedBox(width: 12),
+                Icon(
+                  Icons.edit_note_rounded,
+                  color: AppColors.secondary,
+                  size: 24,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _textEditController,
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: AppColors.ink,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: AppStrings.cafeTranscriptInputHint.tr,
+                      hintStyle: AppTypography.bodySmall.copyWith(
+                        color: AppColors.muted,
                       ),
-                      elevation: 0,
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                      ),
                     ),
-                    child: Icon(
-                      isListening ? Icons.mic : Icons.mic_none_rounded,
-                      size: 22,
-                    ),
+                    onSubmitted: (val) {
+                      controller.onTranscriptReceived(val);
+                      _textEditController.clear();
+                    },
                   ),
-                );
-              }),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: _textEditController,
-                  decoration: InputDecoration(
-                    hintText: AppStrings.cafeTranscriptInputHint.tr,
-                    hintStyle: AppTypography.bodySmall.copyWith(
+                ),
+                // Inline Clear Text Button
+                ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: _textEditController,
+                  builder: (context, value, _) {
+                    if (value.text.isEmpty) return const SizedBox.shrink();
+                    return IconButton(
+                      icon: const Icon(Icons.clear_rounded, size: 18),
                       color: AppColors.muted,
-                    ),
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.border),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.border),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.secondary),
-                    ),
-                  ),
-                  onSubmitted: (val) {
-                    controller.onTranscriptReceived(val);
-                    _textEditController.clear();
+                      tooltip: AppStrings.cafeClearInputTooltip.tr,
+                      onPressed: () {
+                        _textEditController.clear();
+                        controller.liveTranscript.value = '';
+                      },
+                    );
                   },
                 ),
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                height: 48,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    controller.onTranscriptReceived(_textEditController.text);
-                    _textEditController.clear();
-                  },
-                  icon: const Icon(Icons.send_rounded, size: 16),
-                  label: Text(AppStrings.cafeProcessOrder.tr),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.surface,
-                    minimumSize: const Size(80, 48),
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                // Send / Process Order Button
+                Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      controller.onTranscriptReceived(_textEditController.text);
+                      _textEditController.clear();
+                    },
+                    icon: const Icon(Icons.send_rounded, size: 16),
+                    label: Text(AppStrings.cafeProcessOrder.tr),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.surface,
+                      elevation: 0,
+                      minimumSize: const Size(84, 44),
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                    elevation: 0,
                   ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Quick Picks & Allergy Shortcuts
+          Row(
+            children: [
+              Icon(
+                Icons.bolt_rounded,
+                size: 15,
+                color: AppColors.secondary,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                AppStrings.cafeQuickPicksTitle.tr,
+                style: AppTypography.labelSmall.copyWith(
+                  color: AppColors.secondary,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                  fontSize: 11,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          // Sample quick chips
+          const SizedBox(height: 6),
           Wrap(
-            spacing: 6,
-            runSpacing: 4,
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              _buildSampleChip(
-                'Es Karamel Latte Extra Shot',
-                () => controller.onTranscriptReceived(
+              _buildModernSampleChip(
+                icon: Icons.coffee_rounded,
+                label: 'Es Karamel Latte Extra Shot',
+                onTap: () => controller.onTranscriptReceived(
                   'pesan es karamel latte large less sweet extra shot',
                 ),
               ),
-              _buildSampleChip(
-                'Alergi Kacang & Susu',
-                () => controller.onTranscriptReceived(
+              _buildModernSampleChip(
+                icon: Icons.no_food_rounded,
+                label: 'Alergi Kacang & Susu',
+                onTap: () => controller.onTranscriptReceived(
                   'saya ada alergi kacang dan alergi susu sapi',
                 ),
               ),
-              _buildSampleChip(
-                'Maag Kambuh',
-                () => controller.onTranscriptReceived(
+              _buildModernSampleChip(
+                icon: Icons.spa_rounded,
+                label: 'Ramah Lambung (Maag)',
+                onTap: () => controller.onTranscriptReceived(
                   'saya lagi sakit maag lambung',
                 ),
               ),
@@ -1679,20 +1746,40 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
     );
   }
 
-  Widget _buildSampleChip(String label, VoidCallback onTap) {
-    return ActionChip(
-      onPressed: onTap,
-      label: Text(
-        label,
-        style: AppTypography.labelSmall.copyWith(
-          color: AppColors.primary,
-          fontWeight: FontWeight.w600,
-          fontSize: 11,
+  Widget _buildModernSampleChip({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: AppColors.paleMist,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.border, width: 1.1),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 15, color: AppColors.secondary),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: AppTypography.labelSmall.copyWith(
+                  color: AppColors.ink,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11.5,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-      backgroundColor: AppColors.paleMist,
-      side: BorderSide(color: AppColors.border),
-      padding: const EdgeInsets.symmetric(horizontal: 4),
     );
   }
 

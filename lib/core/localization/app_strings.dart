@@ -357,5 +357,26 @@ class AppStrings {
   static const String cafeClearSentence = 'cafe_clear_sentence';
   static const String cafeSentenceEmpty = 'cafe_sentence_empty';
   static const String cafeWordDetected = 'cafe_word_detected';
+
+  // Modern Menu Catalog & Input Bar
+  static const String cafeCatalogTitle = 'cafe_catalog_title';
+  static const String cafeCatalogSubtitle = 'cafe_catalog_subtitle';
+  static const String cafeCatalogSearchHint = 'cafe_catalog_search_hint';
+  static const String cafeCategoryAll = 'cafe_category_all';
+  static const String cafeCategoryMilkCoffee = 'cafe_category_milk_coffee';
+  static const String cafeCategoryBlackCoffee = 'cafe_category_black_coffee';
+  static const String cafeCategoryGentleStomach = 'cafe_category_gentle_stomach';
+  static const String cafeCategoryNonCoffee = 'cafe_category_non_coffee';
+  static const String cafeCustomize = 'cafe_customize';
+  static const String cafeQuickAdd = 'cafe_quick_add';
+  static const String cafeMenuNotFound = 'cafe_menu_not_found';
+  static const String cafeMenuNotFoundDesc = 'cafe_menu_not_found_desc';
+  static const String cafeResetSearch = 'cafe_reset_search';
+  static const String cafeItemsAvailable = 'cafe_items_available';
+  static const String cafeModeSignCamera = 'cafe_mode_sign_camera';
+  static const String cafeModeVoiceStt = 'cafe_mode_voice_stt';
+  static const String cafeModeMenuCatalog = 'cafe_mode_menu_catalog';
+  static const String cafeQuickPicksTitle = 'cafe_quick_picks_title';
+  static const String cafeClearInputTooltip = 'cafe_clear_input_tooltip';
 }
 

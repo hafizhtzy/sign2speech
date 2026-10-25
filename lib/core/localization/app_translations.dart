@@ -377,6 +377,27 @@ class AppTranslations extends Translations {
     AppStrings.cafeClearSentence: 'Hapus Kalimat',
     AppStrings.cafeSentenceEmpty: 'Peragakan isyarat untuk menyusun kalimat pesanan...',
     AppStrings.cafeWordDetected: 'Terdeteksi: @word',
+
+    // Modern Menu Catalog & Input Bar
+    AppStrings.cafeCatalogTitle: 'Katalog Menu Kafe Modern',
+    AppStrings.cafeCatalogSubtitle: 'Pilih minuman favorit atau sesuaikan racikan barista',
+    AppStrings.cafeCatalogSearchHint: 'Cari menu kopi, aren, matcha, oat...',
+    AppStrings.cafeCategoryAll: 'Semua Menu',
+    AppStrings.cafeCategoryMilkCoffee: 'Kopi Susu',
+    AppStrings.cafeCategoryBlackCoffee: 'Kopi Hitam',
+    AppStrings.cafeCategoryGentleStomach: 'Ramah Lambung',
+    AppStrings.cafeCategoryNonCoffee: 'Non-Kopi',
+    AppStrings.cafeCustomize: 'Kustomisasi',
+    AppStrings.cafeQuickAdd: '+ Tambah',
+    AppStrings.cafeMenuNotFound: 'Menu Tidak Ditemukan',
+    AppStrings.cafeMenuNotFoundDesc: 'Coba kata kunci lain atau pilih kategori di atas.',
+    AppStrings.cafeResetSearch: 'Reset Pencarian',
+    AppStrings.cafeItemsAvailable: '@count menu siap dipesan',
+    AppStrings.cafeModeSignCamera: 'Kamera Isyarat',
+    AppStrings.cafeModeVoiceStt: 'Suara (Mic)',
+    AppStrings.cafeModeMenuCatalog: 'Katalog Menu',
+    AppStrings.cafeQuickPicksTitle: 'Pilihan Cepat & Alergi',
+    AppStrings.cafeClearInputTooltip: 'Hapus Teks',
   };
 
 
@@ -742,6 +763,27 @@ class AppTranslations extends Translations {
     AppStrings.cafeClearSentence: 'Clear Sentence',
     AppStrings.cafeSentenceEmpty: 'Perform sign gestures to build order sentence...',
     AppStrings.cafeWordDetected: 'Detected: @word',
+
+    // Modern Menu Catalog & Input Bar
+    AppStrings.cafeCatalogTitle: 'Modern Cafe Menu Catalog',
+    AppStrings.cafeCatalogSubtitle: 'Choose favorite drinks or customize barista recipe',
+    AppStrings.cafeCatalogSearchHint: 'Search coffee, aren latte, matcha, oat...',
+    AppStrings.cafeCategoryAll: 'All Drinks',
+    AppStrings.cafeCategoryMilkCoffee: 'Milk Coffee',
+    AppStrings.cafeCategoryBlackCoffee: 'Black Coffee',
+    AppStrings.cafeCategoryGentleStomach: 'Gentle Stomach',
+    AppStrings.cafeCategoryNonCoffee: 'Non-Coffee',
+    AppStrings.cafeCustomize: 'Customize',
+    AppStrings.cafeQuickAdd: '+ Add',
+    AppStrings.cafeMenuNotFound: 'Menu Not Found',
+    AppStrings.cafeMenuNotFoundDesc: 'Try another keyword or select a category above.',
+    AppStrings.cafeResetSearch: 'Reset Search',
+    AppStrings.cafeItemsAvailable: '@count drinks ready to order',
+    AppStrings.cafeModeSignCamera: 'Sign Camera',
+    AppStrings.cafeModeVoiceStt: 'Voice (Mic)',
+    AppStrings.cafeModeMenuCatalog: 'Menu Catalog',
+    AppStrings.cafeQuickPicksTitle: 'Quick Picks & Allergies',
+    AppStrings.cafeClearInputTooltip: 'Clear Text',
   };
 }
 
