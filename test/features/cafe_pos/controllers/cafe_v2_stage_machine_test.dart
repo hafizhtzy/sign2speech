@@ -35,13 +35,41 @@ void main() {
       controller.goToStage(CafeOrderStage.naming);
       expect(controller.currentStage.value, equals(CafeOrderStage.naming));
 
-      // 4. Move to pickup stage
-      controller.goToStage(CafeOrderStage.pickup);
+      // 4. Move to pickup stage (with force)
+      controller.goToStage(CafeOrderStage.pickup, force: true);
       expect(controller.currentStage.value, equals(CafeOrderStage.pickup));
 
       // 5. Reset to idle
       controller.goToStage(CafeOrderStage.idle);
       expect(controller.currentStage.value, equals(CafeOrderStage.idle));
+    });
+
+    test('enforces payment before advancing from naming to pickup stage', () {
+      final controller = Get.put(CafeCashierController());
+      controller.goToStage(CafeOrderStage.ordering);
+      controller.currentTicket.value = controller.currentTicket.value.copyWith(
+        items: [
+          const ParsedCafeOrderSlot(
+            drinkId: 'latte',
+            drinkLabelKey: 'latte',
+            drinkNameId: 'Cafe Latte',
+            drinkNameEn: 'Cafe Latte',
+            basePrice: 28000,
+          ),
+        ],
+      );
+      controller.advanceStage(); // advances to naming
+      expect(controller.currentStage.value, equals(CafeOrderStage.naming));
+
+      // Attempting to advance without paying stays in naming stage
+      controller.advanceStage();
+      expect(controller.currentStage.value, equals(CafeOrderStage.naming));
+
+      // Complete payment
+      controller.setExactCash();
+      controller.completeCashPayment();
+      expect(controller.currentTicket.value.isPaid, isTrue);
+      expect(controller.currentStage.value, equals(CafeOrderStage.pickup));
     });
   });
 

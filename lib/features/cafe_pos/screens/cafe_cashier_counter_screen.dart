@@ -23,6 +23,7 @@ import '../widgets/cup_name_spelling_card.dart';
 import '../widgets/dual_mode_queue_pager.dart';
 import '../widgets/order_ready_banner.dart';
 import '../widgets/waiting_sign_challenge_card.dart';
+import 'cafe_order_queue_screen.dart';
 
 
 class CafeCashierCounterScreen extends StatefulWidget {
@@ -36,16 +37,33 @@ class CafeCashierCounterScreen extends StatefulWidget {
 class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
   late final TextEditingController _textEditController;
   late final CafeCashierController controller;
+  Worker? _orderCompletedWorker;
+  Worker? _liveTranscriptWorker;
 
   @override
   void initState() {
     super.initState();
     _textEditController = TextEditingController();
     controller = Get.find<CafeCashierController>();
+    _orderCompletedWorker = ever<bool>(controller.isOrderCompleted, (completed) {
+      if (completed && mounted) {
+        _showOrderCompletedQueueDialog();
+      }
+    });
+    _liveTranscriptWorker = ever<String>(controller.liveTranscript, (text) {
+      if (_textEditController.text != text && mounted) {
+        _textEditController.value = TextEditingValue(
+          text: text,
+          selection: TextSelection.collapsed(offset: text.length),
+        );
+      }
+    });
   }
 
   @override
   void dispose() {
+    _orderCompletedWorker?.dispose();
+    _liveTranscriptWorker?.dispose();
     _textEditController.dispose();
     super.dispose();
   }
@@ -168,6 +186,179 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
           ),
         );
       },
+    );
+  }
+
+  void _showOrderCompletedQueueDialog() {
+    final ticket = controller.currentTicket.value;
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 68,
+                  height: 68,
+                  decoration: BoxDecoration(
+                    color: AppColors.matcha.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.check_circle_rounded,
+                    size: 42,
+                    color: AppColors.matcha,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  AppStrings.cafePaymentSuccessQueued.trParams({'queue': ticket.queueNumber}),
+                  textAlign: TextAlign.center,
+                  style: AppTypography.titleMedium.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Pesanan telah berhasil dibayar (${ticket.paymentMethod == OrderPaymentMethod.qris ? 'QRIS' : 'Tunai'}) dan otomatis masuk ke antrean pembuatan.',
+                  textAlign: TextAlign.center,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.muted,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.bgSurface,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            ticket.customerName.isEmpty
+                                ? 'Pelanggan Walk-In'
+                                : 'Nama: ${ticket.customerName}',
+                            style: AppTypography.labelMedium.copyWith(
+                              color: AppColors.ink,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '${ticket.items.length} item • ${ticket.orderId}',
+                            style: AppTypography.labelSmall.copyWith(
+                              color: AppColors.muted,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        formatRupiah(ticket.grandTotal),
+                        style: AppTypography.titleSmall.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      controller.startNextCustomerOrder();
+                    },
+                    icon: const Icon(Icons.add_shopping_cart_rounded, size: 20),
+                    label: Text(
+                      AppStrings.cafeStartNextOrder.tr,
+                      style: AppTypography.labelLarge.copyWith(
+                        color: AppColors.surface,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.surface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      CafeOrderQueueScreen.showAsDialog(
+                        context,
+                        controller: controller,
+                      );
+                    },
+                    icon: const Icon(Icons.receipt_long_rounded, size: 18),
+                    label: Text(
+                      AppStrings.cafeViewQueue.trParams(
+                        {'count': '${controller.activeOrdersQueue.length}'},
+                      ),
+                      style: AppTypography.labelMedium.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      side: BorderSide(color: AppColors.primary),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: TextButton.icon(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      controller.goToStage(CafeOrderStage.pickup);
+                    },
+                    icon: const Icon(Icons.coffee_rounded, size: 18),
+                    label: Text(
+                      'Lanjut ke Pengambilan Kopi (Tahap 3)',
+                      style: AppTypography.labelMedium.copyWith(
+                        color: AppColors.secondary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -313,6 +504,58 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
                 }
               },
             ),
+            // Queue Management Badge Button (Touch Target >= 48x48)
+            Obx(() {
+              final queueCount = controller.activeOrdersQueue.length;
+              return Tooltip(
+                message: AppStrings.cafeOrderQueueTitle.tr,
+                child: InkWell(
+                  onTap: () => CafeOrderQueueScreen.showAsDialog(
+                    context,
+                    controller: controller,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: queueCount > 0
+                          ? AppColors.matcha.withValues(alpha: 0.15)
+                          : AppColors.paleMist,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: queueCount > 0
+                            ? AppColors.matcha
+                            : AppColors.border,
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.receipt_long_rounded,
+                          size: 16,
+                          color: queueCount > 0
+                              ? AppColors.matcha
+                              : AppColors.primary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$queueCount',
+                          style: AppTypography.labelSmall.copyWith(
+                            color: queueCount > 0
+                                ? AppColors.matcha
+                                : AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
             IconButton(
               constraints: const BoxConstraints(minWidth: 38, minHeight: 38),
               padding: EdgeInsets.zero,
@@ -588,26 +831,37 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
                 if (!controller.isCashierView.value) return const SizedBox.shrink();
                 // When actively spelling customer name, hide FAB so it doesn't overlap keys
                 if (controller.isSpellingCustomerName.value) return const SizedBox.shrink();
-                final (label, icon) = switch (stage) {
+                final ticket = controller.currentTicket.value;
+                final isPaid = ticket.isPaid;
+                final (label, icon, color) = switch (stage) {
                   CafeOrderStage.ordering => (
                       'Lanjut: Nama & Bayar',
-                      Icons.arrow_forward_rounded
+                      Icons.arrow_forward_rounded,
+                      AppColors.secondary,
                     ),
-                  CafeOrderStage.naming => (
-                      'Lanjut: Ambil Kopi',
-                      Icons.coffee_rounded
-                    ),
+                  CafeOrderStage.naming => isPaid
+                      ? (
+                          'Lanjut: Ambil Kopi',
+                          Icons.coffee_rounded,
+                          AppColors.matcha,
+                        )
+                      : (
+                          'Menunggu Pembayaran',
+                          Icons.payments_outlined,
+                          AppColors.amber,
+                        ),
                   CafeOrderStage.pickup => (
                       'Selesai & Order Baru',
-                      Icons.check_rounded
+                      Icons.check_rounded,
+                      AppColors.matcha,
                     ),
-                  CafeOrderStage.idle => ('', Icons.add),
+                  CafeOrderStage.idle => ('', Icons.add, AppColors.secondary),
                 };
                 if (label.isEmpty) return const SizedBox.shrink();
                 return FloatingActionButton.extended(
                   heroTag: 'cafe_stage_advance',
                   onPressed: controller.advanceStage,
-                  backgroundColor: AppColors.secondary,
+                  backgroundColor: color,
                   foregroundColor: AppColors.surface,
                   icon: Icon(icon, size: 18),
                   label: Text(
@@ -932,6 +1186,11 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
         onProcessQris: controller.processQrisPayment,
         onCompleteCash: controller.completeCashPayment,
         onSetExactCash: controller.setExactCash,
+        onStartNextOrder: controller.startNextCustomerOrder,
+        onViewQueue: () => CafeOrderQueueScreen.showAsDialog(
+          context,
+          controller: controller,
+        ),
         isQrisProcessing: controller.isQrisProcessing.value,
         onSubstituteMilk: controller.substituteMilkInTicket,
         onRemoveItem: controller.removeItemFromTicket,
@@ -1046,43 +1305,212 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
                 modelBadge: controller.activeSignModel.displayName,
                 bottomBanner: Obx(() {
                   final text = controller.liveTranscript.value;
-                  if (text.isEmpty) return const SizedBox.shrink();
+                  final words = controller.liveOrderWords;
+                  if (text.isEmpty && words.isEmpty) return const SizedBox.shrink();
                   return Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
-                      vertical: 4,
+                      vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.85),
-                      borderRadius: BorderRadius.circular(8),
+                      color: AppColors.primary.withValues(alpha: 0.90),
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: AppColors.matcha.withValues(alpha: 0.6),
+                        width: 1.2,
                       ),
                     ),
                     child: Row(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           Icons.sign_language_rounded,
-                          size: 14,
+                          size: 16,
                           color: AppColors.matcha,
                         ),
-                        const SizedBox(width: 6),
-                        Flexible(
-                          child: Text(
-                            AppStrings.cafeDetectedPrefix.trParams({'text': text}),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTypography.labelSmall.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            child: Row(
+                              children: words.map((w) {
+                                return Container(
+                                  margin: const EdgeInsets.only(right: 6),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.matcha.withValues(alpha: 0.25),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: AppColors.matcha.withValues(alpha: 0.5),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    w,
+                                    style: AppTypography.labelSmall.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
                             ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        // Hapus Kata Terakhir Button
+                        SizedBox(
+                          width: 36,
+                          height: 36,
+                          child: IconButton(
+                            padding: EdgeInsets.zero,
+                            icon: const Icon(
+                              Icons.backspace_outlined,
+                              size: 16,
+                              color: Colors.white70,
+                            ),
+                            tooltip: AppStrings.cafeDeleteLastWord.tr,
+                            onPressed: controller.deleteLastSignWord,
+                          ),
+                        ),
+                        // Hapus Kalimat Button
+                        SizedBox(
+                          width: 36,
+                          height: 36,
+                          child: IconButton(
+                            padding: EdgeInsets.zero,
+                            icon: const Icon(
+                              Icons.delete_sweep_rounded,
+                              size: 18,
+                              color: Colors.white70,
+                            ),
+                            tooltip: AppStrings.cafeClearSentence.tr,
+                            onPressed: controller.clearLiveOrderSentence,
                           ),
                         ),
                       ],
                     ),
                   );
                 }),
+              ),
+            );
+          }),
+
+          // Dedicated Sign Sentence Builder Tray (Fitur Akumulasi Kata & Hapus Per Kata / Kalimat)
+          Obx(() {
+            final words = controller.liveOrderWords;
+            if (words.isEmpty) return const SizedBox.shrink();
+            return Container(
+              margin: const EdgeInsets.only(top: 8, bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.paleMist,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.border, width: 1.2),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.record_voice_over_rounded,
+                              size: 14,
+                              color: AppColors.secondary,
+                            ),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                AppStrings.cafeSignSentenceBuilderTitle.tr,
+                                style: AppTypography.labelSmall.copyWith(
+                                  color: AppColors.secondary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      // Button Hapus Kata
+                      InkWell(
+                        onTap: controller.deleteLastSignWord,
+                        borderRadius: BorderRadius.circular(8),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.backspace_outlined, size: 13, color: AppColors.muted),
+                              const SizedBox(width: 3),
+                              Text(
+                                AppStrings.cafeDeleteLastWord.tr,
+                                style: AppTypography.labelSmall.copyWith(
+                                  color: AppColors.muted,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      // Button Hapus Kalimat
+                      InkWell(
+                        onTap: controller.clearLiveOrderSentence,
+                        borderRadius: BorderRadius.circular(8),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.delete_outline_rounded, size: 13, color: AppColors.error),
+                              const SizedBox(width: 3),
+                              Text(
+                                AppStrings.cafeClearSentence.tr,
+                                style: AppTypography.labelSmall.copyWith(
+                                  color: AppColors.error,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: words.map((w) {
+                      return Chip(
+                        label: Text(
+                          w,
+                          style: AppTypography.labelSmall.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        backgroundColor: AppColors.surface,
+                        side: BorderSide(color: AppColors.secondary.withValues(alpha: 0.5)),
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      );
+                    }).toList(),
+                  ),
+                ],
               ),
             );
           }),
@@ -2071,7 +2499,7 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
   Widget _buildCustomerPaymentCard() {
     return Obx(() {
       final ticket = controller.currentTicket.value;
-      final isPaid = ticket.status == OrderStatus.completed;
+      final isPaid = ticket.isPaid && ticket.grandTotal > 0;
       final isQris = ticket.paymentMethod == OrderPaymentMethod.qris;
       final isProcessing = controller.isQrisProcessing.value;
 
@@ -2121,15 +2549,71 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
                   color: AppColors.muted,
                 ),
               ),
-            ] else if (isQris) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
+              const SizedBox(height: 14),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed: () => controller.goToStage(CafeOrderStage.pickup),
+                  icon: const Icon(Icons.coffee_rounded, size: 20),
+                  label: Text(
+                    'Lihat Antrean & Tantangan Isyarat ☕',
+                    style: AppTypography.labelMedium.copyWith(
+                      color: AppColors.surface,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.matcha,
+                    foregroundColor: AppColors.surface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+            ] else ...[
+              // Customer Payment Method Selection
+              Container(
+                height: 42,
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: AppColors.bgSurface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildSegmentButton(
+                        label: AppStrings.cafePaymentQris.tr,
+                        icon: Icons.qr_code_scanner,
+                        isSelected: isQris,
+                        onTap: () => controller.setPaymentMethod(OrderPaymentMethod.qris),
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildSegmentButton(
+                        label: AppStrings.cafePaymentCash.tr,
+                        icon: Icons.payments_outlined,
+                        isSelected: !isQris,
+                        onTap: () => controller.setPaymentMethod(OrderPaymentMethod.cash),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (isQris) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
@@ -2263,10 +2747,11 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
               ),
             ],
           ],
-        ),
-      );
-    });
-  }
+        ],
+      ),
+    );
+  });
+}
 }
 
 

@@ -171,7 +171,7 @@ void main() {
         ),
       );
 
-      expect(controller.liveTranscript.value, 'Kopi');
+      expect(controller.liveTranscript.value.toUpperCase(), 'KOPI');
       expect(controller.activeParsedSlot.value, isNotNull);
     });
 

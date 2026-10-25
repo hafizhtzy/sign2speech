@@ -54,6 +54,44 @@ class CafePosLocalDataSource {
     } catch (_) {}
   }
 
+  // ── ACTIVE ORDERS QUEUE PERSISTENCE ─────────────────────────────────────────
+  static const String _activeQueueKey = 'cafe_pos_active_queue_v1';
+
+  /// Loads the persisted active order queue from local storage.
+  Future<List<CafeOrderTicket>> loadActiveQueue() async {
+    try {
+      final prefs = await _getPrefs();
+      final jsonStr = prefs.getString(_activeQueueKey);
+      if (jsonStr == null || jsonStr.trim().isEmpty) {
+        return [];
+      }
+      final list = json.decode(jsonStr) as List<dynamic>;
+      return list
+          .map((item) => CafeOrderTicket.fromMap(item as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Persists the active orders queue to local storage.
+  Future<void> saveActiveQueue(List<CafeOrderTicket> queue) async {
+    try {
+      final prefs = await _getPrefs();
+      final list = queue.map((ticket) => ticket.toMap()).toList();
+      final jsonStr = json.encode(list);
+      await prefs.setString(_activeQueueKey, jsonStr);
+    } catch (_) {}
+  }
+
+  /// Clears the active orders queue from local storage.
+  Future<void> clearActiveQueue() async {
+    try {
+      final prefs = await _getPrefs();
+      await prefs.remove(_activeQueueKey);
+    } catch (_) {}
+  }
+
   // ── COFFEE CUSTOMIZATION DRAFT PERSISTENCE ─────────────────────────────────
 
   /// Loads the saved customization draft for a specific drink ID.

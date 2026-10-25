@@ -349,6 +349,34 @@ class AppTranslations extends Translations {
     AppStrings.cafeQueueNumberPrefix: 'Nomor Antrean: @queue',
     AppStrings.cafeClearTicketTooltip: 'Bersihkan Nota & Transkrip',
     AppStrings.cafeBackTooltip: 'Kembali',
+
+    // Queue Management
+    AppStrings.cafeOrderQueueTitle: 'Antrean Pesanan',
+    AppStrings.cafeOrderQueueSubtitle: 'Daftar pesanan dalam proses & menunggu pengambilan',
+    AppStrings.cafeOrderQueueBadge: '@count Antrean',
+    AppStrings.cafeOrderQueueEmpty: 'Belum Ada Pesanan dalam Antrean',
+    AppStrings.cafeOrderQueueEmptyDesc: 'Pesanan yang selesai dibayar otomatis masuk ke sini untuk diproses barista.',
+    AppStrings.cafeStartNextOrder: 'Catat Pesanan Selanjutnya',
+    AppStrings.cafePaymentSuccessQueued: 'Pembayaran Lunas! Pesanan @queue Masuk Antrean',
+    AppStrings.cafeViewQueue: 'Lihat Antrean (@count)',
+    AppStrings.cafeFilterAll: 'Semua',
+    AppStrings.cafeFilterPreparing: 'Sedang Dibuat',
+    AppStrings.cafeFilterReady: 'Siap Diambil',
+    AppStrings.cafeFilterCompleted: 'Selesai',
+    AppStrings.cafeMarkPreparing: 'Mulai Buat',
+    AppStrings.cafeMarkReady: 'Tandai Siap',
+    AppStrings.cafeMarkCompleted: 'Selesai / Serahkan',
+    AppStrings.cafeCallCustomerVoice: 'Panggil Suara (TTS)',
+    AppStrings.cafeCallCustomerDeaf: 'Panggil Teman Tuli',
+    AppStrings.cafeOrderElapsedMinutes: '@minutes mnt lalu',
+    AppStrings.cafeOrderElapsedSeconds: 'Baru saja',
+
+    // Sign Sentence Accumulator
+    AppStrings.cafeSignSentenceBuilderTitle: 'Rangkaian Isyarat Terdeteksi',
+    AppStrings.cafeDeleteLastWord: 'Hapus Kata',
+    AppStrings.cafeClearSentence: 'Hapus Kalimat',
+    AppStrings.cafeSentenceEmpty: 'Peragakan isyarat untuk menyusun kalimat pesanan...',
+    AppStrings.cafeWordDetected: 'Terdeteksi: @word',
   };
 
 
@@ -686,6 +714,34 @@ class AppTranslations extends Translations {
     AppStrings.cafeQueueNumberPrefix: 'Queue Number: @queue',
     AppStrings.cafeClearTicketTooltip: 'Clear Ticket & Transcript',
     AppStrings.cafeBackTooltip: 'Back',
+
+    // Queue Management
+    AppStrings.cafeOrderQueueTitle: 'Order Queue',
+    AppStrings.cafeOrderQueueSubtitle: 'Orders currently preparing & awaiting pickup',
+    AppStrings.cafeOrderQueueBadge: '@count in Queue',
+    AppStrings.cafeOrderQueueEmpty: 'No Orders in Queue Yet',
+    AppStrings.cafeOrderQueueEmptyDesc: 'Paid orders will automatically appear here for barista preparation.',
+    AppStrings.cafeStartNextOrder: 'Record Next Customer Order',
+    AppStrings.cafePaymentSuccessQueued: 'Payment Paid! Order @queue Entered Queue',
+    AppStrings.cafeViewQueue: 'View Queue (@count)',
+    AppStrings.cafeFilterAll: 'All',
+    AppStrings.cafeFilterPreparing: 'Preparing',
+    AppStrings.cafeFilterReady: 'Ready for Pickup',
+    AppStrings.cafeFilterCompleted: 'Completed',
+    AppStrings.cafeMarkPreparing: 'Start Brewing',
+    AppStrings.cafeMarkReady: 'Mark as Ready',
+    AppStrings.cafeMarkCompleted: 'Handover / Done',
+    AppStrings.cafeCallCustomerVoice: 'Voice Call (TTS)',
+    AppStrings.cafeCallCustomerDeaf: 'Deaf Call (Vibe)',
+    AppStrings.cafeOrderElapsedMinutes: '@minutes min ago',
+    AppStrings.cafeOrderElapsedSeconds: 'Just now',
+
+    // Sign Sentence Accumulator
+    AppStrings.cafeSignSentenceBuilderTitle: 'Detected Sign Sentence',
+    AppStrings.cafeDeleteLastWord: 'Delete Word',
+    AppStrings.cafeClearSentence: 'Clear Sentence',
+    AppStrings.cafeSentenceEmpty: 'Perform sign gestures to build order sentence...',
+    AppStrings.cafeWordDetected: 'Detected: @word',
   };
 }
 

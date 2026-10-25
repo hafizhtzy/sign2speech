@@ -85,6 +85,7 @@ class CafeCashierController extends GetxController {
   FirestoreCafePosService? get firestoreCafePosService => _firestoreCafePosService;
   FirestoreCounterSessionService? get counterSessionService => _counterSessionService;
   Worker? _ticketStorageWorker;
+  Worker? _queueStorageWorker;
   StreamSubscription<dynamic>? _sessionStreamSub;
 
   CafeCashierController({
@@ -147,10 +148,16 @@ class CafeCashierController extends GetxController {
     ),
   );
 
+  // ── ACTIVE ORDERS QUEUE (ORDER MANAGEMENT) ───────────────────────────────
+  final RxList<CafeOrderTicket> activeOrdersQueue = <CafeOrderTicket>[].obs;
+
   // ── 2. AUTO-ORDER SLOT PARSER & SPEECH (FITUR 1 & 6) ──────────────────────
   final Rx<ParsedCafeOrderSlot?> activeParsedSlot =
       Rx<ParsedCafeOrderSlot?>(null);
   final RxString liveTranscript = ''.obs;
+  final RxList<String> liveOrderWords = <String>[].obs;
+  DateTime _lastLiveSignTime = DateTime.fromMillisecondsSinceEpoch(0);
+  String _lastLiveSignWord = '';
   final RxBool isListening = false.obs;
 
   // ── 3. CUP NAME FINGERSELLING 1500MS BUFFER (FITUR 2) ─────────────────────
@@ -324,22 +331,32 @@ class CafeCashierController extends GetxController {
     isChallengeCompleted.value = false;
   }
 
-  /// Restores active ticket from local storage and initiates auto-save worker.
+  /// Restores active ticket and order queue from local storage and initiates auto-save workers.
   Future<void> loadPersistedTicket() async {
     final saved = await _localDataSource.loadActiveTicket();
     if (saved != null) {
       currentTicket.value = saved;
+    }
+    final savedQueue = await _localDataSource.loadActiveQueue();
+    if (savedQueue.isNotEmpty) {
+      activeOrdersQueue.assignAll(savedQueue);
     }
     loyaltyStampsCount.value = await _localDataSource.loadLoyaltyStamps();
     _ticketStorageWorker?.dispose();
     _ticketStorageWorker = ever<CafeOrderTicket>(currentTicket, (ticket) {
       _localDataSource.saveActiveTicket(ticket);
     });
+
+    _queueStorageWorker?.dispose();
+    _queueStorageWorker = ever<List<CafeOrderTicket>>(activeOrdersQueue, (queue) {
+      _localDataSource.saveActiveQueue(queue);
+    });
   }
 
-  /// Manually trigger immediate persistence of the current ticket.
+  /// Manually trigger immediate persistence of the current ticket and queue.
   Future<void> persistCurrentTicket() async {
     await _localDataSource.saveActiveTicket(currentTicket.value);
+    await _localDataSource.saveActiveQueue(activeOrdersQueue.toList());
   }
 
   // ── COFFEE DRAFT CUSTOMIZATION ACCESSORS ─────────────────────────────────
@@ -356,6 +373,8 @@ class CafeCashierController extends GetxController {
   void onClose() {
     _ticketStorageWorker?.dispose();
     _ticketStorageWorker = null;
+    _queueStorageWorker?.dispose();
+    _queueStorageWorker = null;
     _sessionStreamSub?.cancel();
     _sessionStreamSub = null;
     _spellingInactivityTimer?.cancel();
@@ -375,6 +394,21 @@ class CafeCashierController extends GetxController {
 
   // ── MASTER PROMPT V2: 3-STAGE STATE MACHINE METHODS ────────────────────────
 
+  void _showStageSnackbar(String title, String message) {
+    if (Get.context != null) {
+      Get.snackbar(
+        title,
+        message,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColors.primary,
+        colorText: AppColors.surface,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 12,
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
   /// Maju ke tahap berikutnya: idle → ordering → naming → pickup → idle
   void advanceStage() {
     switch (currentStage.value) {
@@ -385,22 +419,30 @@ class CafeCashierController extends GetxController {
         if (currentTicket.value.items.isNotEmpty) {
           currentStage.value = CafeOrderStage.naming;
         } else {
-          Get.snackbar(
+          _showStageSnackbar(
             'Pesanan Masih Kosong',
             'Silakan konfirmasi minimal 1 item pesanan sebelum lanjut ke tahap penamaan cup.',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: AppColors.primary,
-            colorText: AppColors.surface,
-            margin: const EdgeInsets.all(16),
-            borderRadius: 12,
-            duration: const Duration(seconds: 3),
           );
         }
         break;
       case CafeOrderStage.naming:
+        if (!currentTicket.value.isPaid) {
+          _showStageSnackbar(
+            'Pembayaran Belum Dilakukan',
+            'Silakan lakukan simulasi pembayaran (QRIS atau Tunai) terlebih dahulu sebelum lanjut ke tahap pengambilan kopi.',
+          );
+          return;
+        }
         currentStage.value = CafeOrderStage.pickup;
         break;
       case CafeOrderStage.pickup:
+        if (!currentTicket.value.isPaid) {
+          _showStageSnackbar(
+            'Pembayaran Belum Dilakukan',
+            'Pesanan belum dibayar. Silakan lakukan pembayaran terlebih dahulu.',
+          );
+          return;
+        }
         // Selesai → bersihkan tiket dan kembali ke idle
         clearTicket();
         currentStage.value = CafeOrderStage.idle;
@@ -409,7 +451,14 @@ class CafeCashierController extends GetxController {
   }
 
   /// Lompat langsung ke tahap tertentu (dipanggil dari UI button).
-  void goToStage(CafeOrderStage stage) {
+  void goToStage(CafeOrderStage stage, {bool force = false}) {
+    if (!force && stage == CafeOrderStage.pickup && !currentTicket.value.isPaid) {
+      _showStageSnackbar(
+        'Pembayaran Belum Dilakukan',
+        'Silakan selesaikan simulasi pembayaran (QRIS atau Tunai) terlebih dahulu sebelum ke tahap Ambil Kopi.',
+      );
+      return;
+    }
     currentStage.value = stage;
   }
 
@@ -561,7 +610,7 @@ class CafeCashierController extends GetxController {
 
     switch (activeCameraFeature.value) {
       case CafeCameraActiveFeature.liveOrder:
-        onTranscriptReceived(label);
+        addSignWordToLiveOrder(label);
         break;
 
       case CafeCameraActiveFeature.cupNameSpelling:
@@ -625,10 +674,93 @@ class CafeCashierController extends GetxController {
 
   // ── 1. TRANSCRIPT & AUTO-PARSING & SPEECH (FITUR 1 & 3 & 6) ───────────────
 
+  /// Ingests live sign word into sentence accumulator with anti-jitter debouncing
+  void addSignWordToLiveOrder(String word) {
+    final cleaned = word.trim().toUpperCase();
+    if (cleaned.isEmpty) return;
+
+    final now = DateTime.now();
+    // Anti-jitter: ignore identical repeated word if under 1100ms
+    if (cleaned == _lastLiveSignWord &&
+        now.difference(_lastLiveSignTime).inMilliseconds < 1100) {
+      return;
+    }
+
+    _lastLiveSignTime = now;
+    _lastLiveSignWord = cleaned;
+    liveOrderWords.add(cleaned);
+    final sentence = liveOrderWords.join(' ');
+    liveTranscript.value = sentence;
+
+    // Auto-advance stage from idle to ordering
+    if (currentStage.value == CafeOrderStage.idle) {
+      currentStage.value = CafeOrderStage.ordering;
+    }
+
+    // Parse structured slot dynamically from accumulated sentence
+    final parsed = _orderSlotParserService.parseTranscript(sentence);
+    activeParsedSlot.value = parsed;
+
+    // Auto-switch dairy allergy if detected
+    if (parsed.dietaryAlerts.isNotEmpty) {
+      _checkAndAutoSwitchDairyAllergy(parsed.dietaryAlerts);
+    }
+
+    // Barista Sommelier Recommendation
+    final recommendation = _coffeeRecommenderService.recommendCoffee(sentence);
+    activeRecommendation.value = recommendation;
+
+    try {
+      HapticFeedback.lightImpact();
+    } catch (_) {}
+  }
+
+  /// Deletes the last word from the sign sentence accumulator
+  void deleteLastSignWord() {
+    if (liveOrderWords.isNotEmpty) {
+      liveOrderWords.removeLast();
+      final sentence = liveOrderWords.join(' ');
+      liveTranscript.value = sentence;
+      if (sentence.isEmpty) {
+        activeParsedSlot.value = null;
+        _lastLiveSignWord = '';
+      } else {
+        final parsed = _orderSlotParserService.parseTranscript(sentence);
+        activeParsedSlot.value = parsed;
+        activeRecommendation.value =
+            _coffeeRecommenderService.recommendCoffee(sentence);
+      }
+      try {
+        HapticFeedback.selectionClick();
+      } catch (_) {}
+    }
+  }
+
+  /// Clears the entire sign sentence accumulator
+  void clearLiveOrderSentence() {
+    liveOrderWords.clear();
+    liveTranscript.value = '';
+    activeParsedSlot.value = null;
+    _lastLiveSignWord = '';
+    try {
+      HapticFeedback.selectionClick();
+    } catch (_) {}
+  }
+
   /// Ingests live transcript from Camera Sign Recognition, Mic STT, or text.
   void onTranscriptReceived(String transcript) {
-    liveTranscript.value = transcript.trim();
-    if (transcript.trim().isEmpty) return;
+    final trimmed = transcript.trim();
+    liveTranscript.value = trimmed;
+    if (trimmed.isEmpty) {
+      liveOrderWords.clear();
+      activeParsedSlot.value = null;
+      return;
+    }
+
+    // Synchronize sentence accumulator with typed / spoken text
+    liveOrderWords.assignAll(
+      trimmed.split(RegExp(r'\s+')).where((w) => w.isNotEmpty),
+    );
 
     // V2: Auto-advance dari idle ke ordering saat ada input pertama
     if (currentStage.value == CafeOrderStage.idle) {
@@ -636,7 +768,7 @@ class CafeCashierController extends GetxController {
     }
 
     // Feature 1 & 6: Parse structured slot & dietary alerts
-    final parsed = _orderSlotParserService.parseTranscript(transcript);
+    final parsed = _orderSlotParserService.parseTranscript(trimmed);
     activeParsedSlot.value = parsed;
 
     // V2: Auto-switch susu sapi ke Oat Milk jika alergi dairy terdeteksi
@@ -646,7 +778,7 @@ class CafeCashierController extends GetxController {
 
     // Feature 3: Evaluate Barista Sommelier Recommendation
     final recommendation =
-        _coffeeRecommenderService.recommendCoffee(transcript);
+        _coffeeRecommenderService.recommendCoffee(trimmed);
     activeRecommendation.value = recommendation;
   }
 
@@ -715,6 +847,15 @@ class CafeCashierController extends GetxController {
       createdAt: DateTime.now(),
     );
     activeParsedSlot.value = null;
+    clearLiveOrderSentence();
+    _cancelSpellingTimers();
+    customerCupNameBuffer.value = '';
+    isSpellingCustomerName.value = false;
+    spellingRemainingMs.value = 0;
+    detectedSpellingLetter.value = '';
+    letterHoldProgress.value = 0.0;
+    _letterStreakCount = 0;
+    _lastDetectedCandidate = '';
     isDeafCallActive.value = false;
     isChallengeCompleted.value = false;
     challengeProgress.value = 0.0;
@@ -722,9 +863,12 @@ class CafeCashierController extends GetxController {
     isQrisProcessing.value = false;
     activeCustomerQuickReplies.clear();
     lastCustomerReply.value = '';
+    lastCustomerActionFeedback.value = '';
+    activeRecommendation.value = null;
     isMiniCameraModalOpen.value = false;
     showTrophyDialog.value = false;
     closeCamera();
+    unawaited(_localDataSource.clearActiveTicket());
   }
 
   String _incrementQueue(String current) {
@@ -789,8 +933,13 @@ class CafeCashierController extends GetxController {
       // Serial FIFO TTS: "Atas nama [Name]"
       await _ttsService.speak('Atas nama $name', languageCode: 'id-ID');
     }
+    customerCupNameBuffer.value = '';
     isSpellingCustomerName.value = false;
     spellingRemainingMs.value = 0;
+    detectedSpellingLetter.value = '';
+    letterHoldProgress.value = 0.0;
+    _letterStreakCount = 0;
+    _lastDetectedCandidate = '';
     if (activeCameraFeature.value == CafeCameraActiveFeature.cupNameSpelling) {
       await closeCamera();
     }
@@ -855,8 +1004,10 @@ class CafeCashierController extends GetxController {
       ttsServiceOverride: _ttsService,
     );
     lastQueueCallEvent.value = event;
-    currentTicket.value =
-        currentTicket.value.copyWith(status: OrderStatus.readyForPickup);
+    if (ticket.items.isNotEmpty && ticket.grandTotal > 0) {
+      currentTicket.value =
+          currentTicket.value.copyWith(status: OrderStatus.readyForPickup);
+    }
   }
 
   Future<void> callDeafCustomer() async {
@@ -867,8 +1018,10 @@ class CafeCashierController extends GetxController {
     );
     lastQueueCallEvent.value = event;
     isDeafCallActive.value = true;
-    currentTicket.value =
-        currentTicket.value.copyWith(status: OrderStatus.readyForPickup);
+    if (ticket.items.isNotEmpty && ticket.grandTotal > 0) {
+      currentTicket.value =
+          currentTicket.value.copyWith(status: OrderStatus.readyForPickup);
+    }
 
     try {
       await HapticFeedback.vibrate();
@@ -1087,9 +1240,13 @@ class CafeCashierController extends GetxController {
     final total = currentTicket.value.grandTotal;
     final completedTicket = currentTicket.value.copyWith(
       amountPaid: total,
-      status: OrderStatus.completed,
+      status: OrderStatus.preparing,
     );
     currentTicket.value = completedTicket;
+    currentStage.value = CafeOrderStage.pickup;
+
+    // Insert into active orders queue for barista/kitchen preparation
+    _addOrUpdateQueueOrder(completedTicket);
 
     // Persist completed order to Cloud Firestore (offloads long-term data from local storage)
     final firestoreService = _firestoreCafePosService;
@@ -1101,7 +1258,7 @@ class CafeCashierController extends GetxController {
       await HapticFeedback.mediumImpact();
     } catch (_) {}
     await _ttsService.speak(
-      'Pembayaran QRIS sejumlah $total rupiah berhasil diverifikasi.',
+      'Pembayaran QRIS sejumlah $total rupiah berhasil diverifikasi. Pesanan masuk antrean.',
       languageCode: 'id-ID',
     );
   }
@@ -1110,8 +1267,12 @@ class CafeCashierController extends GetxController {
     final ticket = currentTicket.value;
     if (ticket.amountPaid < ticket.grandTotal) return;
     isOrderCompleted.value = true;
-    final completedTicket = ticket.copyWith(status: OrderStatus.completed);
+    final completedTicket = ticket.copyWith(status: OrderStatus.preparing);
     currentTicket.value = completedTicket;
+    currentStage.value = CafeOrderStage.pickup;
+
+    // Insert into active orders queue
+    _addOrUpdateQueueOrder(completedTicket);
 
     // Persist completed order to Cloud Firestore
     final firestoreService = _firestoreCafePosService;
@@ -1123,27 +1284,138 @@ class CafeCashierController extends GetxController {
       await HapticFeedback.mediumImpact();
     } catch (_) {}
     await _ttsService.speak(
-      'Pembayaran tunai diterima, kembalian ${ticket.changeAmount} rupiah.',
+      'Pembayaran tunai diterima, kembalian ${ticket.changeAmount} rupiah. Pesanan masuk antrean.',
       languageCode: 'id-ID',
     );
   }
 
-  /// Resets state for a new order and cleans up local active ticket storage to save local space
-  Future<void> resetToNewOrder() async {
+  /// Adds or updates an order in the active orders queue
+  void _addOrUpdateQueueOrder(CafeOrderTicket ticket) {
+    final idx = activeOrdersQueue.indexWhere((t) => t.orderId == ticket.orderId);
+    if (idx >= 0) {
+      activeOrdersQueue[idx] = ticket;
+    } else {
+      activeOrdersQueue.insert(0, ticket);
+    }
+    _localDataSource.saveActiveQueue(activeOrdersQueue.toList());
+  }
+
+  /// Starts a fresh order for the next customer while maintaining previous orders in queue
+  Future<void> startNextCustomerOrder() async {
     isOrderCompleted.value = false;
-    final nextId = 'ORD-${DateTime.now().millisecondsSinceEpoch}';
-    final nextQueue = 'A-${100 + (DateTime.now().second % 900)}';
+    isQrisProcessing.value = false;
+    final nextQueue = _incrementQueue(currentTicket.value.queueNumber);
+    final nextId = 'ORD-${DateTime.now().millisecondsSinceEpoch % 100000}';
     currentTicket.value = CafeOrderTicket(
       orderId: nextId,
       queueNumber: nextQueue,
       customerName: '',
+      customerNotes: '',
       items: const [],
       status: OrderStatus.draft,
       paymentMethod: OrderPaymentMethod.qris,
       amountPaid: 0,
       createdAt: DateTime.now(),
     );
+    activeParsedSlot.value = null;
+    clearLiveOrderSentence();
+    _cancelSpellingTimers();
+    isSpellingCustomerName.value = false;
+    customerCupNameBuffer.value = '';
+    spellingRemainingMs.value = 0;
+    detectedSpellingLetter.value = '';
+    letterHoldProgress.value = 0.0;
+    _letterStreakCount = 0;
+    _lastDetectedCandidate = '';
+    activeCustomerQuickReplies.clear();
+    lastCustomerReply.value = '';
+    lastCustomerActionFeedback.value = '';
+    activeRecommendation.value = null;
+    isDeafCallActive.value = false;
+    isChallengeCompleted.value = false;
+    challengeProgress.value = 0.0;
+    isMiniCameraModalOpen.value = false;
+    showTrophyDialog.value = false;
+    currentStage.value = CafeOrderStage.ordering;
+    dairyAllergyAutoSwitched.value = false;
+    dairyAllergyBannerMessage.value = '';
+    await closeCamera();
     await _localDataSource.clearActiveTicket();
+    await persistCurrentTicket();
+  }
+
+  /// Updates status of an order in the active queue
+  void updateQueueOrderStatus(String orderId, OrderStatus newStatus) {
+    final idx = activeOrdersQueue.indexWhere((t) => t.orderId == orderId);
+    if (idx >= 0) {
+      final updated = activeOrdersQueue[idx].copyWith(status: newStatus);
+      activeOrdersQueue[idx] = updated;
+      _localDataSource.saveActiveQueue(activeOrdersQueue.toList());
+      _firestoreCafePosService?.saveOrder(updated);
+    }
+  }
+
+  /// Marks a queued order as ready for customer pickup
+  Future<void> markOrderReadyForPickup(CafeOrderTicket ticket) async {
+    updateQueueOrderStatus(ticket.orderId, OrderStatus.readyForPickup);
+    try {
+      await HapticFeedback.mediumImpact();
+    } catch (_) {}
+    final customer = ticket.customerName.isEmpty ? 'Pelanggan' : ticket.customerName;
+    await _ttsService.speak(
+      'Pesanan nomor ${ticket.queueNumber} atas nama $customer sudah siap diambil.',
+      languageCode: 'id-ID',
+    );
+  }
+
+  /// Marks an order as handed over / completed
+  Future<void> completeOrderPickup(String orderId) async {
+    final idx = activeOrdersQueue.indexWhere((t) => t.orderId == orderId);
+    if (idx >= 0) {
+      final ticket = activeOrdersQueue[idx];
+      updateQueueOrderStatus(orderId, OrderStatus.completed);
+      try {
+        await HapticFeedback.lightImpact();
+      } catch (_) {}
+      await _ttsService.speak(
+        'Pesanan ${ticket.queueNumber} telah diserahkan. Terima kasih!',
+        languageCode: 'id-ID',
+      );
+    }
+  }
+
+  /// Removes an order from the active queue
+  Future<void> removeOrderFromQueue(String orderId) async {
+    activeOrdersQueue.removeWhere((t) => t.orderId == orderId);
+    await _localDataSource.saveActiveQueue(activeOrdersQueue.toList());
+  }
+
+  /// Calls a customer from the queue via Voice TTS or Deaf Pager
+  Future<void> callQueueCustomer(CafeOrderTicket ticket, {required bool isDeaf}) async {
+    if (isDeaf) {
+      final event = await _queuePagerService.callDeafCustomer(
+        queueNumber: ticket.queueNumber,
+        customerName: ticket.customerName,
+      );
+      lastQueueCallEvent.value = event;
+      isDeafCallActive.value = true;
+      try {
+        await HapticFeedback.vibrate();
+      } catch (_) {}
+      _triggerSignVideo(event.signVideoKeyword);
+    } else {
+      final event = await _queuePagerService.callHearingCustomer(
+        queueNumber: ticket.queueNumber,
+        customerName: ticket.customerName,
+        ttsServiceOverride: _ttsService,
+      );
+      lastQueueCallEvent.value = event;
+    }
+  }
+
+  /// Resets state for a new order and cleans up local active ticket storage to save local space
+  Future<void> resetToNewOrder() async {
+    await startNextCustomerOrder();
   }
 
   /// Realtime stream of active cloud orders (barista/kitchen display)

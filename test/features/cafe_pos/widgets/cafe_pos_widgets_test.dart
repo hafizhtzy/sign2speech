@@ -139,7 +139,7 @@ void main() {
       ));
 
       expect(find.text('RIAN'), findsOneWidget);
-      await tester.tap(find.text('Mode Eja Nama Aktif'));
+      await tester.tap(find.text('Eja Ulang'));
       expect(started, isTrue);
     });
 
@@ -165,9 +165,9 @@ void main() {
       await tester.tap(find.text('N'));
       expect(addedLetter, 'N');
 
-      await tester.ensureVisible(find.text('Selesai Eja / Spasi'));
+      await tester.ensureVisible(find.text('Simpan Nama Cup'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Selesai Eja / Spasi'));
+      await tester.tap(find.text('Simpan Nama Cup'));
       expect(finished, isTrue);
     });
   });
@@ -336,7 +336,36 @@ void main() {
 
       expect(removedIndex, equals(0));
     });
+
+    testWidgets('CafeOrderTicketCard does NOT display LUNAS or STRUK RESMI KAFE on empty ticket even if status is preparing',
+        (tester) async {
+      final emptyTicket = CafeOrderTicket(
+        orderId: 'ORD-999',
+        queueNumber: 'A-109',
+        customerName: '',
+        status: OrderStatus.preparing,
+        items: const [],
+        amountPaid: 0,
+        paymentMethod: OrderPaymentMethod.qris,
+        createdAt: DateTime.now(),
+      );
+
+      await tester.pumpWidget(_buildTestApp(
+        CafeOrderTicketCard(
+          ticket: emptyTicket,
+          onPaymentMethodChanged: (_) {},
+          onAddCash: (_) {},
+          onTranslateBill: () {},
+          onClearTicket: () {},
+        ),
+      ));
+
+      expect(find.text('Tiket Pesanan Kafe'), findsOneWidget);
+      expect(find.text('STRUK RESMI KAFE'), findsNothing);
+      expect(find.text('LUNAS'), findsNothing);
+    });
   });
+
 
   group('DualModeQueuePager and OrderReadyBanner Widgets (Fitur 4)', () {
     testWidgets('DualModeQueuePager triggers hearing and deaf calls', (tester) async {

@@ -329,5 +329,33 @@ class AppStrings {
   static const String cafeQueueNumberPrefix = 'cafe_queue_number_prefix';
   static const String cafeClearTicketTooltip = 'cafe_clear_ticket_tooltip';
   static const String cafeBackTooltip = 'cafe_back_tooltip';
+
+  // Queue Management
+  static const String cafeOrderQueueTitle = 'cafe_order_queue_title';
+  static const String cafeOrderQueueSubtitle = 'cafe_order_queue_subtitle';
+  static const String cafeOrderQueueBadge = 'cafe_order_queue_badge';
+  static const String cafeOrderQueueEmpty = 'cafe_order_queue_empty';
+  static const String cafeOrderQueueEmptyDesc = 'cafe_order_queue_empty_desc';
+  static const String cafeStartNextOrder = 'cafe_start_next_order';
+  static const String cafePaymentSuccessQueued = 'cafe_payment_success_queued';
+  static const String cafeViewQueue = 'cafe_view_queue';
+  static const String cafeFilterAll = 'cafe_filter_all';
+  static const String cafeFilterPreparing = 'cafe_filter_preparing';
+  static const String cafeFilterReady = 'cafe_filter_ready';
+  static const String cafeFilterCompleted = 'cafe_filter_completed';
+  static const String cafeMarkPreparing = 'cafe_mark_preparing';
+  static const String cafeMarkReady = 'cafe_mark_ready';
+  static const String cafeMarkCompleted = 'cafe_mark_completed';
+  static const String cafeCallCustomerVoice = 'cafe_call_customer_voice';
+  static const String cafeCallCustomerDeaf = 'cafe_call_customer_deaf';
+  static const String cafeOrderElapsedMinutes = 'cafe_order_elapsed_minutes';
+  static const String cafeOrderElapsedSeconds = 'cafe_order_elapsed_seconds';
+
+  // Sign Sentence Accumulator
+  static const String cafeSignSentenceBuilderTitle = 'cafe_sign_sentence_builder_title';
+  static const String cafeDeleteLastWord = 'cafe_delete_last_word';
+  static const String cafeClearSentence = 'cafe_clear_sentence';
+  static const String cafeSentenceEmpty = 'cafe_sentence_empty';
+  static const String cafeWordDetected = 'cafe_word_detected';
 }
 

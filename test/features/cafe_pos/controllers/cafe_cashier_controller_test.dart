@@ -280,7 +280,7 @@ void main() {
       await controller.processQrisPayment();
 
       expect(controller.isOrderCompleted.value, isTrue);
-      expect(controller.currentTicket.value.status, OrderStatus.completed);
+      expect(controller.currentTicket.value.status, OrderStatus.preparing);
       expect(controller.currentTicket.value.amountPaid, controller.currentTicket.value.grandTotal);
       expect(mockTts.spokenTexts.any((t) => t.contains('QRIS')), isTrue);
     });
@@ -300,7 +300,7 @@ void main() {
 
       await controller.completeCashPayment();
       expect(controller.isOrderCompleted.value, isTrue);
-      expect(controller.currentTicket.value.status, OrderStatus.completed);
+      expect(controller.currentTicket.value.status, OrderStatus.preparing);
     });
 
     test('updates challenge progress and completes at 1.0', () async {
@@ -438,6 +438,208 @@ void main() {
       stampController.onClose();
     });
   });
+
+  group('CafeCashierController - Antrean Pesanan & Next Customer Order (User Req 1)', () {
+    test('payment completion puts order into activeOrdersQueue with preparing status', () async {
+      // Add an item to ticket
+      controller.onTranscriptReceived('pesan kopi susu aren dingin');
+      controller.confirmParsedSlotToTicket();
+      expect(controller.currentTicket.value.items.length, 1);
+      final initialQueueNum = controller.currentTicket.value.queueNumber;
+
+      // Simulate QRIS payment
+      await controller.processQrisPayment();
+
+      expect(controller.isOrderCompleted.value, isTrue);
+      expect(controller.activeOrdersQueue.length, 1);
+      expect(controller.activeOrdersQueue.first.queueNumber, equals(initialQueueNum));
+      expect(controller.activeOrdersQueue.first.status, equals(OrderStatus.preparing));
+      expect(mockTts.spokenTexts.last, contains('Pesanan masuk antrean'));
+    });
+
+    test('startNextCustomerOrder resets ticket for next customer while retaining queue', () async {
+      controller.onTranscriptReceived('pesan americano panas');
+      controller.confirmParsedSlotToTicket();
+      await controller.processQrisPayment();
+      expect(controller.activeOrdersQueue.length, 1);
+
+      final prevQueueNumber = controller.activeOrdersQueue.first.queueNumber;
+
+      // Cashier starts next customer order
+      await controller.startNextCustomerOrder();
+
+      // Current ticket must be fresh and clean
+      expect(controller.isOrderCompleted.value, isFalse);
+      expect(controller.currentTicket.value.items, isEmpty);
+      expect(controller.currentTicket.value.status, equals(OrderStatus.draft));
+      expect(controller.currentTicket.value.customerName, isEmpty);
+      expect(controller.currentTicket.value.queueNumber, isNot(equals(prevQueueNumber)));
+
+      // Previous order remains safely in the active orders queue!
+      expect(controller.activeOrdersQueue.length, 1);
+      expect(controller.activeOrdersQueue.first.queueNumber, equals(prevQueueNumber));
+      expect(controller.activeOrdersQueue.first.items.length, 1);
+    });
+
+    test('queue actions update status, call customer, and complete pickup', () async {
+      controller.onTranscriptReceived('pesan es karamel latte');
+      controller.confirmParsedSlotToTicket();
+      await controller.processQrisPayment();
+
+      final order = controller.activeOrdersQueue.first;
+      expect(order.status, equals(OrderStatus.preparing));
+
+      // Mark ready for pickup
+      await controller.markOrderReadyForPickup(order);
+      expect(controller.activeOrdersQueue.first.status, equals(OrderStatus.readyForPickup));
+      expect(mockTts.spokenTexts.last, contains('sudah siap diambil'));
+
+      // Complete pickup
+      await controller.completeOrderPickup(order.orderId);
+      expect(controller.activeOrdersQueue.first.status, equals(OrderStatus.completed));
+      expect(mockTts.spokenTexts.last, contains('telah diserahkan'));
+
+      // Remove from queue
+      await controller.removeOrderFromQueue(order.orderId);
+      expect(controller.activeOrdersQueue, isEmpty);
+    });
+  });
+
+  group('CafeCashierController - Live Sign Sentence Accumulator & Delete (User Req 2)', () {
+    test('accumulates multiple sign words sequentially (A then B without replacing)', () {
+      controller.addSignWordToLiveOrder('a');
+      expect(controller.liveOrderWords, equals(['A']));
+      expect(controller.liveTranscript.value, equals('A'));
+
+      controller.addSignWordToLiveOrder('b');
+      expect(controller.liveOrderWords, equals(['A', 'B']));
+      expect(controller.liveTranscript.value, equals('A B'));
+    });
+
+    test('ignores rapid duplicate sign word within debounce threshold', () {
+      controller.addSignWordToLiveOrder('KOPI');
+      expect(controller.liveOrderWords, equals(['KOPI']));
+
+      // Immediate repeated gesture of the same word
+      controller.addSignWordToLiveOrder('KOPI');
+      expect(controller.liveOrderWords, equals(['KOPI'])); // Anti-jitter prevents duplicates
+
+      // Different word is accepted immediately
+      controller.addSignWordToLiveOrder('SUSU');
+      expect(controller.liveOrderWords, equals(['KOPI', 'SUSU']));
+      expect(controller.liveTranscript.value, equals('KOPI SUSU'));
+    });
+
+    test('deleteLastSignWord removes the last word and updates parsed slot', () {
+      controller.addSignWordToLiveOrder('KOPI');
+      controller.addSignWordToLiveOrder('SUSU');
+      controller.addSignWordToLiveOrder('DINGIN');
+
+      expect(controller.liveOrderWords, equals(['KOPI', 'SUSU', 'DINGIN']));
+      expect(controller.liveTranscript.value, equals('KOPI SUSU DINGIN'));
+
+      controller.deleteLastSignWord();
+
+      expect(controller.liveOrderWords, equals(['KOPI', 'SUSU']));
+      expect(controller.liveTranscript.value, equals('KOPI SUSU'));
+      expect(controller.activeParsedSlot.value?.drinkId, equals('kopi_susu_aren'));
+    });
+
+    test('clearLiveOrderSentence clears all accumulated sign words and transcript', () {
+      controller.addSignWordToLiveOrder('KOPI');
+      controller.addSignWordToLiveOrder('SUSU');
+
+      controller.clearLiveOrderSentence();
+
+      expect(controller.liveOrderWords, isEmpty);
+      expect(controller.liveTranscript.value, isEmpty);
+      expect(controller.activeParsedSlot.value, isNull);
+    });
+  });
+
+  group('CafeCashierController - Next Customer Isolation & Previous Session Cleanup', () {
+    test('startNextCustomerOrder completely wipes previous customer session and prevents state leaks', () async {
+      // 1. Setup Customer 1 transaction
+      controller.onTranscriptReceived('pesan kopi susu aren dingin');
+      controller.confirmParsedSlotToTicket();
+      expect(controller.currentTicket.value.items.length, 1);
+
+      controller.startCustomerNameSpelling();
+      controller.addSpellingLetter('C');
+      controller.addSpellingLetter('C');
+      controller.addSpellingLetter('C');
+      await controller.finishCustomerNameSpelling();
+      expect(controller.currentTicket.value.customerName, equals('CCC'));
+
+      await controller.executeQuickDeck(0); // sets quick replies
+      expect(controller.activeCustomerQuickReplies, isNotEmpty);
+      controller.onCustomerSelectReply('Dine-In (Minum Sini)');
+      expect(controller.lastCustomerReply.value, equals('Dine-In (Minum Sini)'));
+
+      // Process payment
+      await controller.processQrisPayment();
+      expect(controller.isOrderCompleted.value, isTrue);
+      expect(controller.currentTicket.value.status, equals(OrderStatus.preparing));
+      expect(controller.activeOrdersQueue.length, equals(1));
+      final previousOrderId = controller.currentTicket.value.orderId;
+
+      // 2. Proceed to next customer order
+      await controller.startNextCustomerOrder();
+
+      // 3. Verify absolute isolation on the new active ticket
+      final fresh = controller.currentTicket.value;
+      expect(fresh.orderId, isNot(equals(previousOrderId)));
+      expect(fresh.customerName, equals(''));
+      expect(fresh.customerNotes, equals(''));
+      expect(fresh.items, isEmpty);
+      expect(fresh.grandTotal, equals(0));
+      expect(fresh.amountPaid, equals(0));
+      expect(fresh.status, equals(OrderStatus.draft));
+
+      // 4. Verify buffers, quick replies, and feedback are purged
+      expect(controller.customerCupNameBuffer.value, equals(''));
+      expect(controller.detectedSpellingLetter.value, equals(''));
+      expect(controller.letterHoldProgress.value, equals(0.0));
+      expect(controller.isSpellingCustomerName.value, equals(false));
+      expect(controller.isOrderCompleted.value, equals(false));
+      expect(controller.isQrisProcessing.value, equals(false));
+      expect(controller.activeCustomerQuickReplies, isEmpty);
+      expect(controller.lastCustomerReply.value, equals(''));
+      expect(controller.lastCustomerActionFeedback.value, equals(''));
+      expect(controller.activeRecommendation.value, isNull);
+      expect(controller.isDeafCallActive.value, equals(false));
+      expect(controller.activeCameraFeature.value, equals(CafeCameraActiveFeature.none));
+
+      // 5. Subsequent call to finishCustomerNameSpelling with empty buffer MUST NOT restore previous name
+      await controller.finishCustomerNameSpelling();
+      expect(controller.currentTicket.value.customerName, equals(''));
+
+      // 6. Calling hearing customer from queue MUST NOT corrupt active draft ticket status
+      await controller.callHearingCustomer();
+      expect(controller.currentTicket.value.status, equals(OrderStatus.draft));
+    });
+
+    test('clearTicket comprehensively purges cup name buffers, timers, and storage', () async {
+      controller.customerCupNameBuffer.value = 'BUDI';
+      controller.isSpellingCustomerName.value = true;
+      controller.detectedSpellingLetter.value = 'B';
+      controller.letterHoldProgress.value = 0.8;
+      controller.activeCustomerQuickReplies.assignAll(['Test']);
+      controller.lastCustomerReply.value = 'Test';
+
+      controller.clearTicket();
+
+      expect(controller.currentTicket.value.customerName, equals(''));
+      expect(controller.customerCupNameBuffer.value, equals(''));
+      expect(controller.detectedSpellingLetter.value, equals(''));
+      expect(controller.letterHoldProgress.value, equals(0.0));
+      expect(controller.isSpellingCustomerName.value, equals(false));
+      expect(controller.activeCustomerQuickReplies, isEmpty);
+      expect(controller.lastCustomerReply.value, equals(''));
+      expect(controller.activeCameraFeature.value, equals(CafeCameraActiveFeature.none));
+    });
+  });
 }
+
 
 

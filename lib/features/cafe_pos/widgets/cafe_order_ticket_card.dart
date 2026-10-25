@@ -20,6 +20,8 @@ class CafeOrderTicketCard extends StatelessWidget {
   final VoidCallback? onProcessQris;
   final VoidCallback? onCompleteCash;
   final VoidCallback? onSetExactCash;
+  final VoidCallback? onStartNextOrder;
+  final VoidCallback? onViewQueue;
   final bool isQrisProcessing;
   final void Function(int itemIndex, OrderMilkType newMilk)? onSubstituteMilk;
   final void Function(int itemIndex)? onRemoveItem;
@@ -35,6 +37,8 @@ class CafeOrderTicketCard extends StatelessWidget {
     this.onProcessQris,
     this.onCompleteCash,
     this.onSetExactCash,
+    this.onStartNextOrder,
+    this.onViewQueue,
     this.isQrisProcessing = false,
     this.onSubstituteMilk,
     this.onRemoveItem,
@@ -44,7 +48,8 @@ class CafeOrderTicketCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     AppTranslations.ensureLoaded();
-    final isPaid = ticket.status == OrderStatus.completed;
+    final isPaid =
+        ticket.isPaid && ticket.items.isNotEmpty && ticket.grandTotal > 0;
 
     return Container(
       decoration: BoxDecoration(
@@ -653,25 +658,103 @@ class CafeOrderTicketCard extends StatelessWidget {
                     ),
                   ],
                 ] else ...[
-                  // Already Paid Banner
+                  // Already Paid & Queued Banner
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppColors.matcha.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.matcha.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: AppColors.matcha.withValues(alpha: 0.4),
+                      ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    child: Column(
                       children: [
-                        Icon(Icons.check_circle,
-                            color: AppColors.matcha, size: 22),
-                        const SizedBox(width: 8),
-                        Text(
-                          AppStrings.cafePaymentSuccessServing.tr,
-                          style: AppTypography.titleSmall.copyWith(
-                            color: AppColors.matcha,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.check_circle,
+                                color: AppColors.matcha, size: 22),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                AppStrings.cafePaymentSuccessQueued.trParams(
+                                  {'queue': ticket.queueNumber},
+                                ),
+                                style: AppTypography.titleSmall.copyWith(
+                                  color: AppColors.matcha,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            if (onStartNextOrder != null)
+                              Expanded(
+                                flex: 3,
+                                child: SizedBox(
+                                  height: 48,
+                                  child: ElevatedButton.icon(
+                                    onPressed: onStartNextOrder,
+                                    icon: const Icon(
+                                      Icons.add_shopping_cart_rounded,
+                                      size: 18,
+                                    ),
+                                    label: Text(
+                                      AppStrings.cafeStartNextOrder.tr,
+                                      style: AppTypography.labelMedium.copyWith(
+                                        color: AppColors.surface,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primary,
+                                      foregroundColor: AppColors.surface,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            if (onViewQueue != null) ...[
+                              const SizedBox(width: 8),
+                              Expanded(
+                                flex: 2,
+                                child: SizedBox(
+                                  height: 48,
+                                  child: OutlinedButton.icon(
+                                    onPressed: onViewQueue,
+                                    icon: const Icon(
+                                      Icons.receipt_long_rounded,
+                                      size: 18,
+                                    ),
+                                    label: Text(
+                                      AppStrings.cafeOrderQueueTitle.tr,
+                                      style: AppTypography.labelMedium.copyWith(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: AppColors.primary,
+                                      side: BorderSide(
+                                        color: AppColors.primary,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ],
                     ),

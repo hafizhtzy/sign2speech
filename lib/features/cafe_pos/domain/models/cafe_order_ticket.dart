@@ -40,6 +40,12 @@ class CafeOrderTicket {
   int get changeAmount =>
       (amountPaid >= grandTotal) ? (amountPaid - grandTotal) : 0;
 
+  /// Whether this ticket has been paid and confirmed (preparing in kitchen, ready, or completed).
+  bool get isPaid =>
+      status == OrderStatus.completed ||
+      status == OrderStatus.preparing ||
+      status == OrderStatus.readyForPickup;
+
   /// Aggregated list of all dietary alerts across all order items.
   List<DietaryAlertTag> get allDietaryAlerts {
     final alerts = <DietaryAlertTag>[];

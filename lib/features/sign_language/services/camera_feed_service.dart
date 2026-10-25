@@ -195,7 +195,11 @@ class CameraFeedService extends GetxService {
   }
 
   void _onStreamError(dynamic error) {
-    debugPrint('[CameraFeedService] Stream error: $error');
+    final msg = error is PlatformException
+        ? (error.message ?? error.code)
+        : error.toString();
+    errorMessage.value = msg;
+    debugPrint('[CameraFeedService] Stream error: $msg');
   }
 
   @override
