@@ -150,39 +150,251 @@ class _CoffeeDetailScreenState extends State<CoffeeDetailScreen> {
             ),
           );
 
-    final canPop = Navigator.of(context).canPop();
     controller.addItemToTicket(slot);
+    controller.onTranscriptReceived('pesan ${item.nameId}', triggerSign: true);
     await _localDataSource.clearCustomizationDraft(item.id);
 
     try {
       AppSnackbar.show(
-        title: 'Pesanan Ditambahkan',
+        title: AppStrings.cafeOrderSentSuccessTitle.tr,
         message: '${slot.quantity}x ${item.nameId} masuk ke antrean kasir',
         variant: SnackbarVariant.success,
       );
     } catch (_) {}
 
-    if (canPop) {
-      Get.back();
-    } else {
-      Get.offNamed(AppRoutes.cafeCashierCounter);
-    }
+    if (!mounted) return;
+    await _showOrderSuccessDialog(slot);
   }
 
+  Future<void> _showOrderSuccessDialog(ParsedCafeOrderSlot slot) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        backgroundColor: AppColors.surface,
+        elevation: 8,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(color: AppColors.border, width: 1.2),
+        ),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Matcha Check Circle
+                Container(
+                  width: 68,
+                  height: 68,
+                  decoration: BoxDecoration(
+                    color: AppColors.matcha.withValues(alpha: 0.14),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.matcha.withValues(alpha: 0.4),
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.check_circle_rounded,
+                    size: 42,
+                    color: AppColors.matcha,
+                  ),
+                ),
+                const SizedBox(height: 18),
 
+                // Dialog Title
+                Text(
+                  AppStrings.cafeOrderSentSuccessTitle.tr,
+                  textAlign: TextAlign.center,
+                  style: AppTypography.headlineMedium.copyWith(
+                    color: AppColors.ink,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // Dialog Subtitle
+                Text(
+                  AppStrings.cafeOrderSentSuccessDesc.tr,
+                  textAlign: TextAlign.center,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.muted,
+                    fontSize: 13,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 18),
+
+                // Order Summary Card
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.bgSurface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '${slot.quantity}x ${item.nameId}',
+                              style: AppTypography.titleSmall.copyWith(
+                                color: AppColors.ink,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Text(
+                            formatRupiah(slot.totalPrice),
+                            style: AppTypography.titleSmall.copyWith(
+                              color: AppColors.secondary,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _orderSentencePreview,
+                        style: AppTypography.bodySmall.copyWith(
+                          color: AppColors.muted,
+                          fontSize: 11,
+                          height: 1.35,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Badge: Kasir & Video Isyarat Aktif
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.sign_language_rounded,
+                            size: 14,
+                            color: AppColors.matcha,
+                          ),
+                          const SizedBox(width: 5),
+                          Expanded(
+                            child: Text(
+                              AppStrings.cafeOrderSentSignSyncNotice.tr,
+                              style: AppTypography.labelSmall.copyWith(
+                                color: AppColors.matcha,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 22),
+
+                // Action Button: "OK, Selesai"
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      final canPop = Navigator.of(context).canPop();
+                      if (canPop) {
+                        Get.back();
+                      } else {
+                        Get.offNamed(AppRoutes.cafeCashierCounter);
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.surface,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: Text(
+                      AppStrings.cafeOrderSentConfirmButton.tr,
+                      style: AppTypography.labelLarge.copyWith(
+                        color: AppColors.surface,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.canvas,
+      appBar: AppBar(
+        backgroundColor: AppColors.canvas,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        centerTitle: true,
+        leading: IconButton(
+          onPressed: () => Get.back(),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          color: AppColors.primary,
+          tooltip: 'Kembali',
+        ),
+        title: Text(
+          AppStrings.cafeCoffeeDetailTitle.tr,
+          style: AppTypography.titleMedium.copyWith(
+            color: AppColors.ink,
+            fontWeight: FontWeight.bold,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
+        actions: [
+          IconButton(
+            onPressed: _resetToDefaultRecipe,
+            icon: const Icon(Icons.restart_alt_rounded),
+            color: AppColors.secondary,
+            tooltip: 'Reset Standar',
+          ),
+          IconButton(
+            onPressed: () {
+              setState(() => _isFavorite = !_isFavorite);
+              HapticFeedback.selectionClick();
+            },
+            icon: Icon(
+              _isFavorite
+                  ? Icons.favorite_rounded
+                  : Icons.favorite_border_rounded,
+              color: _isFavorite ? AppColors.amber : AppColors.muted,
+            ),
+            tooltip: 'Favorit',
+          ),
+          const SizedBox(width: 4),
+        ],
+      ),
       body: SafeArea(
+        top: false,
         bottom: false,
         child: ResponsiveContentWrapper(
           maxWidth: ResponsiveBreakpoints.maxFormWidth,
           child: Column(
             children: [
-              // 1. Pinned Curved Header (Never scrolls away)
-              _buildCurvedHeader(),
 
               // 2. Scrollable Recipe Customization Section
               Expanded(
@@ -280,68 +492,6 @@ class _CoffeeDetailScreenState extends State<CoffeeDetailScreen> {
     );
   }
 
-  Widget _buildCurvedHeader() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
-      decoration: BoxDecoration(
-        color: AppColors.cameraDark,
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.22),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            onPressed: () => Get.back(),
-            icon: const Icon(Icons.arrow_back_ios_new_rounded),
-            color: AppColors.surface,
-            tooltip: 'Kembali',
-          ),
-          Expanded(
-            child: Text(
-              AppStrings.cafeCoffeeDetailTitle.tr,
-              textAlign: TextAlign.center,
-              style: AppTypography.titleMedium.copyWith(
-                color: AppColors.surface,
-                fontWeight: FontWeight.bold,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                onPressed: _resetToDefaultRecipe,
-                icon: const Icon(Icons.restart_alt_rounded),
-                color: AppColors.surface.withValues(alpha: 0.8),
-                tooltip: 'Reset Standar',
-              ),
-              IconButton(
-                onPressed: () {
-                  setState(() => _isFavorite = !_isFavorite);
-                  HapticFeedback.selectionClick();
-                },
-                icon: Icon(
-                  _isFavorite
-                      ? Icons.favorite_rounded
-                      : Icons.favorite_border_rounded,
-                  color: _isFavorite ? AppColors.amber : AppColors.surface,
-                ),
-                tooltip: 'Favorit',
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildTemperatureSelector() {
     return Row(

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// Thrown when the server does not return a valid video file
@@ -19,7 +19,7 @@ class SignLanguageCacheService {
   final Dio _dio;
   Directory? _cacheDir;
 
-  SignLanguageCacheService({Dio? dio})
+  SignLanguageCacheService({Dio? dio, Directory? cacheDir})
       : _dio = dio ??
             Dio(
               BaseOptions(
@@ -30,10 +30,21 @@ class SignLanguageCacheService {
                   'Accept-Encoding': 'identity',
                 },
               ),
-            );
+            ) {
+    if (cacheDir != null) {
+      _cacheDir = cacheDir;
+    }
+  }
 
   Future<Directory> get cacheDirectory async {
     if (_cacheDir != null) return _cacheDir!;
+    final bool isTestEnv = Platform.environment.containsKey('FLUTTER_TEST') ||
+        WidgetsBinding.instance.runtimeType.toString().contains('Test');
+    if (isTestEnv) {
+      final temp = Directory.systemTemp.createTempSync('sign_cache_');
+      _cacheDir = temp;
+      return temp;
+    }
     try {
       final base = await getApplicationSupportDirectory();
       final dir = Directory('${base.path}/sign_videos');

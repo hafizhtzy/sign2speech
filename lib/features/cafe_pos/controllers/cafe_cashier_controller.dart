@@ -61,6 +61,20 @@ class CafeCashierController extends GetxController {
     return null;
   }
 
+  TextToSignController? _textToSignController;
+
+  TextToSignController? get textToSignController {
+    if (_textToSignController != null) return _textToSignController;
+    if (Get.isRegistered<TextToSignController>()) {
+      try {
+        final found = Get.find<TextToSignController>();
+        _textToSignController = found;
+        return found;
+      } catch (_) {}
+    }
+    return null;
+  }
+
   final Rx<SignLanguageModel> _activeSignModel = SignLanguageModel.bisindo.obs;
   SignLanguageModel get activeSignModel => _activeSignModel.value;
 
@@ -99,6 +113,7 @@ class CafeCashierController extends GetxController {
     CafePosLocalDataSource? localDataSource,
     FirestoreCafePosService? firestoreCafePosService,
     FirestoreCounterSessionService? counterSessionService,
+    TextToSignController? textToSignController,
   })  : _orderSlotParserService =
             orderSlotParserService ?? OrderSlotParserService(),
         _coffeeRecommenderService =
@@ -119,6 +134,10 @@ class CafeCashierController extends GetxController {
         _signLanguageController = signLanguageController ??
             (Get.isRegistered<SignLanguageController>()
                 ? Get.find<SignLanguageController>()
+                : null),
+        _textToSignController = textToSignController ??
+            (Get.isRegistered<TextToSignController>()
+                ? Get.find<TextToSignController>()
                 : null),
         _localDataSource = localDataSource ??
             (Get.isRegistered<CafePosLocalDataSource>()
@@ -311,11 +330,16 @@ class CafeCashierController extends GetxController {
         model == SignLanguageModel.sibi ? 'SIBI' : 'BISINDO',
       );
     }
+    textToSignController?.selectedLanguage.value =
+        model == SignLanguageModel.sibi ? 'sibi' : 'bisindo';
     final signCtrl = signLanguageController;
     if (signCtrl != null) {
       try {
         await signCtrl.switchModel(model);
       } catch (_) {}
+    }
+    if (liveTranscript.value.isNotEmpty) {
+      _triggerSignVideo(liveTranscript.value);
     }
   }
 
@@ -697,6 +721,9 @@ class CafeCashierController extends GetxController {
       currentStage.value = CafeOrderStage.ordering;
     }
 
+    // Trigger realtime sign video on cashier screen
+    _triggerSignVideo(sentence);
+
     // Parse structured slot dynamically from accumulated sentence
     final parsed = _orderSlotParserService.parseTranscript(sentence);
     activeParsedSlot.value = parsed;
@@ -724,11 +751,13 @@ class CafeCashierController extends GetxController {
       if (sentence.isEmpty) {
         activeParsedSlot.value = null;
         _lastLiveSignWord = '';
+        textToSignController?.searchSign('');
       } else {
         final parsed = _orderSlotParserService.parseTranscript(sentence);
         activeParsedSlot.value = parsed;
         activeRecommendation.value =
             _coffeeRecommenderService.recommendCoffee(sentence);
+        _triggerSignVideo(sentence);
       }
       try {
         HapticFeedback.selectionClick();
@@ -742,18 +771,20 @@ class CafeCashierController extends GetxController {
     liveTranscript.value = '';
     activeParsedSlot.value = null;
     _lastLiveSignWord = '';
+    textToSignController?.searchSign('');
     try {
       HapticFeedback.selectionClick();
     } catch (_) {}
   }
 
   /// Ingests live transcript from Camera Sign Recognition, Mic STT, or text.
-  void onTranscriptReceived(String transcript) {
+  void onTranscriptReceived(String transcript, {bool triggerSign = true}) {
     final trimmed = transcript.trim();
     liveTranscript.value = trimmed;
     if (trimmed.isEmpty) {
       liveOrderWords.clear();
       activeParsedSlot.value = null;
+      textToSignController?.searchSign('');
       return;
     }
 
@@ -765,6 +796,11 @@ class CafeCashierController extends GetxController {
     // V2: Auto-advance dari idle ke ordering saat ada input pertama
     if (currentStage.value == CafeOrderStage.idle) {
       currentStage.value = CafeOrderStage.ordering;
+    }
+
+    // Speech-to-Sign: Trigger realtime sign language video for deaf cashier
+    if (triggerSign) {
+      _triggerSignVideo(trimmed);
     }
 
     // Feature 1 & 6: Parse structured slot & dietary alerts
@@ -780,6 +816,19 @@ class CafeCashierController extends GetxController {
     final recommendation =
         _coffeeRecommenderService.recommendCoffee(trimmed);
     activeRecommendation.value = recommendation;
+  }
+
+  /// Submits an order edited/spoken by hearing customer on "Pesan & AI" page.
+  /// Synchronizes the transcript, triggers real-time sign video for the deaf cashier,
+  /// and automatically commits the parsed coffee slot to the order ticket.
+  void submitCustomerVoiceOrder(String editedText) {
+    final trimmed = editedText.trim();
+    if (trimmed.isEmpty) return;
+    onTranscriptReceived(trimmed, triggerSign: true);
+    final slot = activeParsedSlot.value;
+    if (slot != null && slot.drinkId.isNotEmpty) {
+      confirmParsedSlotToTicket();
+    }
   }
 
   /// Toggles live microphone input via SpeechService.
@@ -863,6 +912,7 @@ class CafeCashierController extends GetxController {
     isQrisProcessing.value = false;
     activeCustomerQuickReplies.clear();
     lastCustomerReply.value = '';
+    textToSignController?.searchSign('');
     lastCustomerActionFeedback.value = '';
     activeRecommendation.value = null;
     isMiniCameraModalOpen.value = false;
@@ -1181,9 +1231,11 @@ class CafeCashierController extends GetxController {
   }
 
   void _triggerSignVideo(String keyword, {int? sessionId}) {
-    if (Get.isRegistered<TextToSignController>()) {
-      final signController = Get.find<TextToSignController>();
+    final signController = textToSignController;
+    if (signController != null) {
       if (sessionId == null || sessionId == _playSessionId) {
+        signController.selectedLanguage.value =
+            activeSignModel == SignLanguageModel.sibi ? 'sibi' : 'bisindo';
         signController.searchSign(keyword, force: true);
       }
     }

@@ -6,6 +6,7 @@ import 'package:speech2sign/core/localization/app_translations.dart';
 import 'package:speech2sign/core/theme/app_colors.dart';
 import 'package:speech2sign/core/theme/app_typography.dart';
 import 'package:speech2sign/core/utils/currency_formatter.dart';
+import 'package:speech2sign/core/widgets/app_snackbar.dart';
 import 'package:speech2sign/core/widgets/responsive_layout.dart';
 import 'package:speech2sign/features/sign_language/models/sign_language_model.dart';
 
@@ -13,7 +14,6 @@ import '../controllers/cafe_cashier_controller.dart';
 import '../domain/models/coffee_menu_item.dart';
 import '../domain/models/order_enums.dart';
 import '../widgets/auto_order_slot_tray.dart';
-import '../widgets/cafe_mini_camera_viewport.dart';
 import '../widgets/cafe_order_stage_stepper.dart';
 import '../widgets/cafe_order_ticket_card.dart';
 import '../widgets/cafe_menu_catalog_sheet.dart';
@@ -24,6 +24,9 @@ import '../widgets/cup_name_spelling_card.dart';
 import '../widgets/dual_mode_queue_pager.dart';
 import '../widgets/order_ready_banner.dart';
 import '../widgets/waiting_sign_challenge_card.dart';
+import '../widgets/cafe_cashier_sign_video_card.dart';
+import '../widgets/customer_voice_order_card.dart';
+import '../widgets/cafe_cashier_control_sheet.dart';
 import 'cafe_order_queue_screen.dart';
 
 
@@ -36,27 +39,16 @@ class CafeCashierCounterScreen extends StatefulWidget {
 }
 
 class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
-  late final TextEditingController _textEditController;
   late final CafeCashierController controller;
   Worker? _orderCompletedWorker;
-  Worker? _liveTranscriptWorker;
 
   @override
   void initState() {
     super.initState();
-    _textEditController = TextEditingController();
     controller = Get.find<CafeCashierController>();
     _orderCompletedWorker = ever<bool>(controller.isOrderCompleted, (completed) {
       if (completed && mounted) {
         _showOrderCompletedQueueDialog();
-      }
-    });
-    _liveTranscriptWorker = ever<String>(controller.liveTranscript, (text) {
-      if (_textEditController.text != text && mounted) {
-        _textEditController.value = TextEditingValue(
-          text: text,
-          selection: TextSelection.collapsed(offset: text.length),
-        );
       }
     });
   }
@@ -64,8 +56,6 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
   @override
   void dispose() {
     _orderCompletedWorker?.dispose();
-    _liveTranscriptWorker?.dispose();
-    _textEditController.dispose();
     super.dispose();
   }
 
@@ -75,7 +65,15 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
       catalog: CoffeeMenuItem.standardCatalog,
       onSelectItem: (item) {
         controller.addRecommendedItemToTicket(item);
+        controller.onTranscriptReceived('pesan ${item.nameId}', triggerSign: true);
       },
+    );
+  }
+
+  void _showCashierControlSheet() {
+    CafeCashierControlSheet.show(
+      context: context,
+      controller: controller,
     );
   }
 
@@ -315,147 +313,26 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
                   ),
                 ),
               ),
-            // Compact Sign Language Model Badge
-            Builder(builder: (context) {
-              final activeModel = controller.activeSignModel;
-              final isSibi = activeModel == SignLanguageModel.sibi;
-              return Container(
-                margin: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.paleMist,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: InkWell(
-                  onTap: () {
-                    final nextModel = isSibi
-                        ? SignLanguageModel.bisindo
-                        : SignLanguageModel.sibi;
-                    controller.switchSignLanguageModel(nextModel);
-                  },
-                  borderRadius: BorderRadius.circular(8),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.sign_language_rounded,
-                          size: 13,
-                          color: AppColors.secondary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          activeModel.displayName,
-                          style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.ink,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                          ),
-                        ),
-                        const SizedBox(width: 2),
-                        Icon(
-                          Icons.swap_horiz_rounded,
-                          size: 12,
-                          color: AppColors.muted,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }),
-            // Staff PIN lock/unlock button
+            // Responsive Adaptive Actions:
+            // On Tablet / Large Screens (>= 600dp), show full controls directly in AppBar
+            if (isLargeScreen) ...[
+              _buildAppBarSignModelToggle(controller),
+              _buildStaffPinButton(),
+              _buildQueueBadgeButton(),
+              _buildResetButton(),
+            ],
+
+            // On Mobile/Compact (< 600dp), show Queue Badge for immediate glanceability
+            if (!isLargeScreen)
+              _buildQueueBadgeButton(),
+
+            // More Options Menu Button (Titik Tiga ⋮) - Opens CafeCashierControlSheet
             IconButton(
-              constraints: const BoxConstraints(minWidth: 38, minHeight: 38),
-              padding: EdgeInsets.zero,
-              icon: Icon(
-                controller.staffPinAuthenticated.value
-                    ? Icons.lock_open_rounded
-                    : Icons.lock_rounded,
-                size: 18,
-              ),
-              color: controller.staffPinAuthenticated.value
-                  ? AppColors.matcha
-                  : AppColors.muted,
-              tooltip: controller.staffPinAuthenticated.value
-                  ? 'Keluar Staff'
-                  : 'Masuk PIN Staff',
-              onPressed: () async {
-                if (controller.staffPinAuthenticated.value) {
-                  controller.logoutStaff();
-                } else {
-                  await CafeStaffPinDialog.show(
-                    context,
-                    onVerify: controller.verifyStaffPin,
-                    title: 'PIN Staf Kasir',
-                    subtitle: 'Masukkan PIN untuk melanjutkan',
-                  );
-                }
-              },
-            ),
-            // Queue Management Badge Button (Touch Target >= 48x48)
-            Obx(() {
-              final queueCount = controller.activeOrdersQueue.length;
-              return Tooltip(
-                message: AppStrings.cafeOrderQueueTitle.tr,
-                child: InkWell(
-                  onTap: () => CafeOrderQueueScreen.showAsDialog(
-                    context,
-                    controller: controller,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: queueCount > 0
-                          ? AppColors.matcha.withValues(alpha: 0.15)
-                          : AppColors.paleMist,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: queueCount > 0
-                            ? AppColors.matcha
-                            : AppColors.border,
-                        width: 1.2,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.receipt_long_rounded,
-                          size: 16,
-                          color: queueCount > 0
-                              ? AppColors.matcha
-                              : AppColors.primary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '$queueCount',
-                          style: AppTypography.labelSmall.copyWith(
-                            color: queueCount > 0
-                                ? AppColors.matcha
-                                : AppColors.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }),
-            IconButton(
-              constraints: const BoxConstraints(minWidth: 38, minHeight: 38),
-              padding: EdgeInsets.zero,
-              icon: const Icon(Icons.refresh_rounded, size: 20),
-              color: AppColors.muted,
-              tooltip: AppStrings.cafeClearTicketTooltip.tr,
-              onPressed: () {
-                controller.resetToIdle();
-                _textEditController.clear();
-              },
+              icon: const Icon(Icons.more_vert_rounded),
+              color: AppColors.ink,
+              tooltip: AppStrings.cafeMenuMoreTooltip.tr,
+              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+              onPressed: _showCashierControlSheet,
             ),
             const SizedBox(width: 4),
           ],
@@ -977,6 +854,201 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
     );
   }
 
+  /// Responsive, high-contrast segmented model switch in the AppBar [ BISINDO | SIBI ]
+  Widget _buildAppBarSignModelToggle(CafeCashierController controller) {
+    final activeModel = controller.activeSignModel;
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: AppColors.paleMist,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border, width: 1.2),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildAppBarModelTab(
+            controller: controller,
+            targetModel: SignLanguageModel.bisindo,
+            label: 'BISINDO',
+            isSelected: activeModel == SignLanguageModel.bisindo,
+          ),
+          const SizedBox(width: 2),
+          _buildAppBarModelTab(
+            controller: controller,
+            targetModel: SignLanguageModel.sibi,
+            label: 'SIBI',
+            isSelected: activeModel == SignLanguageModel.sibi,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppBarModelTab({
+    required CafeCashierController controller,
+    required SignLanguageModel targetModel,
+    required String label,
+    required bool isSelected,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: isSelected
+            ? null
+            : () {
+                controller.switchSignLanguageModel(targetModel);
+                AppSnackbar.show(
+                  title: 'Model Bahasa Isyarat',
+                  message: AppStrings.cafeSignModelChanged
+                      .trParams({'model': targetModel.displayName}),
+                  variant: SnackbarVariant.info,
+                );
+              },
+        borderRadius: BorderRadius.circular(9),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.primary : Colors.transparent,
+            borderRadius: BorderRadius.circular(9),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.22),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1.5),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isSelected) ...[
+                Icon(
+                  Icons.check_circle_rounded,
+                  size: 11,
+                  color: AppColors.matcha,
+                ),
+                const SizedBox(width: 3),
+              ],
+              Text(
+                label,
+                style: AppTypography.labelSmall.copyWith(
+                  color: isSelected ? Colors.white : AppColors.muted,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  fontSize: 11,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStaffPinButton() {
+    return IconButton(
+      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+      padding: EdgeInsets.zero,
+      icon: Icon(
+        controller.staffPinAuthenticated.value
+            ? Icons.lock_open_rounded
+            : Icons.lock_rounded,
+        size: 18,
+      ),
+      color: controller.staffPinAuthenticated.value
+          ? AppColors.matcha
+          : AppColors.muted,
+      tooltip: controller.staffPinAuthenticated.value
+          ? 'Keluar Staff'
+          : 'Masuk PIN Staff',
+      onPressed: () async {
+        if (controller.staffPinAuthenticated.value) {
+          controller.logoutStaff();
+        } else {
+          await CafeStaffPinDialog.show(
+            context,
+            onVerify: controller.verifyStaffPin,
+            title: 'PIN Staf Kasir',
+            subtitle: 'Masukkan PIN untuk melanjutkan',
+          );
+        }
+      },
+    );
+  }
+
+  Widget _buildQueueBadgeButton() {
+    return Obx(() {
+      final queueCount = controller.activeOrdersQueue.length;
+      return Tooltip(
+        message: AppStrings.cafeOrderQueueTitle.tr,
+        child: InkWell(
+          onTap: () => CafeOrderQueueScreen.showAsDialog(
+            context,
+            controller: controller,
+          ),
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: queueCount > 0
+                  ? AppColors.matcha.withValues(alpha: 0.15)
+                  : AppColors.paleMist,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: queueCount > 0
+                    ? AppColors.matcha
+                    : AppColors.border,
+                width: 1.2,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.receipt_long_rounded,
+                  size: 16,
+                  color: queueCount > 0
+                      ? AppColors.matcha
+                      : AppColors.primary,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '$queueCount',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: queueCount > 0
+                        ? AppColors.matcha
+                        : AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildResetButton() {
+    return IconButton(
+      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+      padding: EdgeInsets.zero,
+      icon: const Icon(Icons.refresh_rounded, size: 20),
+      color: AppColors.muted,
+      tooltip: AppStrings.cafeClearTicketTooltip.tr,
+      onPressed: () {
+        controller.resetToIdle();
+      },
+    );
+  }
+
   /// Tablet / Landscape 2-column side-by-side POS layout
   Widget _buildTabletLandscapeLayout(CafeOrderStage stage) {
     return Obx(() {
@@ -1088,697 +1160,77 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
     });
   }
 
-  Widget _buildTranscriptInputBar() {
+  Widget _buildCustomerMenuCatalogBanner() {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppColors.border, width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          // Header with Live Status Badge
-          Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: AppColors.secondary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.sensors_rounded,
-                  size: 18,
-                  color: AppColors.secondary,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  AppStrings.cafeLiveOrderCameraTitle.tr,
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.secondary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              Icons.menu_book_rounded,
+              size: 24,
+              color: AppColors.secondary,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppStrings.cafeCustomerMenuBannerTitle.tr,
                   style: AppTypography.titleSmall.copyWith(
                     color: AppColors.ink,
                     fontWeight: FontWeight.bold,
+                    fontSize: 15,
                   ),
                 ),
-              ),
-              Obx(() {
-                final isListening = controller.isListening.value;
-                final isLiveCamera = controller.activeCameraFeature.value ==
-                    CafeCameraActiveFeature.liveOrder;
-                if (isLiveCamera) {
-                  return Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.matcha.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.matcha, width: 1),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            color: AppColors.matcha,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          'Kamera Live',
-                          style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.matcha,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-                if (isListening) {
-                  return Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.amber.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.amber, width: 1),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            color: AppColors.amber,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          'Mic Aktif',
-                          style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.amber,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-                return const SizedBox.shrink();
-              }),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // 3 Mode Action Tiles: Kamera Isyarat, Suara (Mic), & Katalog Menu
-          Row(
-            children: [
-              // 1. Kamera Isyarat Tile
-              Expanded(
-                child: Obx(() {
-                  final isLiveCamera = controller.activeCameraFeature.value ==
-                      CafeCameraActiveFeature.liveOrder;
-                  return Material(
-                    color: isLiveCamera
-                        ? AppColors.matcha.withValues(alpha: 0.12)
-                        : AppColors.bgSurface,
-                    borderRadius: BorderRadius.circular(14),
-                    child: InkWell(
-                      onTap: () {
-                        if (isLiveCamera) {
-                          controller.closeCamera();
-                        } else {
-                          controller.openCameraFor(
-                            CafeCameraActiveFeature.liveOrder,
-                          );
-                        }
-                      },
-                      borderRadius: BorderRadius.circular(14),
-                      child: Container(
-                        height: 48,
-                        padding: const EdgeInsets.symmetric(horizontal: 6),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: isLiveCamera
-                                ? AppColors.matcha
-                                : AppColors.border,
-                            width: isLiveCamera ? 1.5 : 1.1,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              isLiveCamera
-                                  ? Icons.videocam_rounded
-                                  : Icons.videocam_outlined,
-                              size: 19,
-                              color: isLiveCamera
-                                  ? AppColors.matcha
-                                  : AppColors.secondary,
-                            ),
-                            const SizedBox(width: 5),
-                            Flexible(
-                              child: Text(
-                                AppStrings.cafeModeSignCamera.tr,
-                                style: AppTypography.labelSmall.copyWith(
-                                  color: isLiveCamera
-                                      ? AppColors.matcha
-                                      : AppColors.ink,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 11,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              ),
-              const SizedBox(width: 8),
-
-              // 2. Suara (Mic) Tile
-              Expanded(
-                child: Obx(() {
-                  final isListening = controller.isListening.value;
-                  return Material(
-                    color: isListening
-                        ? AppColors.amber.withValues(alpha: 0.15)
-                        : AppColors.bgSurface,
-                    borderRadius: BorderRadius.circular(14),
-                    child: InkWell(
-                      onTap: controller.toggleListening,
-                      borderRadius: BorderRadius.circular(14),
-                      child: Container(
-                        height: 48,
-                        padding: const EdgeInsets.symmetric(horizontal: 6),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: isListening
-                                ? AppColors.amber
-                                : AppColors.border,
-                            width: isListening ? 1.5 : 1.1,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              isListening
-                                  ? Icons.mic_rounded
-                                  : Icons.mic_none_rounded,
-                              size: 19,
-                              color: isListening
-                                  ? AppColors.amber
-                                  : AppColors.secondary,
-                            ),
-                            const SizedBox(width: 5),
-                            Flexible(
-                              child: Text(
-                                AppStrings.cafeModeVoiceStt.tr,
-                                style: AppTypography.labelSmall.copyWith(
-                                  color: isListening
-                                      ? AppColors.amber
-                                      : AppColors.ink,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 11,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              ),
-              const SizedBox(width: 8),
-
-              // 3. Modern Menu Catalog Tile
-              Expanded(
-                child: Material(
-                  color: AppColors.bgSurface,
-                  borderRadius: BorderRadius.circular(14),
-                  child: InkWell(
-                    onTap: _showMenuCatalogSheet,
-                    borderRadius: BorderRadius.circular(14),
-                    child: Container(
-                      height: 48,
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: AppColors.border,
-                          width: 1.1,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.menu_book_rounded,
-                            size: 19,
-                            color: AppColors.secondary,
-                          ),
-                          const SizedBox(width: 5),
-                          Flexible(
-                            child: Text(
-                              AppStrings.cafeModeMenuCatalog.tr,
-                              style: AppTypography.labelSmall.copyWith(
-                                color: AppColors.ink,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 11,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          // Embedded Live Order Mini-Camera Viewport (Fitur 1 & 6)
-          Obx(() {
-            if (controller.activeCameraFeature.value !=
-                CafeCameraActiveFeature.liveOrder) {
-              return const SizedBox.shrink();
-            }
-            final isShort = MediaQuery.sizeOf(context).height < 500;
-            final cameraHeight = isShort ? 220.0 : 260.0;
-            return Padding(
-              padding: const EdgeInsets.only(top: 10, bottom: 8),
-              child: CafeMiniCameraViewport(
-                title: AppStrings.cafeLiveOrderCameraTitle.tr,
-                subtitle: AppStrings.cafeLiveOrderCameraHint.tr,
-                height: cameraHeight,
-                onClose: controller.closeCamera,
-                onSwitchCamera: controller.switchCameraLens,
-                cameraService: controller.cameraFeedService,
-                modelBadge: controller.activeSignModel.displayName,
-                bottomBanner: Obx(() {
-                  final text = controller.liveTranscript.value;
-                  final words = controller.liveOrderWords;
-                  if (text.isEmpty && words.isEmpty) return const SizedBox.shrink();
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.90),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: AppColors.matcha.withValues(alpha: 0.6),
-                        width: 1.2,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.sign_language_rounded,
-                          size: 16,
-                          color: AppColors.matcha,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            physics: const BouncingScrollPhysics(),
-                            child: Row(
-                              children: words.map((w) {
-                                return Container(
-                                  margin: const EdgeInsets.only(right: 6),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 3,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.matcha.withValues(alpha: 0.25),
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(
-                                      color: AppColors.matcha.withValues(alpha: 0.5),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    w,
-                                    style: AppTypography.labelSmall.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        // Hapus Kata Terakhir Button
-                        SizedBox(
-                          width: 36,
-                          height: 36,
-                          child: IconButton(
-                            padding: EdgeInsets.zero,
-                            icon: const Icon(
-                              Icons.backspace_outlined,
-                              size: 16,
-                              color: Colors.white70,
-                            ),
-                            tooltip: AppStrings.cafeDeleteLastWord.tr,
-                            onPressed: controller.deleteLastSignWord,
-                          ),
-                        ),
-                        // Hapus Kalimat Button
-                        SizedBox(
-                          width: 36,
-                          height: 36,
-                          child: IconButton(
-                            padding: EdgeInsets.zero,
-                            icon: const Icon(
-                              Icons.delete_sweep_rounded,
-                              size: 18,
-                              color: Colors.white70,
-                            ),
-                            tooltip: AppStrings.cafeClearSentence.tr,
-                            onPressed: controller.clearLiveOrderSentence,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-              ),
-            );
-          }),
-
-          // Dedicated Sign Sentence Builder Tray (Fitur Akumulasi Kata & Hapus Per Kata / Kalimat)
-          Obx(() {
-            final words = controller.liveOrderWords;
-            if (words.isEmpty) return const SizedBox.shrink();
-            return Container(
-              margin: const EdgeInsets.only(top: 8, bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.paleMist,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.border, width: 1.2),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.record_voice_over_rounded,
-                              size: 14,
-                              color: AppColors.secondary,
-                            ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                AppStrings.cafeSignSentenceBuilderTitle.tr,
-                                style: AppTypography.labelSmall.copyWith(
-                                  color: AppColors.secondary,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 11,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      // Button Hapus Kata
-                      InkWell(
-                        onTap: controller.deleteLastSignWord,
-                        borderRadius: BorderRadius.circular(8),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.backspace_outlined, size: 13, color: AppColors.muted),
-                              const SizedBox(width: 3),
-                              Text(
-                                AppStrings.cafeDeleteLastWord.tr,
-                                style: AppTypography.labelSmall.copyWith(
-                                  color: AppColors.muted,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 10,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      // Button Hapus Kalimat
-                      InkWell(
-                        onTap: controller.clearLiveOrderSentence,
-                        borderRadius: BorderRadius.circular(8),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.delete_outline_rounded, size: 13, color: AppColors.error),
-                              const SizedBox(width: 3),
-                              Text(
-                                AppStrings.cafeClearSentence.tr,
-                                style: AppTypography.labelSmall.copyWith(
-                                  color: AppColors.error,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 10,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    children: words.map((w) {
-                      return Chip(
-                        label: Text(
-                          w,
-                          style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        backgroundColor: AppColors.surface,
-                        side: BorderSide(color: AppColors.secondary.withValues(alpha: 0.5)),
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
-            );
-          }),
-
-          const SizedBox(height: 12),
-
-          // Full-Width Modern Smart Input Bar
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.bgSurface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border, width: 1.2),
-            ),
-            child: Row(
-              children: [
-                const SizedBox(width: 12),
-                Icon(
-                  Icons.edit_note_rounded,
-                  color: AppColors.secondary,
-                  size: 24,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: _textEditController,
-                    style: AppTypography.bodyMedium.copyWith(
-                      color: AppColors.ink,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: AppStrings.cafeTranscriptInputHint.tr,
-                      hintStyle: AppTypography.bodySmall.copyWith(
-                        color: AppColors.muted,
-                      ),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 14,
-                      ),
-                    ),
-                    onSubmitted: (val) {
-                      controller.onTranscriptReceived(val);
-                      _textEditController.clear();
-                    },
-                  ),
-                ),
-                // Inline Clear Text Button
-                ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: _textEditController,
-                  builder: (context, value, _) {
-                    if (value.text.isEmpty) return const SizedBox.shrink();
-                    return IconButton(
-                      icon: const Icon(Icons.clear_rounded, size: 18),
-                      color: AppColors.muted,
-                      tooltip: AppStrings.cafeClearInputTooltip.tr,
-                      onPressed: () {
-                        _textEditController.clear();
-                        controller.liveTranscript.value = '';
-                      },
-                    );
-                  },
-                ),
-                // Send / Process Order Button
-                Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      controller.onTranscriptReceived(_textEditController.text);
-                      _textEditController.clear();
-                    },
-                    icon: const Icon(Icons.send_rounded, size: 16),
-                    label: Text(AppStrings.cafeProcessOrder.tr),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.surface,
-                      elevation: 0,
-                      minimumSize: const Size(84, 44),
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
+                const SizedBox(height: 2),
+                Text(
+                  AppStrings.cafeCustomerMenuBannerSubtitle.tr,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.muted,
+                    fontSize: 12,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
-
-          // Quick Picks & Allergy Shortcuts
-          Row(
-            children: [
-              Icon(
-                Icons.bolt_rounded,
-                size: 15,
-                color: AppColors.secondary,
+          const SizedBox(width: 10),
+          ElevatedButton.icon(
+            onPressed: _showMenuCatalogSheet,
+            icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+            label: Text(AppStrings.cafeCustomerMenuBannerButton.tr),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.surface,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              minimumSize: const Size(48, 44),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-              const SizedBox(width: 4),
-              Text(
-                AppStrings.cafeQuickPicksTitle.tr,
-                style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.secondary,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                  fontSize: 11,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _buildModernSampleChip(
-                icon: Icons.coffee_rounded,
-                label: 'Es Karamel Latte Extra Shot',
-                onTap: () => controller.onTranscriptReceived(
-                  'pesan es karamel latte large less sweet extra shot',
-                ),
-              ),
-              _buildModernSampleChip(
-                icon: Icons.no_food_rounded,
-                label: 'Alergi Kacang & Susu',
-                onTap: () => controller.onTranscriptReceived(
-                  'saya ada alergi kacang dan alergi susu sapi',
-                ),
-              ),
-              _buildModernSampleChip(
-                icon: Icons.spa_rounded,
-                label: 'Ramah Lambung (Maag)',
-                onTap: () => controller.onTranscriptReceived(
-                  'saya lagi sakit maag lambung',
-                ),
-              ),
-            ],
+            ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildModernSampleChip({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: AppColors.paleMist,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.border, width: 1.1),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 15, color: AppColors.secondary),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.ink,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 11.5,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -1790,7 +1242,10 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildTranscriptInputBar(),
+        // Real-time Speech-to-Sign: Video Bahasa Isyarat Kasir
+        CafeCashierSignVideoCard(
+          cashierController: controller,
+        ),
         const SizedBox(height: 14),
         _buildCustomerReplyAlertBanner(),
         Obx(() => AutoOrderSlotTray(
@@ -1806,11 +1261,19 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
     );
   }
 
-  /// Stage 1: Pembeli - Melihat Nota Live, Balasan Cepat, & Rekomendasi Menu
+  /// Stage 1: Pembeli - Pesan Lewat Suara & Editor Teks, Nota Live, Balasan Cepat, & Rekomendasi Menu
   Widget _buildCustomerOrderingStage() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // Sisi Pembeli: Mikrofon & Kamera Isyarat (Speech to Sign)
+        CustomerVoiceOrderCard(
+          controller: controller,
+          onOpenMenuCatalog: _showMenuCatalogSheet,
+        ),
+        const SizedBox(height: 14),
+        _buildCustomerMenuCatalogBanner(),
+        const SizedBox(height: 14),
         _buildCustomerBillDisplay(),
         _buildCustomerQuickRepliesSection(),
         _buildCoffeeRecommendationWidget(),
@@ -2561,11 +2024,14 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Total Tagihan:',
-                  style: AppTypography.bodyMedium.copyWith(
-                    color: AppColors.muted,
-                    fontWeight: FontWeight.w600,
+                Expanded(
+                  child: Text(
+                    'Total Tagihan:',
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: AppColors.muted,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Text(

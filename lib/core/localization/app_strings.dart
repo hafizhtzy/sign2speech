@@ -378,5 +378,86 @@ class AppStrings {
   static const String cafeModeMenuCatalog = 'cafe_mode_menu_catalog';
   static const String cafeQuickPicksTitle = 'cafe_quick_picks_title';
   static const String cafeClearInputTooltip = 'cafe_clear_input_tooltip';
+
+  // Customer Voice Order & Cashier Sign Video (Fitur Speech to Sign Pembeli & Kasir)
+  static const String cafeCustomerVoiceOrderTitle = 'cafe_customer_voice_order_title';
+  static const String cafeCustomerVoiceOrderSubtitle = 'cafe_customer_voice_order_subtitle';
+  static const String cafeCustomerVoiceMicTap = 'cafe_customer_voice_mic_tap';
+  static const String cafeCustomerVoiceListening = 'cafe_customer_voice_listening';
+  static const String cafeCustomerVoiceHint = 'cafe_customer_voice_hint';
+  static const String cafeCustomerVoiceEditHint = 'cafe_customer_voice_edit_hint';
+  static const String cafeCustomerVoiceSend = 'cafe_customer_voice_send';
+  static const String cafeCustomerVoiceSentSnackbar = 'cafe_customer_voice_sent_snackbar';
+  static const String cafeCustomerVoiceSignBadge = 'cafe_customer_voice_sign_badge';
+  static const String cafeCustomerQuickTagsTitle = 'cafe_customer_quick_tags_title';
+  static const String cafeCashierSignVideoTitle = 'cafe_cashier_sign_video_title';
+  static const String cafeCashierSignVideoSubtitle = 'cafe_cashier_sign_video_subtitle';
+  static const String cafeCashierSignStandby = 'cafe_cashier_sign_standby';
+  static const String cafeCashierSignStandbyDesc = 'cafe_cashier_sign_standby_desc';
+  static const String cafeCashierSignOfflineBadge = 'cafe_cashier_sign_offline_badge';
+  static const String cafeCashierSignCachedBadge = 'cafe_cashier_sign_cached_badge';
+  static const String cafeCashierSignOnlineBadge = 'cafe_cashier_sign_online_badge';
+  static const String cafeCashierSignDownload = 'cafe_cashier_sign_download';
+  static const String cafeCashierSignDownloading = 'cafe_cashier_sign_downloading';
+  static const String cafeCashierSignWordChips = 'cafe_cashier_sign_word_chips';
+
+  // Customer Mode Switch & Camera Sign Detection
+  static const String cafeCustomerModeMic = 'cafe_customer_mode_mic';
+  static const String cafeCustomerModeCamera = 'cafe_customer_mode_camera';
+  static const String cafeCustomerCameraActiveTitle = 'cafe_customer_camera_active_title';
+  static const String cafeCustomerCameraSubtitle = 'cafe_customer_camera_subtitle';
+  static const String cafeCustomerCameraReady = 'cafe_customer_camera_ready';
+  static const String cafeCustomerDeleteLastWord = 'cafe_customer_delete_last_word';
+  static const String cafeCustomerClearSentence = 'cafe_customer_clear_sentence';
+  static const String cafeCustomerQuickSignChips = 'cafe_customer_quick_sign_chips';
+  static const String cafeSignModelChanged = 'cafe_sign_model_changed';
+
+  // Sign Video Player Controls & Indicators
+  static const String signVideoPlay = 'sign_video_play';
+  static const String signVideoPause = 'sign_video_pause';
+  static const String signVideoReplay = 'sign_video_replay';
+  static const String signVideoLoop = 'sign_video_loop';
+  static const String signVideoOfflineBadge = 'sign_video_offline_badge';
+  static const String signVideoCachedBadge = 'sign_video_cached_badge';
+  static const String signVideoOnlineBadge = 'sign_video_online_badge';
+  static const String signVideoDownloadAction = 'sign_video_download_action';
+  static const String signVideoDownloading = 'sign_video_downloading';
+  static const String signVideoDownloadingTitle = 'sign_video_downloading_title';
+  static const String signVideoDownloadingDesc = 'sign_video_downloading_desc';
+  static const String signVideoDownloadComplete = 'sign_video_download_complete';
+  static const String signVideoStatusPlaying = 'sign_video_status_playing';
+  static const String signVideoStatusPaused = 'sign_video_status_paused';
+
+  // Cafe Cashier Control Sheet (Menu Kasir & Kontrol)
+  static const String cafeMenuMoreTooltip = 'cafe_menu_more_tooltip';
+  static const String cafeControlSheetTitle = 'cafe_control_sheet_title';
+  static const String cafeControlSheetSubtitle = 'cafe_control_sheet_subtitle';
+  static const String cafeControlSignModelTitle = 'cafe_control_sign_model_title';
+  static const String cafeControlSignModelDesc = 'cafe_control_sign_model_desc';
+  static const String cafeControlBisindoDesc = 'cafe_control_bisindo_desc';
+  static const String cafeControlSibiDesc = 'cafe_control_sibi_desc';
+  static const String cafeControlQueueTitle = 'cafe_control_queue_title';
+  static const String cafeControlQueueDesc = 'cafe_control_queue_desc';
+  static const String cafeControlQueueOpen = 'cafe_control_queue_open';
+  static const String cafeControlStaffTitle = 'cafe_control_staff_title';
+  static const String cafeControlStaffLoggedIn = 'cafe_control_staff_logged_in';
+  static const String cafeControlStaffLocked = 'cafe_control_staff_locked';
+  static const String cafeControlStaffLogin = 'cafe_control_staff_login';
+  static const String cafeControlStaffLogout = 'cafe_control_staff_logout';
+  static const String cafeControlResetTitle = 'cafe_control_reset_title';
+  static const String cafeControlResetDesc = 'cafe_control_reset_desc';
+  static const String cafeControlResetConfirm = 'cafe_control_reset_confirm';
+  static const String cafeControlResetCancel = 'cafe_control_reset_cancel';
+
+  // Customer Side Menu Catalog Banner
+  static const String cafeCustomerMenuBannerTitle = 'cafe_customer_menu_banner_title';
+  static const String cafeCustomerMenuBannerSubtitle = 'cafe_customer_menu_banner_subtitle';
+  static const String cafeCustomerMenuBannerButton = 'cafe_customer_menu_banner_button';
+
+  // Coffee Detail Screen Order Sent Dialog
+  static const String cafeOrderSentSuccessTitle = 'cafe_order_sent_success_title';
+  static const String cafeOrderSentSuccessDesc = 'cafe_order_sent_success_desc';
+  static const String cafeOrderSentSignSyncNotice = 'cafe_order_sent_sign_sync_notice';
+  static const String cafeOrderSentConfirmButton = 'cafe_order_sent_confirm_button';
 }
 

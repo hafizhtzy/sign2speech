@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
+import '../../../core/localization/app_translations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../models/sign_video_entry.dart';
+import '../services/sign_language_config.dart';
 import 'gesture_candidate_loader.dart';
 import 'sign_video_player.dart';
 
@@ -13,8 +16,10 @@ class SignLanguageWidgetPreviews {
 
   /// Preview for GestureCandidateLoader in active reading mode
   static Widget previewGestureCandidateLoaderSigning() {
-    return MaterialApp(
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
+      translations: AppTranslations(),
+      locale: const Locale('id', 'ID'),
       theme: AppTheme.lightTheme,
       home: Scaffold(
         backgroundColor: AppColors.cameraDark,
@@ -31,8 +36,10 @@ class SignLanguageWidgetPreviews {
 
   /// Preview for GestureCandidateLoader in confirmed mode
   static Widget previewGestureCandidateLoaderConfirmed() {
-    return MaterialApp(
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
+      translations: AppTranslations(),
+      locale: const Locale('id', 'ID'),
       theme: AppTheme.lightTheme,
       home: Scaffold(
         backgroundColor: AppColors.cameraDark,
@@ -55,11 +62,13 @@ class SignLanguageWidgetPreviews {
       aliases: const ['bagus'],
       category: 'salam',
       assetPath: '',
-      remoteUrl: 'https://hajicare-sign.web.app/videos/bisindo/baik_v1.mp4',
+      remoteUrl: '${SignLanguageConfig.defaultBaseUrl}/videos/bisindo/baik_v1.mp4',
     );
 
-    return MaterialApp(
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
+      translations: AppTranslations(),
+      locale: const Locale('id', 'ID'),
       theme: AppTheme.lightTheme,
       home: Scaffold(
         backgroundColor: AppColors.canvas,
@@ -94,11 +103,13 @@ class SignLanguageWidgetPreviews {
       aliases: const ['hai'],
       category: 'salam',
       assetPath: '',
-      remoteUrl: 'https://hajicare-sign.web.app/videos/sibi/halo_v1.mp4',
+      remoteUrl: '${SignLanguageConfig.defaultBaseUrl}/videos/sibi/halo_v1.mp4',
     );
 
-    return MaterialApp(
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
+      translations: AppTranslations(),
+      locale: const Locale('id', 'ID'),
       theme: AppTheme.lightTheme,
       home: Scaffold(
         backgroundColor: AppColors.canvas,

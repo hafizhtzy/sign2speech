@@ -89,7 +89,7 @@ void main() {
         category: 'salam',
         assetPath: 'assets/videos/bisindo/terima_kasih_v1.mp4',
         remoteUrl:
-            'https://hajicare-sign.web.app/videos/bisindo/terima_kasih_v1.mp4',
+            'https://sign-language-c5d23.web.app/videos/bisindo/terima_kasih_v1.mp4',
       );
 
       expect(entry.matches('makasih'), isTrue);
@@ -104,7 +104,7 @@ void main() {
         aliases: ['hai'],
         category: 'salam',
         assetPath: 'assets/videos/bisindo/halo_v1.mp4',
-        remoteUrl: 'https://hajicare-sign.web.app/videos/bisindo/halo_v1.mp4',
+        remoteUrl: 'https://sign-language-c5d23.web.app/videos/bisindo/halo_v1.mp4',
       );
 
       final result = SignSearchResult(

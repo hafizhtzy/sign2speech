@@ -13,6 +13,7 @@ import '../../features/history/models/history_item.dart';
 import '../../features/settings/controllers/settings_controller.dart';
 import '../../features/sign_language/controllers/text_to_sign_controller.dart';
 import '../../features/sign_language/models/sign_video_entry.dart';
+import '../../features/sign_language/services/sign_language_config.dart';
 import '../../features/sign_language/widgets/sign_video_player.dart';
 
 class SpeechToSignResultScreen extends StatelessWidget {
@@ -157,6 +158,13 @@ class SpeechToSignResultScreen extends StatelessWidget {
                       onSpeedChanged: (speed) => ttsCtrl.setPlaybackSpeed(speed),
                       onToggleLoop: () => ttsCtrl.toggleLooping(),
                       errorMessage: ttsCtrl.errorMessage.value,
+                      onDownload: () {
+                        final entry = ttsCtrl.currentEntry.value;
+                        if (entry != null &&
+                            entry.source == SignVideoSource.remote) {
+                          ttsCtrl.downloadAndPlay(entry);
+                        }
+                      },
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -260,7 +268,7 @@ class _RemoteVideoDownloadCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'hajicare-sign.web.app — unduh untuk menonton offline',
+                        '${SignLanguageConfig.hostDomain} — unduh untuk menonton offline',
                         style: AppTypography.bodySmall.copyWith(
                           color: AppColors.muted,
                         ),

@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import 'package:speech2sign/features/sign_language/controllers/sign_language_controller.dart';
 import 'package:speech2sign/features/sign_language/controllers/text_to_sign_controller.dart';
+import 'package:speech2sign/features/sign_language/models/sign_language_catalog.dart';
+import 'package:speech2sign/features/sign_language/services/bisindo_classifier_service.dart';
 import 'package:speech2sign/features/sign_language/services/bisindo_tts_service.dart';
 import 'package:speech2sign/features/sign_language/services/camera_feed_service.dart';
 import 'package:speech2sign/features/sign_language/services/sign_language_cache_service.dart';
@@ -31,13 +33,28 @@ class CafePosBinding extends Bindings {
       Get.put<CameraFeedService>(CameraFeedService(), permanent: true);
     }
 
+    if (!Get.isRegistered<BisindoClassifierService>()) {
+      Get.lazyPut<BisindoClassifierService>(() => BisindoClassifierService());
+    }
+
+    if (!Get.isRegistered<SignLanguageController>()) {
+      Get.lazyPut<SignLanguageController>(
+        () => SignLanguageController(
+          classifierService: Get.find<BisindoClassifierService>(),
+          cameraFeedService: Get.find<CameraFeedService>(),
+        ),
+      );
+    }
+
     if (!Get.isRegistered<SignLanguageCacheService>()) {
       Get.lazyPut<SignLanguageCacheService>(() => SignLanguageCacheService());
     }
 
     if (!Get.isRegistered<SignLanguageRepository>()) {
       Get.lazyPut<SignLanguageRepository>(
-        () => SignLanguageRepository.instance,
+        () => SignLanguageRepository(
+          catalog: SignLanguageCatalog.defaultCatalog(),
+        ),
       );
     }
 
@@ -81,6 +98,7 @@ class CafePosBinding extends Bindings {
             ? Get.find<SignLanguageController>()
             : null,
         localDataSource: Get.find<CafePosLocalDataSource>(),
+        textToSignController: Get.find<TextToSignController>(),
       ),
       fenix: true,
     );

@@ -23,7 +23,7 @@
 
 - Flutter Clean Architecture: Tidak ada dependensi `BuildContext` di dalam controller atau data layer.
 - Zero-Lag Camera Pipeline: CameraX ImageAnalysis wajib dikonfigurasi dengan `STRATEGY_KEEP_ONLY_LATEST` pada thread latar belakang terdedikasi (`Executors.newSingleThreadExecutor()`). Ekstraksi fitur 353D dan kalkulasi sekuens 706D wajib di-offload ke background Dart Isolate (`Isolate.run` / `compute`) agar Main UI Thread stabil pada 60 FPS tanpa frame drop.
-- Video CDN Hosting & Cache-on-Play: Base URL video hosting disetel ke `https://hajicare-sign.web.app/videos/{language}/{slug}_v1.mp4` (didukung offline Tier 1 APK asset & Tier 2 local cache). Pemutaran Tier 3 memutar streaming video secara langsung seraya mengunduh asinkron ke Tier 2 disk cache lokal.
+- Video CDN Hosting & Cache-on-Play: Base URL video hosting disetel ke `https://sign-language-c5d23.web.app/videos/{language}/{slug}_v1.mp4` (didukung offline Tier 1 APK asset & Tier 2 local cache). Pemutaran Tier 3 memutar streaming video secara langsung seraya mengunduh asinkron ke Tier 2 disk cache lokal.
 - Thread & Memory Safety: Semua stream controller, event channel subscription, dan video player controller wajib ditutup pada `onClose()`.
 - TTS Non-Overlapping: Pengucapan audio TTS Bahasa Indonesia (`id-ID`) wajib dieksekusi secara serial FIFO melalui rantai `Future` (`_speechChain`).
 - Race-Free Playback: Sesi pemutaran video wajib dilindungi token `_playSessionId` yang diincrement setiap kali kueri suara baru masuk.
@@ -100,7 +100,7 @@
 **Interfaces:**
 - Consumes: `SignVideoEntry`, `SignSearchResult`, `SignLanguageCatalog`
 - Produces:
-  - `SignLanguageConfig(baseUrl: 'https://hajicare-sign.web.app')`
+  - `SignLanguageConfig(baseUrl: 'https://sign-language-c5d23.web.app')`
   - `SpeechService.startListening({required String languageCode, required Function(String text, bool isFinal) onResult})`
   - `SignLanguageRepository.searchSign(String query, String languageCode) -> Future<SignSearchResult>`
   - `SignLanguageRepository.resolveVideoSource(SignVideoEntry entry) -> Future<String>` (Tier 1: Asset $\rightarrow$ Tier 2: Local cache $\rightarrow$ Tier 3: CDN URL dengan trigger download asinkron di background)
@@ -114,7 +114,7 @@
   - Uji resolusi video 3-tier: 
     * Tier 1 (Asset bawaan APK ada $\rightarrow$ return asset path langsung).
     * Tier 2 (Cache lokal HP ada $\rightarrow$ return local file path).
-    * Tier 3 (Fallback remote $\rightarrow$ return CDN URL `https://hajicare-sign.web.app/videos/...` dan memicu background caching asinkron ke Tier 2).
+    * Tier 3 (Fallback remote $\rightarrow$ return CDN URL `https://sign-language-c5d23.web.app/videos/...` dan memicu background caching asinkron ke Tier 2).
   - Uji unduhan kategori dengan mekanisme `.tmp` dan *atomic rename*.
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -122,7 +122,7 @@
   - Expected: FAIL
 
 - [ ] **Step 3: Implement Config, SpeechService, Asset Registry, Cache Service, & Repository**
-  - Implementasikan `SignLanguageConfig` dengan konstanta base hosting `https://hajicare-sign.web.app`.
+  - Implementasikan `SignLanguageConfig` dengan konstanta base hosting `https://sign-language-c5d23.web.app`.
   - Implementasikan `SpeechService` dengan `_generation` token untuk lifecycle safety.
   - Implementasikan `SignLanguageRepository` dengan algoritma pembersihan teks, pencarian hierarkis, cache-on-play streaming, dan unduhan atomik via Dio.
 

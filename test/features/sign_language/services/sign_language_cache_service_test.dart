@@ -67,7 +67,7 @@ void main() {
       double lastProgress = 0.0;
       final file = await cacheService.downloadVideoAtomic(
         videoId: 'baik_v1',
-        remoteUrl: 'https://hajicare-sign.web.app/videos/bisindo/baik_v1.mp4',
+        remoteUrl: 'https://sign-language-c5d23.web.app/videos/bisindo/baik_v1.mp4',
         onProgress: (p) => lastProgress = p,
       );
 
@@ -84,7 +84,7 @@ void main() {
       // First download
       final first = await cacheService.downloadVideoAtomic(
         videoId: 'baik_v1',
-        remoteUrl: 'https://hajicare-sign.web.app/videos/bisindo/baik_v1.mp4',
+        remoteUrl: 'https://sign-language-c5d23.web.app/videos/bisindo/baik_v1.mp4',
       );
       expect(first, isNotNull);
       expect(await first!.exists(), isTrue);
@@ -92,7 +92,7 @@ void main() {
       // Second download with same target videoId (tests collision handling)
       final second = await cacheService.downloadVideoAtomic(
         videoId: 'baik_v1',
-        remoteUrl: 'https://hajicare-sign.web.app/videos/bisindo/baik_v1.mp4',
+        remoteUrl: 'https://sign-language-c5d23.web.app/videos/bisindo/baik_v1.mp4',
       );
       expect(second, isNotNull);
       expect(await second!.exists(), isTrue);
@@ -102,11 +102,11 @@ void main() {
     test('clearCache removes downloaded video files and returns accurate count', () async {
       await cacheService.downloadVideoAtomic(
         videoId: 'video_a',
-        remoteUrl: 'https://hajicare-sign.web.app/videos/bisindo/a_v1.mp4',
+        remoteUrl: 'https://sign-language-c5d23.web.app/videos/bisindo/a_v1.mp4',
       );
       await cacheService.downloadVideoAtomic(
         videoId: 'video_b',
-        remoteUrl: 'https://hajicare-sign.web.app/videos/bisindo/b_v1.mp4',
+        remoteUrl: 'https://sign-language-c5d23.web.app/videos/bisindo/b_v1.mp4',
       );
 
       expect(await cacheService.isVideoCached('video_a'), isTrue);

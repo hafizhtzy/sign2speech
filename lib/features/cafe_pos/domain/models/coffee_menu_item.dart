@@ -241,5 +241,31 @@ class CoffeeMenuItem {
         ),
       ],
     ),
+    CoffeeMenuItem(
+      id: 'pisang_goreng',
+      nameId: 'Pisang Goreng Crispy',
+      nameEn: 'Crispy Fried Banana',
+      descriptionId:
+          'Pisang kepok pilihan berbalut tepung renyah keemasan, manis gurih alami.',
+      descriptionEn:
+          'Golden crispy fried banana fritters with natural sweet and savory crunch.',
+      basePrice: 20000,
+      tags: ['makanan', 'snack', 'manis', 'renyah', 'pisang', 'goreng'],
+      defaultTemperature: OrderTemperature.hot,
+      defaultMilk: OrderMilkType.none,
+      defaultSweetness: OrderSweetnessLevel.normal100,
+      composition: [
+        CoffeeCompositionPoint(
+          label: 'Pisang Kepok',
+          percentage: '75%',
+          description: 'Pisang kepok manis ranum',
+        ),
+        CoffeeCompositionPoint(
+          label: 'Crispy Batter',
+          percentage: '25%',
+          description: 'Adonan tepung crispy keemasan',
+        ),
+      ],
+    ),
   ];
 }

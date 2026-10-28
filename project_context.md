@@ -43,7 +43,7 @@ Jika sumber bertentangan, catat konflik, tentukan bagian yang terdampak, dan lan
 
 Input utama Speech-to-Sign adalah suara. Jangan mengganti alur utama menjadi form ketik. Pencarian teks di Perpustakaan tetap sesuai desain.
 
-Produk yang sedang dibangun adalah Sign2Speech. Nama domain `hajicare-sign.web.app` merupakan konfigurasi hosting video dalam PRD, bukan instruksi untuk memasukkan fitur Smart Band, money recognition, atau peta HajiCare.
+Produk yang sedang dibangun adalah Sign2Speech. Hosting video resmi saat ini menggunakan `sign-language-c5d23.web.app` (migrasi dari PRD lama), bukan instruksi untuk memasukkan fitur Smart Band, money recognition, atau peta HajiCare.
 
 Contoh kalimat di PRD bersifat skenario, bukan bukti cakupan model/katalog atau keberhasilan penerjemahan. Playlist kata-demi-kata juga belum membuktikan kesetaraan tata bahasa isyarat alami; validasi konten bahasa tetap diperlukan.
 
@@ -251,8 +251,8 @@ Label/alias contoh harus diverifikasi terhadap katalog nyata. Jangan membuang ka
 
 ### Resolusi video dan offline
 
-Konfigurasi PRD: `https://hajicare-sign.web.app/videos/{language}/{slug}_v1.mp4`.
-URL merupakan konfigurasi yang tercantum, belum dicek ketersediaan/otorisasinya dalam sesi ini. Jangan mengubah atau memublikasikan hosting hanya karena URL ada di dokumen.
+Konfigurasi Hosting: `https://sign-language-c5d23.web.app/videos/{language}/{slug}_v1.mp4`.
+Telah dimigrasikan ke Firebase Hosting `sign-language-c5d23` dengan skema `catalog.json` v1.3.0.
 
 | Prioritas | Sumber | Perilaku |
 | --- | --- | --- |

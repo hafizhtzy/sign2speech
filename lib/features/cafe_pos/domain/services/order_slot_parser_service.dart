@@ -64,10 +64,20 @@ class OrderSlotParserService {
       drinkNameId = 'Signature Cafe Latte';
       drinkNameEn = 'Signature Cafe Latte';
       basePrice = 30000;
+    } else if (lower.contains('pisang goreng') ||
+        lower.contains('pisang') ||
+        lower.contains('pisgor')) {
+      drinkId = 'pisang_goreng';
+      drinkLabelKey = 'pisang_goreng';
+      drinkNameId = 'Pisang Goreng Crispy';
+      drinkNameEn = 'Crispy Fried Banana';
+      basePrice = 20000;
     }
 
     // 2. Temperature Detection
-    OrderTemperature temperature = OrderTemperature.iced;
+    OrderTemperature temperature = (drinkId == 'pisang_goreng')
+        ? OrderTemperature.hot
+        : OrderTemperature.iced;
     final hasHot = lower.contains('panas') ||
         lower.contains('hangat') ||
         RegExp(r'\bhot\b').hasMatch(lower);
@@ -75,7 +85,7 @@ class OrderSlotParserService {
         lower.contains('iced') ||
         RegExp(r'\b(es|ice)\b').hasMatch(lower);
 
-    if (hasIced) {
+    if (hasIced && drinkId != 'pisang_goreng') {
       temperature = OrderTemperature.iced;
     } else if (hasHot) {
       temperature = OrderTemperature.hot;
@@ -107,7 +117,8 @@ class OrderSlotParserService {
     if (lower.contains('tanpa susu') ||
         lower.contains('no milk') ||
         lower.contains('hitam') ||
-        drinkId == 'americano') {
+        drinkId == 'americano' ||
+        drinkId == 'pisang_goreng') {
       milkType = OrderMilkType.none;
     } else if (lower.contains('kedelai') || lower.contains('soy')) {
       milkType = OrderMilkType.soyMilk;

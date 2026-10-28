@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:speech2sign/core/constants/app_constants.dart';
 import 'package:speech2sign/features/sign_language/models/sign_language_catalog.dart';
 import 'package:speech2sign/features/sign_language/models/sign_search_result.dart';
 import 'package:speech2sign/features/sign_language/models/sign_video_entry.dart';
@@ -16,12 +17,12 @@ void main() {
   late SignLanguageRepository repository;
 
   setUp(() {
-    catalog = SignLanguageCatalog.defaultCatalog();
-    config = const SignLanguageConfig(baseUrl: 'https://hajicare-sign.web.app');
+    config = const SignLanguageConfig(baseUrl: AppConstants.signBaseUrl);
+    catalog = SignLanguageCatalog.defaultCatalog(baseUrl: config.baseUrl);
     repository = SignLanguageRepository(catalog: catalog, config: config);
   });
 
-  group('Hierarchical Search Tests with Official Haji-Sign Catalog', () {
+  group('Hierarchical Search Tests with Sign-Language Catalog', () {
     test('Tier 1: Exact match finds full phrase for BISINDO and SIBI', () async {
       final resultBisindo = await repository.searchSign('baik', 'bisindo');
       expect(resultBisindo.matchType, equals(SearchMatchType.exact));
@@ -29,7 +30,7 @@ void main() {
       expect(resultBisindo.matchedEntries.first.label, equals('Baik'));
       expect(
         resultBisindo.matchedEntries.first.remoteUrl,
-        equals('https://hajicare-sign.web.app/videos/bisindo/baik_v1.mp4'),
+        equals('${AppConstants.signBaseUrl}/videos/bisindo/baik_v1.mp4'),
       );
 
       final resultSibi = await repository.searchSign('obat', 'sibi');
@@ -38,7 +39,7 @@ void main() {
       expect(resultSibi.matchedEntries.first.label, equals('Obat'));
       expect(
         resultSibi.matchedEntries.first.remoteUrl,
-        equals('https://hajicare-sign.web.app/videos/sibi/obat_v1.mp4'),
+        equals('${AppConstants.signBaseUrl}/videos/sibi/obat_v1.mp4'),
       );
     });
 
@@ -49,7 +50,7 @@ void main() {
       expect(result.matchedEntries.first.signSystem, equals('sibi'));
       expect(
         result.matchedEntries.first.remoteUrl,
-        equals('https://hajicare-sign.web.app/videos/sibi/obat_v1.mp4'),
+        equals('${AppConstants.signBaseUrl}/videos/sibi/obat_v1.mp4'),
       );
     });
 
@@ -79,6 +80,15 @@ void main() {
       expect(result.matchedEntries[2].label, equals('Obat'));
     });
 
+    test('Tier 3: Multi-word compound phrases (e.g. "pisang goreng") are recognized in sentences', () async {
+      final result = await repository.searchSign('saya pesan pisang goreng', 'bisindo');
+      expect(result.matchType, equals(SearchMatchType.tokenized));
+      expect(result.matchedEntries.length, equals(3));
+      expect(result.matchedEntries[0].label, equals('Saya'));
+      expect(result.matchedEntries[1].label, equals('Pesan'));
+      expect(result.matchedEntries[2].label, equals('Pisang Goreng'));
+    });
+
     test('Unknown query returns empty result with none matchType', () async {
       final result = await repository.searchSign(
         'astronomikal kosmis',
@@ -100,12 +110,12 @@ void main() {
       );
     });
 
-    test('Tier 3: Resolves remote CDN from https://hajicare-sign.web.app for online vocabulary (Obat)', () async {
+    test('Tier 3: Resolves remote CDN from sign-language-c5d23.web.app for online vocabulary (Obat)', () async {
       final entry = catalog.findExact('Obat')!;
-      expect(entry.remoteUrl, equals('https://hajicare-sign.web.app/videos/sibi/obat_v1.mp4'));
+      expect(entry.remoteUrl, equals('${AppConstants.signBaseUrl}/videos/sibi/obat_v1.mp4'));
       final source = await repository.resolveVideoSource(entry);
       expect(
-        source.path.contains('obat') || source.path.contains('hajicare-sign.web.app'),
+        source.path.contains('obat') || source.path.contains(AppConstants.signHostingDomain),
         isTrue,
       );
     });
@@ -113,31 +123,31 @@ void main() {
     test('CDN URL convention produces consistent paths for bisindo and sibi', () {
       expect(
         SignVideoEntry.buildCdnUrl(word: 'baik', signSystem: 'bisindo'),
-        equals('https://hajicare-sign.web.app/videos/bisindo/baik_v1.mp4'),
+        equals('${AppConstants.signBaseUrl}/videos/bisindo/baik_v1.mp4'),
       );
       expect(
         SignVideoEntry.buildCdnUrl(word: 'obat', signSystem: 'sibi'),
-        equals('https://hajicare-sign.web.app/videos/sibi/obat_v1.mp4'),
+        equals('${AppConstants.signBaseUrl}/videos/sibi/obat_v1.mp4'),
       );
 
       final dynamicBisindo = repository.createDynamicEntry('baik', 'bisindo');
       expect(
         dynamicBisindo.remoteUrl,
-        equals('https://hajicare-sign.web.app/videos/bisindo/baik_v1.mp4'),
+        equals('${AppConstants.signBaseUrl}/videos/bisindo/baik_v1.mp4'),
       );
 
       final dynamicSibi = repository.createDynamicEntry('obat', 'sibi');
       expect(
         dynamicSibi.remoteUrl,
-        equals('https://hajicare-sign.web.app/videos/sibi/obat_v1.mp4'),
+        equals('${AppConstants.signBaseUrl}/videos/sibi/obat_v1.mp4'),
       );
     });
 
-    test('Resolves online video "baik" with CDN URL https://hajicare-sign.web.app/videos/bisindo/baik_v1.mp4', () async {
+    test('Resolves online video "baik" with CDN URL sign-language-c5d23.web.app/videos/bisindo/baik_v1.mp4', () async {
       final entry = catalog.findExact('Baik')!;
-      expect(entry.remoteUrl, equals('https://hajicare-sign.web.app/videos/bisindo/baik_v1.mp4'));
+      expect(entry.remoteUrl, equals('${AppConstants.signBaseUrl}/videos/bisindo/baik_v1.mp4'));
       final source = await repository.resolveVideoSource(entry);
-      expect(source.remoteUrl, equals('https://hajicare-sign.web.app/videos/bisindo/baik_v1.mp4'));
+      expect(source.remoteUrl, equals('${AppConstants.signBaseUrl}/videos/bisindo/baik_v1.mp4'));
       expect(source.path.isNotEmpty, isTrue);
     });
 
@@ -148,33 +158,75 @@ void main() {
     });
   });
 
-  group('Haji-Sign JSON Catalog Parser Tests', () {
-    test('SignLanguageCatalog.fromJson parses official haji_sign_catalog.json file', () async {
-      final file = File('assets/sign_language/haji_sign_catalog.json');
+  group('Catalog JSON Parser Tests (catalog.json v1.3.0)', () {
+    test('SignLanguageCatalog.fromJson parses official catalog.json file (67 videos)', () async {
+      final file = File('assets/sign_language/catalog.json');
       expect(await file.exists(), isTrue);
 
       final content = await file.readAsString();
       final Map<String, dynamic> data = jsonDecode(content);
 
       final parsedCatalog = SignLanguageCatalog.fromJson(data);
-      expect(parsedCatalog.entries.length, equals(42));
+      expect(parsedCatalog.entries.length, equals(67));
 
-      final kopiJsonEntry = parsedCatalog.findExact('Kopi');
-      expect(kopiJsonEntry, isNotNull);
-      expect(kopiJsonEntry!.id, equals('bisindo_kopi'));
-      expect(kopiJsonEntry.signSystem, equals('bisindo'));
+      // Test Matcha (new vocabulary)
+      final matchaEntry = parsedCatalog.findExact('Matcha');
+      expect(matchaEntry, isNotNull);
+      expect(matchaEntry!.id, equals('bisindo_matcha'));
+      expect(matchaEntry.signSystem, equals('bisindo'));
+      expect(
+        matchaEntry.remoteUrl,
+        equals('${AppConstants.signBaseUrl}/videos/bisindo/matcha_v1.mp4'),
+      );
+      expect(matchaEntry.relativePath, equals('videos/bisindo/matcha_v1.mp4'));
 
+      // Test SIBI Beli (new vocabulary)
+      final beliEntry = parsedCatalog.findExact('Beli');
+      expect(beliEntry, isNotNull);
+      expect(beliEntry!.id, equals('sibi_beli'));
+      expect(beliEntry.signSystem, equals('sibi'));
+      expect(
+        beliEntry.remoteUrl,
+        equals('${AppConstants.signBaseUrl}/videos/sibi/beli_v1.mp4'),
+      );
+
+      // Test Kopi
+      final kopiEntry = parsedCatalog.findExact('Kopi');
+      expect(kopiEntry, isNotNull);
+      expect(kopiEntry!.id, equals('bisindo_kopi'));
+      expect(kopiEntry.signSystem, equals('bisindo'));
+
+      // Test Obat
       final obatEntry = parsedCatalog.findExact('Obat');
       expect(obatEntry, isNotNull);
       expect(obatEntry!.id, equals('sibi_obat'));
       expect(obatEntry.signSystem, equals('sibi'));
-      expect(obatEntry.remoteUrl, equals('https://hajicare-sign.web.app/videos/sibi/obat_v1.mp4'));
+      expect(
+        obatEntry.remoteUrl,
+        equals('${AppConstants.signBaseUrl}/videos/sibi/obat_v1.mp4'),
+      );
 
+      // Test Baik
       final baikEntry = parsedCatalog.findExact('Baik');
       expect(baikEntry, isNotNull);
       expect(baikEntry!.id, equals('bisindo_baik'));
       expect(baikEntry.signSystem, equals('bisindo'));
-      expect(baikEntry.remoteUrl, equals('https://hajicare-sign.web.app/videos/bisindo/baik_v1.mp4'));
+      expect(
+        baikEntry.remoteUrl,
+        equals('${AppConstants.signBaseUrl}/videos/bisindo/baik_v1.mp4'),
+      );
+    });
+
+    test('SignLanguageCatalog.fromJson backward compatibility with haji_sign_catalog.json', () async {
+      final file = File('assets/sign_language/haji_sign_catalog.json');
+      if (await file.exists()) {
+        final content = await file.readAsString();
+        final Map<String, dynamic> data = jsonDecode(content);
+
+        final parsedCatalog = SignLanguageCatalog.fromJson(data);
+        expect(parsedCatalog.entries.length, equals(42));
+        expect(parsedCatalog.findExact('Kopi'), isNotNull);
+      }
     });
   });
 }

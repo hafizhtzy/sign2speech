@@ -12,19 +12,27 @@ import 'sign_language_cache_service.dart';
 import 'sign_language_config.dart';
 
 class SignLanguageRepository {
-  final SignLanguageCatalog catalog;
+  SignLanguageCatalog catalog;
   final SignLanguageConfig config;
   final SignLanguageAssetRegistry assetRegistry;
   final SignLanguageCacheService cacheService;
 
+  static SignLanguageRepository? _staticInstance;
+
   static SignLanguageRepository get instance {
+    if (_staticInstance != null) return _staticInstance!;
     if (Get.isRegistered<SignLanguageRepository>()) {
-      return Get.find<SignLanguageRepository>();
+      try {
+        return Get.find<SignLanguageRepository>();
+      } catch (_) {}
     }
     final repo = SignLanguageRepository(
       catalog: SignLanguageCatalog.defaultCatalog(),
     );
-    Get.put<SignLanguageRepository>(repo, permanent: true);
+    _staticInstance = repo;
+    if (!Get.isRegistered<SignLanguageRepository>()) {
+      Get.put<SignLanguageRepository>(repo, permanent: true);
+    }
     return repo;
   }
 
@@ -38,6 +46,24 @@ class SignLanguageRepository {
   }) : assetRegistry = assetRegistry ?? SignLanguageAssetRegistry(),
        cacheService = cacheService ?? SignLanguageCacheService();
 
+  /// Sinkronisasi katalog dari file asset lokal atau remote endpoint
+  Future<void> loadCatalog({bool forceRemote = false}) async {
+    try {
+      if (forceRemote) {
+        catalog = await SignLanguageCatalog.loadFromRemote(
+          catalogUrl: SignLanguageConfig.catalogUrl,
+          baseUrl: config.baseUrl,
+        );
+      } else {
+        catalog = await SignLanguageCatalog.loadFromAsset(
+          baseUrl: config.baseUrl,
+        );
+      }
+    } catch (e) {
+      debugPrint('[SignRepo] Gagal sync katalog: $e');
+    }
+  }
+
   /// Clean input query: lowercase, trim, remove punctuation, normalize spaces
   String normalizeText(String input) {
     return input
@@ -48,22 +74,24 @@ class SignLanguageRepository {
   }
 
   /// Dynamically constructs a SignVideoEntry matching the consistent CDN schema:
-  /// https://hajicare-sign.web.app/videos/{system}/{slug}_v1.mp4
+  /// https://sign-language-c5d23.web.app/videos/{system}/{slug}_v1.mp4
   SignVideoEntry createDynamicEntry(String word, String signSystem) {
     final system =
         signSystem.toLowerCase().trim() == 'sibi' ? 'sibi' : 'bisindo';
     final slug = SignVideoEntry.formatSlug(word);
+    final relPath = 'videos/$system/${slug}_v1.mp4';
     return SignVideoEntry(
       id: '${system}_$slug',
       label: word.trim(),
       aliases: const [],
       category: 'online',
       assetPath: 'assets/sign_language/offline/$system/kalimat/$word.mp4',
-      remoteUrl: SignVideoEntry.buildCdnUrl(
-        word: word,
-        signSystem: system,
+      remoteUrl: SignLanguageConfig.resolveVideoUrl(
+        relPath,
         baseUrl: config.baseUrl,
       ),
+      relativePath: relPath,
+      type: 'word',
       signSystem: system,
     );
   }
@@ -141,16 +169,37 @@ class SignLanguageRepository {
       );
     }
 
-    // 3. Tokenized Match (strict bahasa sama dulu, fallback per token jika perlu)
-    final tokens = clean.split(' ');
+    // 3. Multi-word & Tokenized Greedy Match (Maximum Forward Matching)
+    // Supports compound phrases (e.g. "pisang goreng", "terima kasih", "kopi susu")
+    // as well as single-word vocabulary items.
+    final tokens = clean.split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
     final List<SignVideoEntry> tokenMatches = [];
-    for (final token in tokens) {
-      if (token.isEmpty) continue;
-      // Coba bahasa yang sama dulu, jika tidak ada baru fallback ke bahasa lain
-      final match = catalog.findBestMatch(token, languageCode) ??
-          catalog.findBestMatchWithFallback(token, languageCode);
-      if (match != null) {
-        tokenMatches.add(match);
+    int i = 0;
+    const maxNgram = 4; // Longest phrases in sign dictionaries are 3-4 words
+
+    while (i < tokens.length) {
+      SignVideoEntry? matchedEntry;
+      int matchedWordCount = 1;
+
+      // Try longest subphrase first down to 1 word
+      final maxK = (tokens.length - i).clamp(1, maxNgram);
+      for (int k = maxK; k >= 1; k--) {
+        final phrase = tokens.sublist(i, i + k).join(' ');
+        final match = catalog.findBestMatch(phrase, languageCode) ??
+            catalog.findBestMatchWithFallback(phrase, languageCode);
+        if (match != null) {
+          matchedEntry = match;
+          matchedWordCount = k;
+          break;
+        }
+      }
+
+      if (matchedEntry != null) {
+        tokenMatches.add(matchedEntry);
+        i += matchedWordCount;
+      } else {
+        // Unknown token, advance by 1
+        i++;
       }
     }
 

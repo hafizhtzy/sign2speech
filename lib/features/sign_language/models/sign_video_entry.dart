@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import '../services/sign_language_config.dart';
+
 enum SignVideoSource {
   asset,
   localCached,
@@ -14,6 +16,8 @@ class SignVideoEntry {
   final String category;
   final String assetPath;
   final String remoteUrl;
+  final String relativePath;
+  final String type;
   final SignVideoSource source;
   final String? cachedFilePath;
   final String signSystem;
@@ -25,6 +29,8 @@ class SignVideoEntry {
     required this.category,
     required this.assetPath,
     required this.remoteUrl,
+    this.relativePath = '',
+    this.type = 'word',
     this.source = SignVideoSource.remote,
     this.cachedFilePath,
     this.signSystem = 'bisindo',
@@ -62,11 +68,11 @@ class SignVideoEntry {
   }
 
   /// Standard remote CDN video URL convention:
-  /// https://hajicare-sign.web.app/videos/{system}/{slug}_v1.mp4
+  /// https://sign-language-c5d23.web.app/videos/{system}/{slug}_v1.mp4
   static String buildCdnUrl({
     required String word,
     required String signSystem,
-    String baseUrl = 'https://hajicare-sign.web.app',
+    String baseUrl = SignLanguageConfig.defaultBaseUrl,
   }) {
     final system =
         signSystem.toLowerCase().trim() == 'sibi' ? 'sibi' : 'bisindo';
@@ -74,12 +80,13 @@ class SignVideoEntry {
     return '$baseUrl/videos/$system/${slug}_v1.mp4';
   }
 
-  /// Check whether an input token matches this video entry's label or aliases (case-insensitive)
+  /// Check whether an input token matches this video entry's label or aliases (case-insensitive & trimmed)
   bool matches(String query) {
     final clean = query.trim().toLowerCase();
-    if (label.toLowerCase() == clean) return true;
+    if (clean.isEmpty) return false;
+    if (label.trim().toLowerCase() == clean) return true;
     for (final alias in aliases) {
-      if (alias.toLowerCase() == clean) return true;
+      if (alias.trim().toLowerCase() == clean) return true;
     }
     return false;
   }
@@ -91,6 +98,8 @@ class SignVideoEntry {
     String? category,
     String? assetPath,
     String? remoteUrl,
+    String? relativePath,
+    String? type,
     SignVideoSource? source,
     String? cachedFilePath,
     String? signSystem,
@@ -102,6 +111,8 @@ class SignVideoEntry {
       category: category ?? this.category,
       assetPath: assetPath ?? this.assetPath,
       remoteUrl: remoteUrl ?? this.remoteUrl,
+      relativePath: relativePath ?? this.relativePath,
+      type: type ?? this.type,
       source: source ?? this.source,
       cachedFilePath: cachedFilePath ?? this.cachedFilePath,
       signSystem: signSystem ?? this.signSystem,
@@ -115,25 +126,47 @@ class SignVideoEntry {
     'category': category,
     'assetPath': assetPath,
     'remoteUrl': remoteUrl,
+    'relativePath': relativePath,
+    'type': type,
     'source': source.name,
     'cachedFilePath': cachedFilePath,
     'signSystem': signSystem,
   };
 
-  factory SignVideoEntry.fromJson(Map<String, dynamic> json) => SignVideoEntry(
-    id: json['id'] as String,
-    label: json['label'] as String,
-    aliases: List<String>.from(json['aliases'] as List? ?? []),
-    category: json['category'] as String,
-    assetPath: json['assetPath'] as String? ?? '',
-    remoteUrl: json['remoteUrl'] as String? ?? '',
-    source: SignVideoSource.values.firstWhere(
-      (e) => e.name == json['source'],
-      orElse: () => SignVideoSource.remote,
-    ),
-    cachedFilePath: json['cachedFilePath'] as String?,
-    signSystem: json['signSystem'] as String? ?? 'bisindo',
-  );
+  factory SignVideoEntry.fromJson(
+    Map<String, dynamic> json, {
+    String baseUrl = SignLanguageConfig.defaultBaseUrl,
+  }) {
+    final pathRaw =
+        json['path'] as String? ?? json['relativePath'] as String? ?? '';
+    final cleanRelPath = pathRaw.replaceAll(RegExp(r'^/+'), '');
+    final remoteUrl =
+        json['remoteUrl'] as String? ??
+        (cleanRelPath.isNotEmpty
+            ? (cleanRelPath.startsWith('http')
+                ? cleanRelPath
+                : '$baseUrl/$cleanRelPath')
+            : '');
+
+    return SignVideoEntry(
+      id: json['id'] as String? ?? '',
+      label: json['label'] as String? ?? '',
+      aliases: List<String>.from(json['aliases'] as List? ?? []),
+      category: json['category'] as String? ?? 'general',
+      assetPath: json['assetPath'] as String? ?? '',
+      remoteUrl: remoteUrl,
+      relativePath: cleanRelPath,
+      type: json['type'] as String? ?? 'word',
+      source: SignVideoSource.values.firstWhere(
+        (e) => e.name == json['source'],
+        orElse: () => SignVideoSource.remote,
+      ),
+      cachedFilePath: json['cachedFilePath'] as String?,
+      signSystem:
+          (json['signSystem'] as String? ?? json['language'] as String? ?? 'bisindo')
+              .toLowerCase(),
+    );
+  }
 
   @override
   String toString() =>

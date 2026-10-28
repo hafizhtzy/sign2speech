@@ -149,7 +149,7 @@ void main() {
       expect(controller.currentEntry.value!.label, equals('Baik'));
       expect(
         controller.currentEntry.value!.remoteUrl,
-        equals('https://hajicare-sign.web.app/videos/bisindo/baik_v1.mp4'),
+        equals('https://sign-language-c5d23.web.app/videos/bisindo/baik_v1.mp4'),
       );
     });
 

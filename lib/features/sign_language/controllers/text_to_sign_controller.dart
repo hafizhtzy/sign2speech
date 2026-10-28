@@ -229,6 +229,10 @@ class TextToSignController extends GetxController {
       isLoadingVideos.value = true;
       errorMessage.value = null;
 
+      if (forceRefresh) {
+        await _repository.loadCatalog(forceRemote: true);
+      }
+
       final videos = await _repository.getAvailableVideos(
         language: selectedLanguage.value,
         forceRefresh: forceRefresh,

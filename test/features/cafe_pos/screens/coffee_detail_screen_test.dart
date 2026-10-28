@@ -206,9 +206,20 @@ void main() {
       await tester.tap(sendBtn);
       await tester.pumpAndSettle();
 
+      // Verify success dialog is displayed
+      expect(find.text('Pesanan Berhasil Dikirim!'), findsOneWidget);
+      expect(find.text('OK, Selesai'), findsOneWidget);
+
       // Verify item was added to cashier ticket
       expect(cashierController.currentTicket.value.items.length, equals(1));
       expect(cashierController.currentTicket.value.items.first.drinkId, equals(item.id));
+
+      // Dismiss dialog by tapping "OK, Selesai"
+      await tester.tap(find.text('OK, Selesai'));
+      await tester.pumpAndSettle();
+
+      // Verify dialog is closed
+      expect(find.text('Pesanan Berhasil Dikirim!'), findsNothing);
 
       // Verify draft in storage is cleared
       final draft = await localDataSource.loadCustomizationDraft(item.id);
