@@ -19,8 +19,8 @@ class BisindoRecognitionController extends GetxController {
   final RxString lastRecognizedWord = ''.obs;
   final RxBool isCameraActive = false.obs;
   final RxBool isHandDetected = false.obs;
-  final RxDouble currentConfidenceThreshold = 0.70.obs;
-  final RxInt currentStablePredictionsRequired = 3.obs;
+  final RxDouble currentConfidenceThreshold = 0.58.obs;
+  final RxInt currentStablePredictionsRequired = 2.obs;
 
   Timer? _letterSpeechTimer;
   String _lastCommittedWord = '';
