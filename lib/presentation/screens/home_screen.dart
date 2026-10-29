@@ -5,12 +5,10 @@ import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_card.dart';
-import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/responsive_layout.dart';
 import '../../core/widgets/status_badge.dart';
 import '../../features/history/controllers/history_controller.dart';
 import '../../features/settings/controllers/settings_controller.dart';
-import '../../features/sign_language/services/bisindo_tts_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,13 +18,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String? _activeQuickPhrase;
-
   @override
   Widget build(BuildContext context) {
     final settings = Get.find<SettingsController>();
     final history = Get.find<HistoryController>();
-    final tts = Get.find<BisindoTtsService>();
 
     return Obx(() {
       // Rebuild dynamically when themeMode changes
@@ -178,90 +173,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-
-              // ── Pintasan Kalimat Kasir (Quick Chips) ────────
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      AppStrings.homeCashierShortcuts.tr,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.titleMedium.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.ink,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    AppStrings.homeTapToSpeak.tr,
-                    style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.muted,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-
-              Obx(() {
-                final isEn = settings.selectedAppLanguage.value == 'en';
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  child: Row(
-                    children: [
-                      _buildQuickOrderChip(
-                        tts: tts,
-                        isEn: isEn,
-                        chipLabel: '☕ Pesan Kopi',
-                        spokenPhrase: 'Saya mau pesan kopi',
-                        chipLabelEn: '☕ Order Coffee',
-                        spokenPhraseEn: 'I would like to order coffee',
-                      ),
-                      const SizedBox(width: 8),
-                      _buildQuickOrderChip(
-                        tts: tts,
-                        isEn: isEn,
-                        chipLabel: '🧊 Less Ice',
-                        spokenPhrase: 'Tolong esnya sedikit saja ya',
-                        chipLabelEn: '🧊 Less Ice',
-                        spokenPhraseEn: 'Please give me less ice',
-                      ),
-                      const SizedBox(width: 8),
-                      _buildQuickOrderChip(
-                        tts: tts,
-                        isEn: isEn,
-                        chipLabel: '🍯 Kurang Gula',
-                        spokenPhrase: 'Tolong kurangi gulanya ya',
-                        chipLabelEn: '🍯 Less Sugar',
-                        spokenPhraseEn: 'Please make it with less sugar',
-                      ),
-                      const SizedBox(width: 8),
-                      _buildQuickOrderChip(
-                        tts: tts,
-                        isEn: isEn,
-                        chipLabel: '💳 Bayar QRIS',
-                        spokenPhrase: 'Saya ingin bayar menggunakan QRIS',
-                        chipLabelEn: '💳 Pay with QRIS',
-                        spokenPhraseEn: 'I want to pay using QRIS',
-                      ),
-                      const SizedBox(width: 8),
-                      _buildQuickOrderChip(
-                        tts: tts,
-                        isEn: isEn,
-                        chipLabel: '🛍️ Bawa Pulang',
-                        spokenPhrase: 'Tolong dibungkus untuk dibawa pulang',
-                        chipLabelEn: '🛍️ Takeaway',
-                        spokenPhraseEn: 'Please pack it for takeaway',
-                      ),
-                    ],
-                  ),
-                );
-              }),
-              const SizedBox(height: 16),
 
               // ── Alat Pintar Kasir & Layar Pelanggan ──────────────
               AppCard(
@@ -600,68 +511,6 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
     );
     });
-  }
-
-  Widget _buildQuickOrderChip({
-    required BisindoTtsService tts,
-    required bool isEn,
-    required String chipLabel,
-    required String spokenPhrase,
-    required String chipLabelEn,
-    required String spokenPhraseEn,
-  }) {
-    final activeLabel = isEn ? chipLabelEn : chipLabel;
-    final phraseToSpeak = isEn ? spokenPhraseEn : spokenPhrase;
-    final langCode = isEn ? 'en-US' : 'id-ID';
-    final isActive = _activeQuickPhrase == chipLabel;
-
-    return GestureDetector(
-      onTap: () async {
-        setState(() {
-          _activeQuickPhrase = chipLabel;
-        });
-        await tts.speak(phraseToSpeak, languageCode: langCode);
-        AppSnackbar.info(
-          title: AppStrings.spokenVoiceSnackbar.tr,
-          message: phraseToSpeak,
-          icon: Icons.volume_up_rounded,
-          duration: const Duration(seconds: 2),
-        );
-        await Future.delayed(const Duration(milliseconds: 600));
-        if (mounted) {
-          setState(() {
-            _activeQuickPhrase = null;
-          });
-        }
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: isActive ? AppColors.secondary : AppColors.bgSurface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isActive ? AppColors.secondary : AppColors.border,
-          ),
-          boxShadow: isActive
-              ? [
-                  BoxShadow(
-                    color: AppColors.secondary.withValues(alpha: 0.25),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Text(
-          activeLabel,
-          style: AppTypography.labelMedium.copyWith(
-            fontWeight: FontWeight.w700,
-            color: isActive ? AppColors.textOnDark : AppColors.ink,
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _buildFeatureCard({

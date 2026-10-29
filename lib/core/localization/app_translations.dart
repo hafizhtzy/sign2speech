@@ -479,6 +479,60 @@ class AppTranslations extends Translations {
     AppStrings.cafeOrderSentSuccessDesc: 'Racikan kopi Anda telah berhasil ditambahkan ke antrean kasir & barista.',
     AppStrings.cafeOrderSentSignSyncNotice: 'Tersinkronisasi otomatis dengan video isyarat kasir',
     AppStrings.cafeOrderSentConfirmButton: 'OK, Selesai',
+
+    // Cashier Order Deck (3-Tab Deck: Bahasa Isyarat, 1-Tap, Mic)
+    AppStrings.cafeCashierDeckTitle: 'Komunikasi & Pesanan Kasir',
+    AppStrings.cafeCashierDeckSubtitle: 'Deteksi isyarat pembeli, aksi 1-tap kasir, dan input suara',
+    AppStrings.cafeCashierTabSign: 'Bahasa Isyarat',
+    AppStrings.cafeCashierTabQuick: '1-Tap',
+    AppStrings.cafeCashierTabMic: 'Suara (Mic)',
+    AppStrings.cafeCashierCameraActiveTitle: 'Deteksi Isyarat Kasir',
+    AppStrings.cafeCashierCameraSubtitle: 'Kamera aktif membaca gestur tangan pembeli di depan kasir',
+    AppStrings.cafeCashierMicTap: 'Ketuk untuk Bicara (Kasir)',
+    AppStrings.cafeCashierMicListening: 'Mendengarkan ucapan kasir...',
+    AppStrings.cafeCashierMicHint: 'Ucapan suara Anda akan dikonversi ke teks dan video bahasa isyarat',
+    AppStrings.cafeCashierSubmitOrder: 'Proses Pesanan ke Nota',
+    AppStrings.cafeCashierSubmitEmptyWarning: 'Silakan gunakan isyarat, 1-tap, atau bicara untuk memesan terlebih dahulu.',
+    AppStrings.cafeCashierSubmitSuccess: 'Pesanan berhasil dikonfirmasi ke nota transaksi!',
+
+    // Flip & Device Mode
+    AppStrings.cafeFlipScreen: 'Putar Layar 180°',
+    AppStrings.cafeFlipTooltip: 'Putar tampilan 180° menghadap pembeli',
+    AppStrings.cafeDeviceModeTitle: 'Mode Perangkat Kasir',
+    AppStrings.cafeDeviceModeDesc: 'Pilih konfigurasi tablet kasir & pelanggan',
+    AppStrings.cafeMode1Tablet: '1 Tablet (Putar 180°)',
+    AppStrings.cafeMode1TabletDesc: 'Satu tablet bergantian atau diputar 180° menghadap pembeli',
+    AppStrings.cafeMode2Tablet: '2 Tablet (Sinkron Ruang)',
+    AppStrings.cafeMode2TabletDesc: 'Dua tablet saling sinkron real-time via kode ruangan',
+    AppStrings.cafeRoomCodeLabel: 'Kode Ruangan Meja Kasir',
+    AppStrings.cafeRoomCodeHint: 'Contoh: KAFE-01',
+    AppStrings.cafeCreateRoom: 'Buat Ruang Baru',
+    AppStrings.cafeJoinRoom: 'Hubungkan Ruang',
+    AppStrings.cafeRoomCreated: 'Ruangan berhasil dibuat & disinkronkan',
+    AppStrings.cafeRoomJoined: 'Berhasil terhubung ke ruangan kasir',
+    AppStrings.cafeRoomCodeCopied: 'Kode ruangan disalin ke clipboard',
+    AppStrings.cafeFlipActive: 'Layar diputar 180° menghadap pembeli',
+    AppStrings.cafeFlipInactive: 'Layar kembali ke posisi normal kasir',
+    AppStrings.cafeCashierCameraClosedTitle: 'Kamera Deteksi Isyarat Siap',
+    AppStrings.cafeCashierCameraClosedDesc: 'Kamera tertutup untuk menghemat daya & menjaga privasi. Buka kamera saat siap memesan dengan bahasa isyarat.',
+    AppStrings.cafeCashierCameraClosedBadge: 'Kamera Tertutup',
+
+    // Dual Tablet PIN Role Separation
+    AppStrings.cafeDualStaffHostTitle: 'Tablet Kasir (Host Ruangan)',
+    AppStrings.cafeDualStaffHostDesc: 'Tablet ini bertindak sebagai Meja Kasir. Bagikan kode ruangan ini ke Tablet Pelanggan.',
+    AppStrings.cafeDualCustomerTitle: 'Tablet Pelanggan (Layar Hadap)',
+    AppStrings.cafeDualCustomerDesc: 'Masukkan kode ruangan dari meja kasir untuk menghubungkan tablet ini.',
+    AppStrings.cafeDualCustomerConnected: 'Terhubung ke Meja Kasir',
+    AppStrings.cafeDualStaffLoginPrompt: 'Ini tablet kasir? Masuk PIN Staf',
+    AppStrings.cafeDualHostBadge: 'HOST KASIR',
+    AppStrings.cafeDualCustomerBadge: 'LAYAR PELANGGAN',
+
+    // Stage Advance Bottom Action Bar
+    AppStrings.cafeStageAdvanceNaming: 'Lanjut: Nama & Bayar',
+    AppStrings.cafeStageAdvanceNamingWithCount: 'Lanjut: Nama & Bayar (@count item)',
+    AppStrings.cafeStageAdvancePickup: 'Lanjut: Ambil Kopi',
+    AppStrings.cafeStageWaitingPayment: 'Menunggu Pembayaran',
+    AppStrings.cafeStageOrderCompleted: 'Selesai & Order Baru',
   };
 
 
@@ -946,6 +1000,60 @@ class AppTranslations extends Translations {
     AppStrings.cafeOrderSentSuccessDesc: 'Your customized coffee has been added to the cashier & barista queue.',
     AppStrings.cafeOrderSentSignSyncNotice: 'Automatically synced with cashier sign language video',
     AppStrings.cafeOrderSentConfirmButton: 'OK, Done',
+
+    // Cashier Order Deck (3-Tab Deck: Bahasa Isyarat, 1-Tap, Mic)
+    AppStrings.cafeCashierDeckTitle: 'Cashier Order & Communication',
+    AppStrings.cafeCashierDeckSubtitle: 'Customer sign detection, 1-tap quick actions, and voice input',
+    AppStrings.cafeCashierTabSign: 'Sign Language',
+    AppStrings.cafeCashierTabQuick: '1-Tap',
+    AppStrings.cafeCashierTabMic: 'Voice (Mic)',
+    AppStrings.cafeCashierCameraActiveTitle: 'Cashier Sign Detection',
+    AppStrings.cafeCashierCameraSubtitle: 'Camera is reading customer hand gestures in front of the counter',
+    AppStrings.cafeCashierMicTap: 'Tap to Speak (Cashier)',
+    AppStrings.cafeCashierMicListening: 'Listening to cashier...',
+    AppStrings.cafeCashierMicHint: 'Your speech will be converted to text and sign language video',
+    AppStrings.cafeCashierSubmitOrder: 'Process Order to Ticket',
+    AppStrings.cafeCashierSubmitEmptyWarning: 'Please use sign language, 1-tap, or speech to order first.',
+    AppStrings.cafeCashierSubmitSuccess: 'Order successfully confirmed to transaction ticket!',
+
+    // Flip & Device Mode
+    AppStrings.cafeFlipScreen: 'Flip Screen 180°',
+    AppStrings.cafeFlipTooltip: 'Flip screen 180° to face customer',
+    AppStrings.cafeDeviceModeTitle: 'Cashier Device Mode',
+    AppStrings.cafeDeviceModeDesc: 'Select tablet setup for cashier & customer',
+    AppStrings.cafeMode1Tablet: '1 Tablet (Flip 180°)',
+    AppStrings.cafeMode1TabletDesc: 'Single shared tablet with 180° rotation facing customer',
+    AppStrings.cafeMode2Tablet: '2 Tablets (Room Sync)',
+    AppStrings.cafeMode2TabletDesc: 'Two tablets synced in real-time via room code',
+    AppStrings.cafeRoomCodeLabel: 'Counter Room Code',
+    AppStrings.cafeRoomCodeHint: 'e.g., KAFE-01',
+    AppStrings.cafeCreateRoom: 'Create New Room',
+    AppStrings.cafeJoinRoom: 'Connect Room',
+    AppStrings.cafeRoomCreated: 'Room created and synced successfully',
+    AppStrings.cafeRoomJoined: 'Connected to cashier room successfully',
+    AppStrings.cafeRoomCodeCopied: 'Room code copied to clipboard',
+    AppStrings.cafeFlipActive: 'Screen rotated 180° facing customer',
+    AppStrings.cafeFlipInactive: 'Screen returned to standard cashier orientation',
+    AppStrings.cafeCashierCameraClosedTitle: 'Sign Detection Camera Ready',
+    AppStrings.cafeCashierCameraClosedDesc: 'Camera is closed for battery saving and privacy. Open camera when ready to order with sign language.',
+    AppStrings.cafeCashierCameraClosedBadge: 'Camera Off',
+
+    // Dual Tablet PIN Role Separation
+    AppStrings.cafeDualStaffHostTitle: 'Cashier Tablet (Room Host)',
+    AppStrings.cafeDualStaffHostDesc: 'This tablet acts as Cashier Counter. Share this room code with the Customer Tablet.',
+    AppStrings.cafeDualCustomerTitle: 'Customer Tablet (Facing Display)',
+    AppStrings.cafeDualCustomerDesc: 'Enter the room code from the cashier to connect this tablet.',
+    AppStrings.cafeDualCustomerConnected: 'Connected to Cashier Counter',
+    AppStrings.cafeDualStaffLoginPrompt: 'Is this cashier tablet? Enter Staff PIN',
+    AppStrings.cafeDualHostBadge: 'CASHIER HOST',
+    AppStrings.cafeDualCustomerBadge: 'CUSTOMER DISPLAY',
+
+    // Stage Advance Bottom Action Bar
+    AppStrings.cafeStageAdvanceNaming: 'Proceed: Name & Pay',
+    AppStrings.cafeStageAdvanceNamingWithCount: 'Proceed: Name & Pay (@count items)',
+    AppStrings.cafeStageAdvancePickup: 'Proceed: Pick Up Coffee',
+    AppStrings.cafeStageWaitingPayment: 'Waiting for Payment',
+    AppStrings.cafeStageOrderCompleted: 'Done & New Order',
   };
 }
 

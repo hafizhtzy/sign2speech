@@ -24,7 +24,7 @@ abstract class IModelClassifier {
 /// Input: [1, 48, 706] float32
 /// Output: [1, num_classes] float32 (softmax probabilities)
 class BisindoClassifierService implements IModelClassifier {
-  static const double kDefaultConfidenceThreshold = 0.70;
+  static const double kDefaultConfidenceThreshold = 0.58;
   static const int kExpectedSequenceLen = 48;
   static const int kExpectedBaseFeatureDim = 353;
   static const int kExpectedInputFeatureDim = 706;
@@ -42,8 +42,8 @@ class BisindoClassifierService implements IModelClassifier {
       'A', 'Air', 'Apa', 'Apa Kabar', 'B', 'Baik', 'Berapa', 'Berdiri', 'C', 'D',
       'Dia', 'Dimana', 'Duduk', 'E', 'F', 'G', 'H', 'Halo', 'I', 'J',
       'K', 'Kalian', 'Kami', 'Kamu', 'Kapan', 'Kemana', 'Kita', 'L', 'M', 'Mandi',
-      'Minum', 'N', 'O', 'P', 'Q', 'R', 'S', 'Siapa', 'T', 'Terima Kasih',
-      'Tuli', 'U', 'V', 'W', 'X', 'Y', 'Z'
+      'Minum', 'Minum_old', 'N', 'O', 'P', 'Q', 'R', 'S', 'Siapa', 'T',
+      'Terima Kasih', 'Tuli', 'U', 'V', 'W', 'X', 'Y', 'Z', 'kopi'
     ],
     SignLanguageModelType.sibi: [
       'A', 'Air', 'Aku', 'Apa', 'Arah', 'B', 'Bantu', 'Berapa', 'Berhenti', 'Bus',
@@ -105,20 +105,9 @@ class BisindoClassifierService implements IModelClassifier {
         try {
           final metadataStr = await rootBundle.loadString(config.configAsset!);
           _metadata = json.decode(metadataStr) as Map<String, dynamic>;
-
-          if (_metadata.containsKey('recommended_confidence_threshold_initial')) {
-            _confidenceThreshold =
-                (_metadata['recommended_confidence_threshold_initial'] as num)
-                    .toDouble();
-          } else {
-            _confidenceThreshold = config.defaultConfidenceThreshold;
-          }
-        } catch (e) {
-          _confidenceThreshold = config.defaultConfidenceThreshold;
-        }
-      } else {
-        _confidenceThreshold = config.defaultConfidenceThreshold;
+        } catch (_) {}
       }
+      _confidenceThreshold = config.defaultConfidenceThreshold;
 
       // 2. Load labels dynamically
       try {

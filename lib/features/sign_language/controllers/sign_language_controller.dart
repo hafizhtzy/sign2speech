@@ -412,10 +412,7 @@ class SignLanguageController extends GetxController {
     _isClassifying = true;
     state.value = BisindoLiveState.classifying;
     try {
-      final isSibi = currentModel.value == SignLanguageModel.sibi;
-      final effectiveMargin = isSibi
-          ? math.min(minContinuousMargin, 0.08)
-          : minContinuousMargin;
+      final effectiveMargin = math.min(minContinuousMargin, 0.08);
 
       await _classifyFrames(
         segment.frames,
@@ -545,8 +542,8 @@ class SignLanguageController extends GetxController {
             ? DateTime.now().difference(_segmentStartDateTime!).inMilliseconds
             : (frames.length * 50);
 
-        final streakFactor = (_candidateStreak / 4.0).clamp(0.0, 1.0);
-        final timeFactor = (elapsedMs / 700.0).clamp(0.0, 1.0);
+        final streakFactor = (_candidateStreak / 2.0).clamp(0.0, 1.0);
+        final timeFactor = (elapsedMs / 450.0).clamp(0.0, 1.0);
         final combinedProgress = math
             .max(streakFactor * 0.55 + timeFactor * 0.45, streakFactor * 0.75)
             .clamp(0.0, 1.0);
@@ -554,11 +551,10 @@ class SignLanguageController extends GetxController {
         suggestionProgress.value = combinedProgress;
         holdProgress.value = combinedProgress;
 
-        final targetCommitConfidence = isSibi
-            ? math.min(classifierService.confidenceThreshold, 0.58)
-            : classifierService.confidenceThreshold;
+        final targetCommitConfidence =
+            math.min(classifierService.confidenceThreshold, 0.58);
 
-        if (combinedProgress >= 0.92 &&
+        if (combinedProgress >= 0.85 &&
             prediction.confidence >= targetCommitConfidence &&
             !_isCommittedForCurrentSegment) {
           _confirmAndCommitCandidate(prediction);
@@ -566,7 +562,7 @@ class SignLanguageController extends GetxController {
       } else {
         if (_candidateStreak > 0) {
           _candidateStreak = math.max(0, _candidateStreak - 1);
-          suggestionProgress.value = (_candidateStreak / 4.0).clamp(0.0, 1.0);
+          suggestionProgress.value = (_candidateStreak / 2.0).clamp(0.0, 1.0);
           holdProgress.value = suggestionProgress.value;
         }
       }

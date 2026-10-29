@@ -32,7 +32,7 @@ enum SignLanguageModel {
     }
   }
 
-  int get classCount => this == SignLanguageModel.sibi ? 72 : 47;
+  int get classCount => this == SignLanguageModel.sibi ? 72 : 49;
 
   SignLanguageModelConfig get config => SignLanguageModelConfig.forModel(this);
 
@@ -93,21 +93,21 @@ class SignLanguageModelConfig {
   );
 
   /// BISINDO Model: MotionGRU model (48 frames x 706 features: 353 base + 353 motion)
-  /// Output: 47 classes vocabulary.
+  /// Output: 49 classes vocabulary (HajiCare-aligned logic).
   static const SignLanguageModelConfig bisindo = SignLanguageModelConfig(
     model: SignLanguageModel.bisindo,
     modelName: 'BISINDO',
     modelAsset: 'assets/models/bisindo/bisindo_motion_gru_float16.tflite',
     labelAsset: 'assets/models/bisindo/labels.txt',
     configAsset: 'assets/models/bisindo/model_metadata.json',
-    defaultConfidenceThreshold: 0.70,
-    minMargin: 0.15,
+    defaultConfidenceThreshold: 0.58,
+    minMargin: 0.08,
     windowSize: 48,
     minimumFrames: 24,
     inferenceStride: 2,
     throttleDuration: Duration(milliseconds: 180),
     expectedInputFeatures: 706,
-    classCount: 47,
+    classCount: 49,
   );
 
   static SignLanguageModelConfig forModel(SignLanguageModel model) {

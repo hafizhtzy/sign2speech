@@ -265,6 +265,23 @@ class CafeCashierController extends GetxController {
   static const String defaultCounterId = 'KAFE-01';
   final RxString counterId = defaultCounterId.obs;
 
+  // ── 12. SINGLE-TABLET FLIP MODE ───────────────────────────────────────────
+  /// True = layar di-flip 180° untuk mode hadap-harap (1 tablet, kasir + pembeli).
+  final RxBool isFlipped = false.obs;
+
+  /// Toggle flip state (putar/kembalikan layar 180°).
+  void toggleFlip() {
+    isFlipped.toggle();
+    if (deviceMode.value == CounterDeviceMode.singleTabletSwitch) {
+      isCashierView.value = !isFlipped.value;
+    }
+  }
+
+  /// Reset flip ke posisi normal kasir.
+  void resetFlip() {
+    isFlipped.value = false;
+  }
+
   /// Status auth PIN staff (Quick Staff PIN offline-first).
   final RxBool staffPinAuthenticated = false.obs;
   final RxString staffPin = ''.obs; // Offline PIN (4 digit)
@@ -483,11 +500,16 @@ class CafeCashierController extends GetxController {
       );
       return;
     }
+    if (stage == CafeOrderStage.ordering) {
+      resetFlip();
+      isCashierView.value = true;
+    }
     currentStage.value = stage;
   }
 
   /// Reset ke idle & bersihkan semua state.
   void resetToIdle() {
+    resetFlip();
     currentStage.value = CafeOrderStage.idle;
     dairyAllergyAutoSwitched.value = false;
     dairyAllergyBannerMessage.value = '';
@@ -502,6 +524,15 @@ class CafeCashierController extends GetxController {
     final savedPin = staffPin.value.isEmpty ? '0000' : staffPin.value;
     final authenticated = inputPin == savedPin;
     staffPinAuthenticated.value = authenticated;
+    if (authenticated) {
+      // Tablet kasir terautentikasi: otomatis sisi kasir
+      isCashierView.value = true;
+      if (deviceMode.value == CounterDeviceMode.dualTabletLocked) {
+        if (counterId.value.isEmpty || counterId.value == defaultCounterId) {
+          createRoomSession();
+        }
+      }
+    }
     return authenticated;
   }
 
@@ -515,6 +546,10 @@ class CafeCashierController extends GetxController {
   /// Logout staff (reset authenticated state).
   void logoutStaff() {
     staffPinAuthenticated.value = false;
+    // Jika mode 2-tablet, tablet tanpa PIN otomatis menjadi sisi pembeli
+    if (deviceMode.value == CounterDeviceMode.dualTabletLocked) {
+      isCashierView.value = false;
+    }
   }
 
   // ── MASTER PROMPT V2: DAIRY ALLERGY AUTO-SWITCH ───────────────────────────
@@ -547,6 +582,15 @@ class CafeCashierController extends GetxController {
   /// Switch mode perangkat (1-tablet <-> 2-tablet).
   Future<void> setDeviceMode(CounterDeviceMode mode) async {
     deviceMode.value = mode;
+    if (mode == CounterDeviceMode.dualTabletLocked) {
+      resetFlip();
+      // Otoritas peran: Kasir jika staff terautentikasi PIN, Pembeli jika tanpa PIN
+      if (staffPinAuthenticated.value) {
+        isCashierView.value = true;
+      } else {
+        isCashierView.value = false;
+      }
+    }
     await _counterSessionService?.pairDevices(
       counterId: counterId.value,
       cashierTabletId: 'cashier-${counterId.value}',
@@ -560,6 +604,27 @@ class CafeCashierController extends GetxController {
   /// Set pairing code / counter ID.
   void setPairingCounterId(String id) {
     counterId.value = id.trim().toUpperCase();
+  }
+
+  /// Generate kode room unik dan aktifkan mode sinkronisasi 2-tablet (Host Kasir).
+  Future<String> createRoomSession([String? customCode]) async {
+    final code = (customCode != null && customCode.trim().isNotEmpty)
+        ? customCode.trim().toUpperCase()
+        : 'KAFE-${(DateTime.now().millisecondsSinceEpoch % 10000).toString().padLeft(4, '0')}';
+    setPairingCounterId(code);
+    isCashierView.value = true;
+    await setDeviceMode(CounterDeviceMode.dualTabletLocked);
+    return code;
+  }
+
+  /// Hubungkan ke room counter session yang ada (untuk tablet pembeli).
+  Future<void> joinRoomSession(String code) async {
+    final cleanCode = code.trim().toUpperCase();
+    if (cleanCode.isEmpty) return;
+    setPairingCounterId(cleanCode);
+    isCashierView.value = false; // Tablet yang menghubungkan adalah sisi pembeli
+    await setDeviceMode(CounterDeviceMode.dualTabletLocked);
+    startSessionStream();
   }
 
   /// Mulai listen real-time session dari Firestore (untuk tablet pembeli).
@@ -1354,6 +1419,8 @@ class CafeCashierController extends GetxController {
 
   /// Starts a fresh order for the next customer while maintaining previous orders in queue
   Future<void> startNextCustomerOrder() async {
+    resetFlip();
+    isCashierView.value = true;
     isOrderCompleted.value = false;
     isQrisProcessing.value = false;
     final nextQueue = _incrementQueue(currentTicket.value.queueNumber);

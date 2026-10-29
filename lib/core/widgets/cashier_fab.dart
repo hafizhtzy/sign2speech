@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-import '../../features/cashier_assistance/widgets/cashier_assistant_sheet.dart';
+import '../constants/app_routes.dart';
 import '../localization/app_strings.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 
-/// Floating Action Button providing instant, universal access to Cashier & Counter tools.
+/// Floating Action Button providing instant, universal access to the Cashier Counter screen.
 /// Features high contrast, haptic feedback, and touch target >= 48dp.
 class CashierFab extends StatelessWidget {
   final bool extended;
@@ -23,7 +23,7 @@ class CashierFab extends StatelessWidget {
       return FloatingActionButton.extended(
         onPressed: () {
           HapticFeedback.lightImpact();
-          CashierAssistantSheet.show(context);
+          Get.toNamed(AppRoutes.cafeCashierCounter);
         },
         backgroundColor: AppColors.secondary,
         foregroundColor: Colors.white,
@@ -42,7 +42,7 @@ class CashierFab extends StatelessWidget {
     return FloatingActionButton(
       onPressed: () {
         HapticFeedback.lightImpact();
-        CashierAssistantSheet.show(context);
+        Get.toNamed(AppRoutes.cafeCashierCounter);
       },
       backgroundColor: AppColors.secondary,
       foregroundColor: Colors.white,

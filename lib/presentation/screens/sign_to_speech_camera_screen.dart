@@ -94,10 +94,8 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
       recCtrl.handlePrediction(prediction);
     };
     recCtrl.setModelThresholds(
-      confidenceThreshold:
-          signCtrl.currentModel.value == SignLanguageModel.sibi ? 0.58 : 0.70,
-      stablePredictionsRequired:
-          signCtrl.currentModel.value == SignLanguageModel.sibi ? 2 : 3,
+      confidenceThreshold: 0.58,
+      stablePredictionsRequired: 2,
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!signCtrl.isContinuousRunning.value) {
@@ -336,14 +334,14 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
             Expanded(
               child: _buildModelOptionTab(
                 model: SignLanguageModel.bisindo,
-                label: 'BISINDO (47)',
+                label: 'BISINDO (49)',
                 icon: Icons.handshake_rounded,
                 isSelected: current == SignLanguageModel.bisindo,
                 onTap: () {
                   signCtrl.switchModel(SignLanguageModel.bisindo);
                   recCtrl.setModelThresholds(
-                    confidenceThreshold: 0.70,
-                    stablePredictionsRequired: 3,
+                    confidenceThreshold: 0.58,
+                    stablePredictionsRequired: 2,
                   );
                   recCtrl.resetRecognitionState();
                 },

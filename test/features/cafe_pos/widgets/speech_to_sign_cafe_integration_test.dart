@@ -638,18 +638,21 @@ void main() {
 
       // Enter ordering stage
       await tester.tap(find.text('Mulai Terima Pesanan'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       // Switch to Customer View
       cashierController.toggleDualView();
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       // Ensure menu catalog button in CustomerVoiceOrderCard exists
       expect(find.text(AppStrings.cafeModeMenuCatalog.tr), findsWidgets);
 
       // Tap Katalog Menu button inside CustomerVoiceOrderCard
       await tester.tap(find.text(AppStrings.cafeModeMenuCatalog.tr).first);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       // CafeMenuCatalogSheet is displayed with title & category tabs
       expect(find.text(AppStrings.cafeCatalogTitle.tr), findsOneWidget);
@@ -660,12 +663,14 @@ void main() {
           find.widgetWithText(ElevatedButton, AppStrings.cafeQuickAdd.tr);
       expect(quickAddFinder, findsWidgets);
       await tester.ensureVisible(quickAddFinder.first);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
       await tester.runAsync(() async {
         await tester.tap(quickAddFinder.first);
         await Future<void>.delayed(const Duration(milliseconds: 300));
       });
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       // Verify item was added to the order ticket
       expect(cashierController.currentTicket.value.items.isNotEmpty, isTrue);

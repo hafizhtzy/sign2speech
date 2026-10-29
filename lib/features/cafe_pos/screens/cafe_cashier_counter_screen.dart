@@ -18,7 +18,7 @@ import '../widgets/cafe_order_stage_stepper.dart';
 import '../widgets/cafe_order_ticket_card.dart';
 import '../widgets/cafe_menu_catalog_sheet.dart';
 import '../widgets/cafe_staff_pin_dialog.dart';
-import '../widgets/cashier_quick_deck.dart';
+import '../widgets/cashier_order_deck_card.dart';
 import '../widgets/coffee_recommendation_card.dart';
 import '../widgets/cup_name_spelling_card.dart';
 import '../widgets/dual_mode_queue_pager.dart';
@@ -263,6 +263,7 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
       final double bottomHeight = isDual ? (isIdle ? 0.0 : 56.0) : (isIdle ? 56.0 : 112.0);
       final ticket = controller.currentTicket.value;
       final isCashier = controller.isCashierView.value;
+      final isFlipped = controller.isFlipped.value;
 
       return Scaffold(
         backgroundColor: AppColors.canvas,
@@ -279,15 +280,49 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                AppStrings.cafeCashierBaristaAiTitle.tr,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTypography.titleMedium.copyWith(
-                  color: AppColors.ink,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      AppStrings.cafeCashierBaristaAiTitle.tr,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.titleMedium.copyWith(
+                        color: AppColors.ink,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                  if (isDual) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: controller.staffPinAuthenticated.value
+                            ? AppColors.matcha.withValues(alpha: 0.15)
+                            : AppColors.secondary.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        controller.staffPinAuthenticated.value
+                            ? AppStrings.cafeDualHostBadge.tr
+                            : AppStrings.cafeDualCustomerBadge.tr,
+                        style: AppTypography.labelSmall.copyWith(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
+                          color: controller.staffPinAuthenticated.value
+                              ? AppColors.matcha
+                              : AppColors.secondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
               Text(
                 AppStrings.cafeQueueNumberPrefix.trParams({'queue': ticket.queueNumber}),
@@ -325,6 +360,32 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
             // On Mobile/Compact (< 600dp), show Queue Badge for immediate glanceability
             if (!isLargeScreen)
               _buildQueueBadgeButton(),
+
+            // 180° Screen Flip Button (hanya tampil jika opsi 1-tablet)
+            if (!isDual)
+              IconButton(
+                icon: AnimatedRotation(
+                  turns: isFlipped ? 0.5 : 0.0,
+                  duration: const Duration(milliseconds: 300),
+                  child: Icon(
+                    Icons.screen_rotation_rounded,
+                    color: isFlipped ? AppColors.secondary : AppColors.ink,
+                  ),
+                ),
+                tooltip: AppStrings.cafeFlipScreen.tr,
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                onPressed: () {
+                  controller.toggleFlip();
+                  AppSnackbar.info(
+                    title: AppStrings.cafeFlipScreen.tr,
+                    message: controller.isFlipped.value
+                        ? AppStrings.cafeFlipActive.tr
+                        : AppStrings.cafeFlipInactive.tr,
+                    icon: Icons.screen_rotation_rounded,
+                    duration: const Duration(milliseconds: 1500),
+                  );
+                },
+              ),
 
             // More Options Menu Button (Titik Tiga ⋮) - Opens CafeCashierControlSheet
             IconButton(
@@ -396,8 +457,10 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
         ),
 
       body: SafeArea(
-        child: Stack(
-          children: [
+        child: RotatedBox(
+          quarterTurns: isFlipped ? 2 : 0,
+          child: Stack(
+            children: [
             // V2: Stage-aware body content
             Obx(() {
               final stage = controller.currentStage.value;
@@ -406,7 +469,7 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
               }
               return SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                 child: ResponsiveContentWrapper(
                   maxWidth: ResponsiveBreakpoints.maxDashboardWidth,
                   child: isLargeScreen
@@ -587,65 +650,103 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
               }),
             ),
 
-            // V2: Floating Action — Next Stage button
-            Positioned(
-              bottom: 16,
-              right: 16,
-              child: Obx(() {
-                final stage = controller.currentStage.value;
-                if (stage == CafeOrderStage.idle) return const SizedBox.shrink();
-                // Only cashier view has controls to advance stage
-                if (!controller.isCashierView.value) return const SizedBox.shrink();
-                // When actively spelling customer name, hide FAB so it doesn't overlap keys
-                if (controller.isSpellingCustomerName.value) return const SizedBox.shrink();
-                final ticket = controller.currentTicket.value;
-                final isPaid = ticket.isPaid;
-                final (label, icon, color) = switch (stage) {
-                  CafeOrderStage.ordering => (
-                      'Lanjut: Nama & Bayar',
-                      Icons.arrow_forward_rounded,
-                      AppColors.secondary,
-                    ),
-                  CafeOrderStage.naming => isPaid
-                      ? (
-                          'Lanjut: Ambil Kopi',
-                          Icons.coffee_rounded,
-                          AppColors.matcha,
-                        )
-                      : (
-                          'Menunggu Pembayaran',
-                          Icons.payments_outlined,
-                          AppColors.amber,
-                        ),
-                  CafeOrderStage.pickup => (
-                      'Selesai & Order Baru',
-                      Icons.check_rounded,
-                      AppColors.matcha,
-                    ),
-                  CafeOrderStage.idle => ('', Icons.add, AppColors.secondary),
-                };
-                if (label.isEmpty) return const SizedBox.shrink();
-                return FloatingActionButton.extended(
-                  heroTag: 'cafe_stage_advance',
-                  onPressed: controller.advanceStage,
-                  backgroundColor: color,
-                  foregroundColor: AppColors.surface,
-                  icon: Icon(icon, size: 18),
-                  label: Text(
-                    label,
-                    style: AppTypography.labelMedium.copyWith(
-                      color: AppColors.surface,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                );
-              }),
-            ),
           ],
+        ),
+        ),
+      ),
+      bottomNavigationBar: _buildStageBottomActionBar(stage),
+    );
+    });
+  }
+
+  // ── DOCKED STAGE ADVANCE BOTTOM ACTION BAR ──────────────────────────────────
+  Widget? _buildStageBottomActionBar(CafeOrderStage stage) {
+    if (stage == CafeOrderStage.idle) return null;
+    if (controller.isFlipped.value) return null;
+    if (!controller.isCashierView.value) return null;
+    if (controller.isSpellingCustomerName.value) return null;
+
+    final ticket = controller.currentTicket.value;
+    final isPaid = ticket.isPaid;
+    final (label, icon, color) = switch (stage) {
+      CafeOrderStage.ordering => (
+          ticket.items.isNotEmpty
+              ? AppStrings.cafeStageAdvanceNamingWithCount.trParams({
+                  'count': ticket.items.length.toString(),
+                })
+              : AppStrings.cafeStageAdvanceNaming.tr,
+          Icons.arrow_forward_rounded,
+          AppColors.secondary,
+        ),
+      CafeOrderStage.naming => isPaid
+          ? (
+              AppStrings.cafeStageAdvancePickup.tr,
+              Icons.coffee_rounded,
+              AppColors.matcha,
+            )
+          : (
+              AppStrings.cafeStageWaitingPayment.tr,
+              Icons.payments_outlined,
+              AppColors.amber,
+            ),
+      CafeOrderStage.pickup => (
+          AppStrings.cafeStageOrderCompleted.tr,
+          Icons.check_rounded,
+          AppColors.matcha,
+        ),
+      CafeOrderStage.idle => ('', Icons.add, AppColors.secondary),
+    };
+
+    if (label.isEmpty) return null;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: Border(
+          top: BorderSide(color: AppColors.border, width: 1.0),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.05),
+            offset: const Offset(0, -2),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: SafeArea(
+        top: false,
+        child: ResponsiveContentWrapper(
+          maxWidth: ResponsiveBreakpoints.maxDashboardWidth,
+          heightFactor: 1.0,
+          child: SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton.icon(
+              key: const Key('cafe_stage_advance_button'),
+              onPressed: controller.advanceStage,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: color,
+                foregroundColor: AppColors.surface,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              icon: Icon(icon, size: 20),
+              label: Text(
+                label,
+                style: AppTypography.labelLarge.copyWith(
+                  color: AppColors.surface,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
-    });
   }
 
   // ── V2: IDLE LANDING VIEW ──────────────────────────────────────────────────
@@ -1237,7 +1338,7 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
 
   // ── 6 MODULAR STAGE BUILDERS (V2 ARCHITECTURE) ─────────────────────────────
 
-  /// Stage 1: Kasir - Menerima Pesanan & Konfirmasi Slot
+  /// Stage 1: Kasir - Menerima Pesanan & Konfirmasi Slot (Unified 3-Tab Deck: Isyarat, 1-Tap, Mic)
   Widget _buildCashierOrderingStage() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1253,10 +1354,11 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
           onConfirm: controller.confirmParsedSlotToTicket,
         )),
         const SizedBox(height: 14),
-        Obx(() => CashierQuickDeck(
-          activeIndex: controller.activeQuickDeckIndex.value,
-          onExecute: controller.executeQuickDeck,
-        )),
+        // Unified 3-Tab Interaction Deck: Bahasa Isyarat (default), 1-Tap, Mic
+        CashierOrderDeckCard(
+          controller: controller,
+          onOpenMenuCatalog: _showMenuCatalogSheet,
+        ),
       ],
     );
   }

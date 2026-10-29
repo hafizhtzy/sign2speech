@@ -28,15 +28,19 @@ void main() {
 
     // Tap Mulai Terima Pesanan to enter ordering stage
     await tester.tap(find.text('Mulai Terima Pesanan'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     // Cashier side displays CafeCashierSignVideoCard (Real-time Video Isyarat)
     expect(find.byType(CafeCashierSignVideoCard), findsOneWidget);
+    // Cashier side displays docked stage advance button in bottomNavigationBar
+    expect(find.byKey(const Key('cafe_stage_advance_button')), findsOneWidget);
 
     // Switch to Sisi Pembeli (Customer View)
     final cashierController = Get.find<CafeCashierController>();
     cashierController.toggleDualView();
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     // Customer side displays CustomerVoiceOrderCard and Menu Catalog banner
     expect(find.byType(CustomerVoiceOrderCard), findsOneWidget);

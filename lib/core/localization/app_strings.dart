@@ -459,5 +459,59 @@ class AppStrings {
   static const String cafeOrderSentSuccessDesc = 'cafe_order_sent_success_desc';
   static const String cafeOrderSentSignSyncNotice = 'cafe_order_sent_sign_sync_notice';
   static const String cafeOrderSentConfirmButton = 'cafe_order_sent_confirm_button';
+
+  // Cashier Order Deck (3-Tab Deck: Bahasa Isyarat, 1-Tap, Mic)
+  static const String cafeCashierDeckTitle = 'cafe_cashier_deck_title';
+  static const String cafeCashierDeckSubtitle = 'cafe_cashier_deck_subtitle';
+  static const String cafeCashierTabSign = 'cafe_cashier_tab_sign';
+  static const String cafeCashierTabQuick = 'cafe_cashier_tab_quick';
+  static const String cafeCashierTabMic = 'cafe_cashier_tab_mic';
+  static const String cafeCashierCameraActiveTitle = 'cafe_cashier_camera_active_title';
+  static const String cafeCashierCameraSubtitle = 'cafe_cashier_camera_subtitle';
+  static const String cafeCashierMicTap = 'cafe_cashier_mic_tap';
+  static const String cafeCashierMicListening = 'cafe_cashier_mic_listening';
+  static const String cafeCashierMicHint = 'cafe_cashier_mic_hint';
+  static const String cafeCashierSubmitOrder = 'cafe_cashier_submit_order';
+  static const String cafeCashierSubmitEmptyWarning = 'cafe_cashier_submit_empty_warning';
+  static const String cafeCashierSubmitSuccess = 'cafe_cashier_submit_success';
+
+  // ── Flip & Device Mode Strings ─────────────────────────────────────────────
+  static const String cafeFlipScreen = 'cafe_flip_screen';
+  static const String cafeFlipTooltip = 'cafe_flip_tooltip';
+  static const String cafeDeviceModeTitle = 'cafe_device_mode_title';
+  static const String cafeDeviceModeDesc = 'cafe_device_mode_desc';
+  static const String cafeMode1Tablet = 'cafe_mode_1_tablet';
+  static const String cafeMode1TabletDesc = 'cafe_mode_1_tablet_desc';
+  static const String cafeMode2Tablet = 'cafe_mode_2_tablet';
+  static const String cafeMode2TabletDesc = 'cafe_mode_2_tablet_desc';
+  static const String cafeRoomCodeLabel = 'cafe_room_code_label';
+  static const String cafeRoomCodeHint = 'cafe_room_code_hint';
+  static const String cafeCreateRoom = 'cafe_create_room';
+  static const String cafeJoinRoom = 'cafe_join_room';
+  static const String cafeRoomCreated = 'cafe_room_created';
+  static const String cafeRoomJoined = 'cafe_room_joined';
+  static const String cafeRoomCodeCopied = 'cafe_room_code_copied';
+  static const String cafeFlipActive = 'cafe_flip_active';
+  static const String cafeFlipInactive = 'cafe_flip_inactive';
+  static const String cafeCashierCameraClosedTitle = 'cafe_cashier_camera_closed_title';
+  static const String cafeCashierCameraClosedDesc = 'cafe_cashier_camera_closed_desc';
+  static const String cafeCashierCameraClosedBadge = 'cafe_cashier_camera_closed_badge';
+
+  // ── Dual Tablet PIN Role Separation ────────────────────────────────────────
+  static const String cafeDualStaffHostTitle = 'cafe_dual_staff_host_title';
+  static const String cafeDualStaffHostDesc = 'cafe_dual_staff_host_desc';
+  static const String cafeDualCustomerTitle = 'cafe_dual_customer_title';
+  static const String cafeDualCustomerDesc = 'cafe_dual_customer_desc';
+  static const String cafeDualCustomerConnected = 'cafe_dual_customer_connected';
+  static const String cafeDualStaffLoginPrompt = 'cafe_dual_staff_login_prompt';
+  static const String cafeDualHostBadge = 'cafe_dual_host_badge';
+  static const String cafeDualCustomerBadge = 'cafe_dual_customer_badge';
+
+  // ── Stage Advance Bottom Action Bar ─────────────────────────────────────────
+  static const String cafeStageAdvanceNaming = 'cafe_stage_advance_naming';
+  static const String cafeStageAdvanceNamingWithCount = 'cafe_stage_advance_naming_with_count';
+  static const String cafeStageAdvancePickup = 'cafe_stage_advance_pickup';
+  static const String cafeStageWaitingPayment = 'cafe_stage_waiting_payment';
+  static const String cafeStageOrderCompleted = 'cafe_stage_order_completed';
 }
 

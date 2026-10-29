@@ -60,9 +60,11 @@ extension CafeOrderStageExtension on CafeOrderStage {
 
 /// Mode perangkat kasir:
 /// [singleTabletSwitch] → 1 tablet, geser antar tab Kasir/Pembeli
+/// [singleTabletFlip] → 1 tablet, putar 180° untuk hadap-harap kasir & pembeli
 /// [dualTabletLocked] → 2 tablet, 1 khusus Kasir, 1 khusus Pembeli (paired)
 enum CounterDeviceMode {
   singleTabletSwitch,
+  singleTabletFlip,
   dualTabletLocked,
 }
 
@@ -71,6 +73,8 @@ extension CounterDeviceModeExtension on CounterDeviceMode {
     switch (this) {
       case CounterDeviceMode.singleTabletSwitch:
         return '1 Tablet (Geser Tab)';
+      case CounterDeviceMode.singleTabletFlip:
+        return '1 Tablet (Putar 180°)';
       case CounterDeviceMode.dualTabletLocked:
         return '2 Tablet (Paired)';
     }
@@ -80,6 +84,8 @@ extension CounterDeviceModeExtension on CounterDeviceMode {
     switch (this) {
       case CounterDeviceMode.singleTabletSwitch:
         return '1 Tablet (Tab Switch)';
+      case CounterDeviceMode.singleTabletFlip:
+        return '1 Tablet (Flip 180°)';
       case CounterDeviceMode.dualTabletLocked:
         return '2 Tablets (Paired)';
     }
