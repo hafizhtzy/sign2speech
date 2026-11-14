@@ -46,8 +46,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Row(
                       children: [
                         Container(
-                          width: 44,
-                          height: 44,
+                          width: 40,
+                          height: 40,
                           decoration: BoxDecoration(
                             color: AppColors.secondary.withValues(alpha: 0.12),
                             shape: BoxShape.circle,
@@ -58,25 +58,33 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Center(
                             child: Icon(
                               Icons.sign_language_rounded,
-                              size: 22,
+                              size: 20,
                               color: AppColors.secondary,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                AppStrings.appTitle.tr,
-                                style: AppTypography.titleLarge.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.primary,
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  AppStrings.appTitle.tr,
+                                  maxLines: 1,
+                                  style: AppTypography.titleMedium.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.primary,
+                                  ),
                                 ),
                               ),
                               Text(
                                 AppStrings.appSubtitle.tr,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: AppTypography.bodySmall.copyWith(
                                   color: AppColors.muted,
                                   fontWeight: FontWeight.w500,
@@ -96,11 +104,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         StatusBadge(
                           label: settings.selectedSignLanguage.value,
                           variant: BadgeVariant.active,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3.5,
+                          ),
                         ),
                         const SizedBox(width: 6),
                         StatusBadge(
                           label: settings.selectedRole.value,
                           variant: BadgeVariant.neutral,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3.5,
+                          ),
                         ),
                       ],
                     ),

@@ -9,12 +9,14 @@ class StatusBadge extends StatelessWidget {
   final String label;
   final BadgeVariant variant;
   final IconData? icon;
+  final EdgeInsetsGeometry? padding;
 
   const StatusBadge({
     super.key,
     required this.label,
     this.variant = BadgeVariant.neutral,
     this.icon,
+    this.padding,
   });
 
   @override
@@ -52,7 +54,8 @@ class StatusBadge extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding:
+          padding ?? const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(20),
