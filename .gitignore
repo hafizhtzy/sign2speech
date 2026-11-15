@@ -53,3 +53,10 @@ app.*.map.json
 android/key.properties
 **/android/key.properties
 
+# Agent debug and scratch artifacts
+/scratch/
+/dump*.xml
+/dump*.json
+/emulator_screen.png
+/screen*.png
+
