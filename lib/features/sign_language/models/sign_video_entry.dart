@@ -67,8 +67,8 @@ class SignVideoEntry {
         .replaceAll(RegExp(r'[^a-z0-9_]'), '');
   }
 
-  /// Standard remote CDN video URL convention:
-  /// https://sign-language-c5d23.web.app/videos/{system}/{slug}_v1.mp4
+  /// Standard remote CDN video URL convention (Supabase Storage `sign-videos` bucket):
+  /// {supabaseUrl}/storage/v1/object/public/sign-videos/videos/{system}/{slug}_v1.mp4
   static String buildCdnUrl({
     required String word,
     required String signSystem,

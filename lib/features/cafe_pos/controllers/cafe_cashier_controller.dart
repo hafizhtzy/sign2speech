@@ -13,11 +13,13 @@ import 'package:speech2sign/features/sign_language/services/bisindo_tts_service.
 import 'package:speech2sign/features/sign_language/services/camera_feed_service.dart';
 import 'package:speech2sign/features/translator/services/speech_service.dart';
 
-import '../../../core/firebase/firestore_result.dart';
+import '../../../core/supabase/supabase_result.dart';
 import '../../../core/localization/app_translations.dart';
+import 'package:image_picker/image_picker.dart';
+import '../data/datasources/cafe_menu_storage_service.dart';
 import '../data/datasources/cafe_pos_local_data_source.dart';
-import '../data/datasources/firestore_cafe_pos_service.dart';
-import '../data/datasources/firestore_counter_session_service.dart';
+import '../data/datasources/supabase_cafe_pos_service.dart';
+import '../data/datasources/supabase_counter_session_service.dart';
 import '../domain/models/cafe_order_ticket.dart';
 import '../domain/models/coffee_customization_draft.dart';
 import '../domain/models/coffee_menu_item.dart';
@@ -46,8 +48,9 @@ class CafeCashierController extends GetxController {
   CameraFeedService? _cameraFeedService;
   SignLanguageController? _signLanguageController;
   final CafePosLocalDataSource _localDataSource;
-  final FirestoreCafePosService? _firestoreCafePosService;
-  final FirestoreCounterSessionService? _counterSessionService;
+  final SupabaseCafePosService? _supabaseCafePosService;
+  final SupabaseCounterSessionService? _counterSessionService;
+  final CafeMenuStorageService? _menuStorageService;
 
   SignLanguageController? get signLanguageController {
     if (_signLanguageController != null) return _signLanguageController;
@@ -96,11 +99,17 @@ class CafeCashierController extends GetxController {
   }
 
   CafePosLocalDataSource get localDataSource => _localDataSource;
-  FirestoreCafePosService? get firestoreCafePosService => _firestoreCafePosService;
-  FirestoreCounterSessionService? get counterSessionService => _counterSessionService;
+  SupabaseCafePosService? get supabaseCafePosService => _supabaseCafePosService;
+  SupabaseCounterSessionService? get counterSessionService => _counterSessionService;
+  CafeMenuStorageService? get menuStorageService => _menuStorageService;
   Worker? _ticketStorageWorker;
   Worker? _queueStorageWorker;
   StreamSubscription<dynamic>? _sessionStreamSub;
+
+  /// Reactive catalog of coffee menus (merges standardCatalog with dynamic Supabase `cafe_menus`).
+  final RxList<CoffeeMenuItem> menuCatalog =
+      <CoffeeMenuItem>[...CoffeeMenuItem.standardCatalog].obs;
+  final RxBool isUploadingMenuPhoto = false.obs;
 
   CafeCashierController({
     OrderSlotParserService? orderSlotParserService,
@@ -111,8 +120,9 @@ class CafeCashierController extends GetxController {
     CameraFeedService? cameraFeedService,
     SignLanguageController? signLanguageController,
     CafePosLocalDataSource? localDataSource,
-    FirestoreCafePosService? firestoreCafePosService,
-    FirestoreCounterSessionService? counterSessionService,
+    SupabaseCafePosService? supabaseCafePosService,
+    SupabaseCounterSessionService? counterSessionService,
+    CafeMenuStorageService? menuStorageService,
     TextToSignController? textToSignController,
   })  : _orderSlotParserService =
             orderSlotParserService ?? OrderSlotParserService(),
@@ -143,13 +153,17 @@ class CafeCashierController extends GetxController {
             (Get.isRegistered<CafePosLocalDataSource>()
                 ? Get.find<CafePosLocalDataSource>()
                 : CafePosLocalDataSource()),
-        _firestoreCafePosService = firestoreCafePosService ??
-            (Get.isRegistered<FirestoreCafePosService>()
-                ? Get.find<FirestoreCafePosService>()
+        _supabaseCafePosService = supabaseCafePosService ??
+            (Get.isRegistered<SupabaseCafePosService>()
+                ? Get.find<SupabaseCafePosService>()
                 : null),
         _counterSessionService = counterSessionService ??
-            (Get.isRegistered<FirestoreCounterSessionService>()
-                ? Get.find<FirestoreCounterSessionService>()
+            (Get.isRegistered<SupabaseCounterSessionService>()
+                ? Get.find<SupabaseCounterSessionService>()
+                : null),
+        _menuStorageService = menuStorageService ??
+            (Get.isRegistered<CafeMenuStorageService>()
+                ? Get.find<CafeMenuStorageService>()
                 : null);
 
 
@@ -307,7 +321,8 @@ class CafeCashierController extends GetxController {
     }
     _connectSignLanguageFeed();
     loadPersistedTicket();
-    // V2: Sync stage to Firestore whenever it changes
+    unawaited(refreshCloudMenus());
+    // V2: Sync stage to Supabase whenever it changes
     ever<CafeOrderStage>(currentStage, (stage) {
       _counterSessionService?.syncStage(
         counterId.value,
@@ -315,6 +330,115 @@ class CafeCashierController extends GetxController {
         currentOrderId: currentTicket.value.orderId,
       );
     });
+  }
+
+  // ── DYNAMIC CAFE MENU & PHOTO CRUD (SUPABASE STORAGE) ─────────────────────
+
+  /// Refreshes menu items from Supabase `cafe_menus` and merges with `standardCatalog`.
+  Future<void> refreshCloudMenus() async {
+    final service = _menuStorageService;
+    if (service == null) return;
+    final res = await service.fetchMenus();
+    switch (res) {
+      case SupabaseSuccess<List<CoffeeMenuItem>>(data: final cloudMenus):
+        if (cloudMenus.isEmpty) return;
+        final mergedById = <String, CoffeeMenuItem>{
+          for (final item in CoffeeMenuItem.standardCatalog) item.id: item,
+        };
+        for (final cloudItem in cloudMenus) {
+          mergedById[cloudItem.id] = cloudItem;
+        }
+        menuCatalog.assignAll(mergedById.values.toList());
+      case SupabaseFailure<List<CoffeeMenuItem>>():
+        // Offline or Supabase not initialized — keep local standardCatalog
+        break;
+    }
+  }
+
+  /// Picks a photo from Camera or Gallery, compresses it, uploads to `menu-photos` bucket,
+  /// deletes the previous photo if present, and updates `cafe_menus`.
+  Future<CoffeeMenuItem?> pickAndUploadMenuPhoto(
+    CoffeeMenuItem item, {
+    bool fromCamera = false,
+  }) async {
+    final service = _menuStorageService ?? CafeMenuStorageService();
+    isUploadingMenuPhoto.value = true;
+    try {
+      final pickRes = await service.pickAndCompressPhoto(
+        source: fromCamera ? ImageSource.camera : ImageSource.gallery,
+      );
+      switch (pickRes) {
+        case SupabaseSuccess<Uint8List?>(data: final bytes):
+          if (bytes == null || bytes.isEmpty) {
+            return null;
+          }
+          final uploadRes = await service.uploadMenuPhoto(
+            menuId: item.id,
+            imageBytes: bytes,
+            oldStoragePath: item.storagePath,
+            fallbackMenuTemplate: item,
+          );
+          switch (uploadRes) {
+            case SupabaseSuccess<MenuPhotoUploadResult>(data: final uploaded):
+              final updated = item.copyWith(
+                imageUrl: uploaded.imageUrl,
+                storagePath: uploaded.storagePath,
+              );
+              final idx = menuCatalog.indexWhere((m) => m.id == item.id);
+              if (idx >= 0) {
+                menuCatalog[idx] = updated;
+              } else {
+                menuCatalog.add(updated);
+              }
+              return updated;
+            case SupabaseFailure<MenuPhotoUploadResult>():
+              return null;
+          }
+        case SupabaseFailure<Uint8List?>():
+          return null;
+      }
+    } finally {
+      isUploadingMenuPhoto.value = false;
+    }
+  }
+
+  /// Creates or updates a menu item in Supabase `cafe_menus`.
+  Future<bool> upsertMenuItem(
+    CoffeeMenuItem item, {
+    Uint8List? newPhotoBytes,
+  }) async {
+    final service = _menuStorageService;
+    if (service == null) return false;
+    final res = await service.upsertMenu(item, newPhotoBytes: newPhotoBytes);
+    switch (res) {
+      case SupabaseSuccess<CoffeeMenuItem>(data: final saved):
+        final idx = menuCatalog.indexWhere((m) => m.id == saved.id);
+        if (idx >= 0) {
+          menuCatalog[idx] = saved;
+        } else {
+          menuCatalog.add(saved);
+        }
+        return true;
+      case SupabaseFailure<CoffeeMenuItem>():
+        return false;
+    }
+  }
+
+  /// Deletes a menu item from Supabase `cafe_menus` and removes its photo from `menu-photos`.
+  Future<bool> deleteMenuItem(CoffeeMenuItem item) async {
+    final service = _menuStorageService;
+    if (service == null) return false;
+    final res = await service.deleteMenu(
+      menuId: item.id,
+      storagePath: item.storagePath,
+    );
+    switch (res) {
+      case SupabaseSuccess<void>():
+        menuCatalog.removeWhere((m) => m.id == item.id);
+        return true;
+      case SupabaseFailure<void>():
+        return false;
+    }
   }
 
   Future<void> _syncModelWithSettings() async {
@@ -627,7 +751,7 @@ class CafeCashierController extends GetxController {
     startSessionStream();
   }
 
-  /// Mulai listen real-time session dari Firestore (untuk tablet pembeli).
+  /// Mulai listen real-time session dari Supabase (untuk tablet pembeli).
   void startSessionStream() {
     _sessionStreamSub?.cancel();
     final svc = _counterSessionService;
@@ -1365,10 +1489,10 @@ class CafeCashierController extends GetxController {
     // Insert into active orders queue for barista/kitchen preparation
     _addOrUpdateQueueOrder(completedTicket);
 
-    // Persist completed order to Cloud Firestore (offloads long-term data from local storage)
-    final firestoreService = _firestoreCafePosService;
-    if (firestoreService != null) {
-      unawaited(firestoreService.saveOrder(completedTicket));
+    // Persist completed order to Supabase (offloads long-term data from local storage)
+    final supabaseService = _supabaseCafePosService;
+    if (supabaseService != null) {
+      unawaited(supabaseService.saveOrder(completedTicket));
     }
 
     try {
@@ -1391,10 +1515,10 @@ class CafeCashierController extends GetxController {
     // Insert into active orders queue
     _addOrUpdateQueueOrder(completedTicket);
 
-    // Persist completed order to Cloud Firestore
-    final firestoreService = _firestoreCafePosService;
-    if (firestoreService != null) {
-      unawaited(firestoreService.saveOrder(completedTicket));
+    // Persist completed order to Supabase
+    final supabaseService = _supabaseCafePosService;
+    if (supabaseService != null) {
+      unawaited(supabaseService.saveOrder(completedTicket));
     }
 
     try {
@@ -1470,7 +1594,7 @@ class CafeCashierController extends GetxController {
       final updated = activeOrdersQueue[idx].copyWith(status: newStatus);
       activeOrdersQueue[idx] = updated;
       _localDataSource.saveActiveQueue(activeOrdersQueue.toList());
-      _firestoreCafePosService?.saveOrder(updated);
+      _supabaseCafePosService?.saveOrder(updated);
     }
   }
 
@@ -1539,16 +1663,16 @@ class CafeCashierController extends GetxController {
 
   /// Realtime stream of active cloud orders (barista/kitchen display)
   Stream<List<CafeOrderTicket>>? streamCloudActiveOrders() =>
-      _firestoreCafePosService?.streamActiveOrders();
+      _supabaseCafePosService?.streamActiveOrders();
 
-  /// Fetches recent orders directly from Cloud Firestore without consuming local storage
+  /// Fetches recent orders directly from Supabase without consuming local storage
   Future<List<CafeOrderTicket>> fetchCloudOrders({int limit = 50}) async {
-    if (_firestoreCafePosService == null) return [];
-    final res = await _firestoreCafePosService.fetchRecentOrders(limit: limit);
+    if (_supabaseCafePosService == null) return [];
+    final res = await _supabaseCafePosService.fetchRecentOrders(limit: limit);
     switch (res) {
-      case FirestoreSuccess(:final data):
+      case SupabaseSuccess(:final data):
         return data;
-      case FirestoreFailure():
+      case SupabaseFailure():
         return [];
     }
   }
@@ -1599,9 +1723,9 @@ class CafeCashierController extends GetxController {
       try {
         final newStamps = await _localDataSource.addLoyaltyStamp();
         loyaltyStampsCount.value = newStamps;
-        final firestoreService = _firestoreCafePosService;
-        if (firestoreService != null) {
-          unawaited(firestoreService.syncLoyaltyStamps('guest_user', newStamps));
+        final supabaseService = _supabaseCafePosService;
+        if (supabaseService != null) {
+          unawaited(supabaseService.syncLoyaltyStamps('guest_user', newStamps));
         }
         await HapticFeedback.mediumImpact();
       } catch (_) {}

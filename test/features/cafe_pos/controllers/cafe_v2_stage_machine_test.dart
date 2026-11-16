@@ -133,7 +133,7 @@ void main() {
     });
   });
 
-  group('Master Prompt V2 - Firestore Counter Session Data Model', () {
+  group('Master Prompt V2 - Supabase Counter Session Data Model', () {
     test('serializes and deserializes CafeCounterSession correctly', () {
       final now = DateTime.now();
       final session = CafeCounterSession(

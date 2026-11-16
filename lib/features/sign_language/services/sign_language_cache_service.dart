@@ -4,8 +4,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../../core/constants/app_constants.dart';
+
 /// Thrown when the server does not return a valid video file
-/// (e.g. Firebase Hosting serving its HTML 404 page with HTTP 200).
+/// (e.g. missing object or HTML/JSON error response).
 class SignVideoNotAvailableException implements Exception {
   final String url;
   final String reason;
@@ -18,6 +20,12 @@ class SignVideoNotAvailableException implements Exception {
 class SignLanguageCacheService {
   final Dio _dio;
   Directory? _cacheDir;
+
+  /// Base URL of the Supabase Storage `sign-videos` bucket (Cloud-to-Local ready).
+  String get signVideosBaseUrl => AppConstants.signBaseUrl;
+
+  /// Catalog URL inside the Supabase Storage `sign-videos` bucket.
+  String get signCatalogUrl => AppConstants.signCatalogUrl;
 
   SignLanguageCacheService({Dio? dio, Directory? cacheDir})
       : _dio = dio ??
@@ -139,11 +147,14 @@ class SignLanguageCacheService {
         },
       );
 
-      // Firebase Hosting returns HTTP 200 + text/html for missing files.
+      // Reject HTML or JSON error payloads returned with HTTP 200.
+      // Allow video/* and application/octet-stream (Supabase Storage default binary MIME).
       final contentType =
           response.headers.value(Headers.contentTypeHeader)?.toLowerCase() ??
               '';
-      if (contentType.isNotEmpty && !contentType.startsWith('video/')) {
+      if (contentType.isNotEmpty &&
+          !contentType.startsWith('video/') &&
+          !contentType.startsWith('application/octet-stream')) {
         await deleteTemp();
         throw SignVideoNotAvailableException(
           remoteUrl,

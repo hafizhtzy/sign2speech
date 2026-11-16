@@ -208,7 +208,7 @@ class SignLanguageCatalog {
     return loadFromAsset(baseUrl: baseUrl);
   }
 
-  /// Default predefined catalog dengan domain baru sign-language-c5d23.web.app
+  /// Default predefined catalog dengan base URL Supabase Storage `sign-videos`
   factory SignLanguageCatalog.defaultCatalog({
     String baseUrl = SignLanguageConfig.defaultBaseUrl,
   }) {

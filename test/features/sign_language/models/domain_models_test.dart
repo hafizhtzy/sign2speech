@@ -89,7 +89,7 @@ void main() {
         category: 'salam',
         assetPath: 'assets/videos/bisindo/terima_kasih_v1.mp4',
         remoteUrl:
-            'https://sign-language-c5d23.web.app/videos/bisindo/terima_kasih_v1.mp4',
+            'https://sign2speech-cloud.supabase.co/storage/v1/object/public/sign-videos/videos/bisindo/terima_kasih_v1.mp4',
       );
 
       expect(entry.matches('makasih'), isTrue);
@@ -104,7 +104,7 @@ void main() {
         aliases: ['hai'],
         category: 'salam',
         assetPath: 'assets/videos/bisindo/halo_v1.mp4',
-        remoteUrl: 'https://sign-language-c5d23.web.app/videos/bisindo/halo_v1.mp4',
+        remoteUrl: 'https://sign2speech-cloud.supabase.co/storage/v1/object/public/sign-videos/videos/bisindo/halo_v1.mp4',
       );
 
       final result = SignSearchResult(

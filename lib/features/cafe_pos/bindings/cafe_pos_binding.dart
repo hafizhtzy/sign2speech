@@ -12,7 +12,10 @@ import 'package:speech2sign/features/translator/services/speech_service.dart';
 
 import '../../../core/localization/app_translations.dart';
 import '../controllers/cafe_cashier_controller.dart';
+import '../data/datasources/cafe_menu_storage_service.dart';
 import '../data/datasources/cafe_pos_local_data_source.dart';
+import '../data/datasources/supabase_cafe_pos_service.dart';
+import '../data/datasources/supabase_counter_session_service.dart';
 import '../domain/services/coffee_recommender_service.dart';
 import '../domain/services/order_slot_parser_service.dart';
 import '../domain/services/queue_pager_service.dart';
@@ -73,6 +76,27 @@ class CafePosBinding extends Bindings {
       );
     }
 
+    if (!Get.isRegistered<SupabaseCafePosService>()) {
+      Get.lazyPut<SupabaseCafePosService>(
+        () => SupabaseCafePosService(),
+        fenix: true,
+      );
+    }
+
+    if (!Get.isRegistered<SupabaseCounterSessionService>()) {
+      Get.lazyPut<SupabaseCounterSessionService>(
+        () => SupabaseCounterSessionService(),
+        fenix: true,
+      );
+    }
+
+    if (!Get.isRegistered<CafeMenuStorageService>()) {
+      Get.lazyPut<CafeMenuStorageService>(
+        () => CafeMenuStorageService(),
+        fenix: true,
+      );
+    }
+
     Get.lazyPut<OrderSlotParserService>(
       () => OrderSlotParserService(),
       fenix: true,
@@ -98,10 +122,12 @@ class CafePosBinding extends Bindings {
             ? Get.find<SignLanguageController>()
             : null,
         localDataSource: Get.find<CafePosLocalDataSource>(),
+        supabaseCafePosService: Get.find<SupabaseCafePosService>(),
+        counterSessionService: Get.find<SupabaseCounterSessionService>(),
+        menuStorageService: Get.find<CafeMenuStorageService>(),
         textToSignController: Get.find<TextToSignController>(),
       ),
       fenix: true,
     );
   }
 }
-

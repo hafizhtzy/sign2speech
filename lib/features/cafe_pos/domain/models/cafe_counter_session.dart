@@ -1,6 +1,6 @@
 import 'order_enums.dart';
 
-/// Model untuk dokumen Firestore: `counter_sessions/{counterId}`
+/// Model untuk tabel Supabase: `counter_sessions` (`counter_id`)
 /// HANYA berisi data final (bukan raw MediaPipe frames / tensor / audio).
 class CafeCounterSession {
   final String counterId; // e.g. 'KAFE-01'
@@ -21,34 +21,58 @@ class CafeCounterSession {
     required this.updatedAt,
   });
 
-  Map<String, dynamic> toMap() => {
-        'counterId': counterId,
-        'currentOrderId': currentOrderId,
-        'stage': stage.name,
-        'deviceMode': deviceMode.name,
-        'cashierTabletId': cashierTabletId,
-        'customerTabletId': customerTabletId,
-        'updatedAt': updatedAt.toIso8601String(),
-      };
+  bool get isDualTablet => deviceMode == CounterDeviceMode.dualTabletLocked;
 
-  factory CafeCounterSession.fromMap(Map<String, dynamic> map) =>
-      CafeCounterSession(
-        counterId: map['counterId'] as String? ?? 'KAFE-01',
-        currentOrderId: map['currentOrderId'] as String? ?? '',
-        stage: CafeOrderStage.values.firstWhere(
-          (e) => e.name == map['stage'],
-          orElse: () => CafeOrderStage.idle,
-        ),
-        deviceMode: CounterDeviceMode.values.firstWhere(
-          (e) => e.name == map['deviceMode'],
-          orElse: () => CounterDeviceMode.singleTabletSwitch,
-        ),
-        cashierTabletId: map['cashierTabletId'] as String? ?? '',
-        customerTabletId: map['customerTabletId'] as String? ?? '',
-        updatedAt: map['updatedAt'] != null
-            ? DateTime.tryParse(map['updatedAt'] as String) ?? DateTime.now()
-            : DateTime.now(),
+  bool get isPaired =>
+      isDualTablet && cashierTabletId.isNotEmpty && customerTabletId.isNotEmpty;
+
+  Map<String, dynamic> toMap() => {
+    'counterId': counterId,
+    'currentOrderId': currentOrderId,
+    'stage': stage.name,
+    'deviceMode': deviceMode.name,
+    'cashierTabletId': cashierTabletId,
+    'customerTabletId': customerTabletId,
+    'updatedAt': updatedAt.toIso8601String(),
+  };
+
+  factory CafeCounterSession.fromMap(Map<String, dynamic> map) {
+    final rawMode = (map['deviceMode'] ?? map['device_mode']) as String?;
+    final rawUpdatedAt = map['updatedAt'] ?? map['updated_at'];
+    CounterDeviceMode parsedMode;
+    if (rawMode == 'dualTablet') {
+      parsedMode = CounterDeviceMode.dualTabletLocked;
+    } else if (rawMode == 'singleTablet') {
+      parsedMode = CounterDeviceMode.singleTabletSwitch;
+    } else {
+      parsedMode = CounterDeviceMode.values.firstWhere(
+        (e) => e.name == rawMode,
+        orElse: () => CounterDeviceMode.singleTabletSwitch,
       );
+    }
+
+    return CafeCounterSession(
+      counterId:
+          (map['counterId'] ?? map['counter_id']) as String? ?? 'KAFE-01',
+      currentOrderId:
+          (map['currentOrderId'] ?? map['current_order_id']) as String? ?? '',
+      stage: CafeOrderStage.values.firstWhere(
+        (e) => e.name == map['stage'],
+        orElse: () => CafeOrderStage.idle,
+      ),
+      deviceMode: parsedMode,
+      cashierTabletId:
+          (map['cashierTabletId'] ?? map['cashier_tablet_id']) as String? ?? '',
+      customerTabletId:
+          (map['customerTabletId'] ?? map['customer_tablet_id']) as String? ??
+          '',
+      updatedAt: rawUpdatedAt is String
+          ? DateTime.tryParse(rawUpdatedAt) ?? DateTime.now()
+          : rawUpdatedAt is DateTime
+          ? rawUpdatedAt
+          : DateTime.now(),
+    );
+  }
 
   CafeCounterSession copyWith({
     String? counterId,
@@ -58,14 +82,13 @@ class CafeCounterSession {
     String? cashierTabletId,
     String? customerTabletId,
     DateTime? updatedAt,
-  }) =>
-      CafeCounterSession(
-        counterId: counterId ?? this.counterId,
-        currentOrderId: currentOrderId ?? this.currentOrderId,
-        stage: stage ?? this.stage,
-        deviceMode: deviceMode ?? this.deviceMode,
-        cashierTabletId: cashierTabletId ?? this.cashierTabletId,
-        customerTabletId: customerTabletId ?? this.customerTabletId,
-        updatedAt: updatedAt ?? this.updatedAt,
-      );
+  }) => CafeCounterSession(
+    counterId: counterId ?? this.counterId,
+    currentOrderId: currentOrderId ?? this.currentOrderId,
+    stage: stage ?? this.stage,
+    deviceMode: deviceMode ?? this.deviceMode,
+    cashierTabletId: cashierTabletId ?? this.cashierTabletId,
+    customerTabletId: customerTabletId ?? this.customerTabletId,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
 }

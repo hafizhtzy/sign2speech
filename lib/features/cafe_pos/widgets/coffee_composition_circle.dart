@@ -1,4 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:speech2sign/core/localization/app_strings.dart';
 import 'package:speech2sign/core/theme/app_colors.dart';
 import 'package:speech2sign/core/theme/app_typography.dart';
 
@@ -10,11 +13,15 @@ import '../domain/models/coffee_menu_item.dart';
 class CoffeeCompositionCircle extends StatelessWidget {
   final CoffeeMenuItem item;
   final double size;
+  final VoidCallback? onEditPhoto;
+  final bool isUploadingPhoto;
 
   const CoffeeCompositionCircle({
     super.key,
     required this.item,
     this.size = 190,
+    this.onEditPhoto,
+    this.isUploadingPhoto = false,
   });
 
   @override
@@ -89,9 +96,10 @@ class CoffeeCompositionCircle extends StatelessWidget {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Concentric latte cup emblem
+                          // Concentric latte cup emblem or CachedNetworkImage from Supabase Storage
                           Container(
-                            padding: const EdgeInsets.all(14),
+                            width: targetDiameter * 0.54,
+                            height: targetDiameter * 0.54,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: AppColors.bgSurface,
@@ -100,11 +108,32 @@ class CoffeeCompositionCircle extends StatelessWidget {
                                 width: 1,
                               ),
                             ),
-                            child: Icon(
-                              Icons.coffee_rounded,
-                              size: targetDiameter * 0.28,
-                              color: AppColors.secondary,
-                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: item.hasNetworkImage
+                                ? CachedNetworkImage(
+                                    imageUrl: item.imageUrl!,
+                                    fit: BoxFit.cover,
+                                    placeholder: (ctx, url) => Center(
+                                      child: SizedBox(
+                                        width: 22,
+                                        height: 22,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: AppColors.secondary,
+                                        ),
+                                      ),
+                                    ),
+                                    errorWidget: (ctx, url, err) => Icon(
+                                      Icons.coffee_rounded,
+                                      size: targetDiameter * 0.28,
+                                      color: AppColors.secondary,
+                                    ),
+                                  )
+                                : Icon(
+                                    Icons.coffee_rounded,
+                                    size: targetDiameter * 0.28,
+                                    color: AppColors.secondary,
+                                  ),
                           ),
                           const SizedBox(height: 8),
                           // Beverage title
@@ -124,6 +153,58 @@ class CoffeeCompositionCircle extends StatelessWidget {
                     ),
                   ),
                 ),
+
+                // Optional Edit Photo Action Badge (>= 48x48 dp touch target)
+                if (onEditPhoto != null)
+                  Positioned(
+                    bottom: 4,
+                    left: (containerWidth / 2) - (targetDiameter / 2) - 4,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: isUploadingPhoto ? null : onEditPhoto,
+                        borderRadius: BorderRadius.circular(24),
+                        child: Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.surface,
+                              width: 2.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withValues(alpha: 0.22),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: isUploadingPhoto
+                                ? SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.2,
+                                      color: AppColors.surface,
+                                    ),
+                                  )
+                                : Tooltip(
+                                    message: AppStrings.cafeMenuPhotoChange.tr,
+                                    child: Icon(
+                                      Icons.add_a_photo_rounded,
+                                      size: 20,
+                                      color: AppColors.surface,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
 
                 // 4. Composition Point 1: Top Right (e.g. Steamed Oat Milk)
                 if (item.compositionPoints.isNotEmpty)

@@ -20,6 +20,11 @@ class CoffeeMenuItem {
   final String descriptionEn;
   final int basePrice;
   final String imagePath;
+  final String? imageUrl;
+  final String? storagePath;
+  final String? signVideoUrl;
+  final String category;
+  final bool isAvailable;
   final List<String> tags;
   final OrderTemperature defaultTemperature;
   final OrderMilkType defaultMilk;
@@ -34,6 +39,11 @@ class CoffeeMenuItem {
     required this.descriptionEn,
     required this.basePrice,
     this.imagePath = 'assets/komponen_img/Gambar ChatGPT 13 Okt 2026, 19.01.58-1.png',
+    this.imageUrl,
+    this.storagePath,
+    this.signVideoUrl,
+    this.category = 'coffee',
+    this.isAvailable = true,
     this.tags = const [],
     this.defaultTemperature = OrderTemperature.hot,
     this.defaultMilk = OrderMilkType.oatMilk,
@@ -57,7 +67,148 @@ class CoffeeMenuItem {
     ],
   });
 
+  bool get hasNetworkImage =>
+      imageUrl != null &&
+      imageUrl!.trim().isNotEmpty &&
+      (imageUrl!.startsWith('http://') || imageUrl!.startsWith('https://'));
+
   List<String> get compositionPoints => composition.map((c) => c.label).toList();
+
+  CoffeeMenuItem copyWith({
+    String? id,
+    String? nameId,
+    String? nameEn,
+    String? descriptionId,
+    String? descriptionEn,
+    int? basePrice,
+    String? imagePath,
+    String? imageUrl,
+    String? storagePath,
+    String? signVideoUrl,
+    String? category,
+    bool? isAvailable,
+    List<String>? tags,
+    OrderTemperature? defaultTemperature,
+    OrderMilkType? defaultMilk,
+    OrderSweetnessLevel? defaultSweetness,
+    List<CoffeeCompositionPoint>? composition,
+  }) {
+    return CoffeeMenuItem(
+      id: id ?? this.id,
+      nameId: nameId ?? this.nameId,
+      nameEn: nameEn ?? this.nameEn,
+      descriptionId: descriptionId ?? this.descriptionId,
+      descriptionEn: descriptionEn ?? this.descriptionEn,
+      basePrice: basePrice ?? this.basePrice,
+      imagePath: imagePath ?? this.imagePath,
+      imageUrl: imageUrl ?? this.imageUrl,
+      storagePath: storagePath ?? this.storagePath,
+      signVideoUrl: signVideoUrl ?? this.signVideoUrl,
+      category: category ?? this.category,
+      isAvailable: isAvailable ?? this.isAvailable,
+      tags: tags ?? this.tags,
+      defaultTemperature: defaultTemperature ?? this.defaultTemperature,
+      defaultMilk: defaultMilk ?? this.defaultMilk,
+      defaultSweetness: defaultSweetness ?? this.defaultSweetness,
+      composition: composition ?? this.composition,
+    );
+  }
+
+  /// Serializes to PostgreSQL `cafe_menus` snake_case column format.
+  Map<String, dynamic> toPostgresMap() {
+    return <String, dynamic>{
+      'id': id,
+      'name': nameId,
+      'category': category,
+      'price': basePrice,
+      'description': descriptionId,
+      'image_url': imageUrl,
+      'image_path': storagePath ?? (hasNetworkImage ? null : imagePath),
+      'sign_video_url': signVideoUrl,
+      'is_available': isAvailable,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+  }
+
+  /// Creates a [CoffeeMenuItem] from a PostgreSQL `cafe_menus` row, merging with
+  /// [standardCatalog] metadata if the ID matches a built-in menu item.
+  factory CoffeeMenuItem.fromMap(Map<String, dynamic> map) {
+    final rawId = (map['id'] ?? '').toString();
+    final standardMatch = standardCatalog.cast<CoffeeMenuItem?>().firstWhere(
+          (item) => item?.id == rawId,
+          orElse: () => null,
+        );
+
+    final rawName =
+        (map['name'] ?? map['nameId'] ?? standardMatch?.nameId ?? rawId)
+            .toString();
+    final rawDesc = (map['description'] ??
+            map['descriptionId'] ??
+            standardMatch?.descriptionId ??
+            '')
+        .toString();
+    final rawPrice =
+        ((map['price'] ?? map['basePrice'] ?? standardMatch?.basePrice ?? 0)
+                as num)
+            .toInt();
+    final rawCategory =
+        (map['category'] ?? standardMatch?.category ?? 'coffee').toString();
+    final rawImageUrl = (map['image_url'] ?? map['imageUrl'])?.toString();
+    final rawImagePath = (map['image_path'] ?? map['imagePath'])?.toString();
+    final rawSignVideoUrl =
+        (map['sign_video_url'] ?? map['signVideoUrl'])?.toString();
+    final rawAvailable =
+        (map['is_available'] ?? map['isAvailable'] ?? true) == true;
+
+    return CoffeeMenuItem(
+      id: rawId,
+      nameId: rawName,
+      nameEn: (map['nameEn'] ?? standardMatch?.nameEn ?? rawName).toString(),
+      descriptionId: rawDesc,
+      descriptionEn:
+          (map['descriptionEn'] ?? standardMatch?.descriptionEn ?? rawDesc)
+              .toString(),
+      basePrice: rawPrice,
+      imagePath: standardMatch?.imagePath ??
+          'assets/komponen_img/Gambar ChatGPT 13 Okt 2026, 19.01.58-1.png',
+      imageUrl:
+          (rawImageUrl != null && rawImageUrl.isNotEmpty) ? rawImageUrl : null,
+      storagePath: (rawImagePath != null &&
+              rawImagePath.isNotEmpty &&
+              !rawImagePath.startsWith('assets/'))
+          ? rawImagePath
+          : null,
+      signVideoUrl: (rawSignVideoUrl != null && rawSignVideoUrl.isNotEmpty)
+          ? rawSignVideoUrl
+          : null,
+      category: rawCategory,
+      isAvailable: rawAvailable,
+      tags: standardMatch?.tags ?? const [],
+      defaultTemperature:
+          standardMatch?.defaultTemperature ?? OrderTemperature.hot,
+      defaultMilk: standardMatch?.defaultMilk ?? OrderMilkType.oatMilk,
+      defaultSweetness:
+          standardMatch?.defaultSweetness ?? OrderSweetnessLevel.normal100,
+      composition: standardMatch?.composition ??
+          const [
+            CoffeeCompositionPoint(
+              label: 'Oat Milk',
+              percentage: '60%',
+              description: 'Susu oat creamy barista grade',
+            ),
+            CoffeeCompositionPoint(
+              label: 'Microfoam',
+              percentage: '20%',
+              description: 'Busa sutra lembut',
+            ),
+            CoffeeCompositionPoint(
+              label: 'Espresso',
+              percentage: '20%',
+              description: 'Double shot arabika lokal',
+            ),
+          ],
+    );
+  }
 
   static const List<CoffeeMenuItem> standardCatalog = [
     CoffeeMenuItem(

@@ -98,29 +98,37 @@ class CafeOrderTicket {
   }
 
   factory CafeOrderTicket.fromMap(Map<String, dynamic> map) {
+    final rawCreatedAt = map['createdAt'] ?? map['created_at'];
+    final rawStatus = map['status'] as String?;
     return CafeOrderTicket(
-      orderId: map['orderId'] as String? ?? '',
-      queueNumber: map['queueNumber'] as String? ?? 'A-108',
-      customerName: map['customerName'] as String? ?? '',
-      customerNotes: map['customerNotes'] as String? ?? '',
+      orderId: (map['orderId'] ?? map['order_id']) as String? ?? '',
+      queueNumber: (map['queueNumber'] ?? map['queue_number']) as String? ?? 'A-108',
+      customerName: (map['customerName'] ?? map['customer_name']) as String? ?? '',
+      customerNotes: (map['customerNotes'] ?? map['customer_notes']) as String? ?? '',
       items: (map['items'] as List<dynamic>?)
               ?.map(
-                (e) => ParsedCafeOrderSlot.fromMap(e as Map<String, dynamic>),
+                (e) => ParsedCafeOrderSlot.fromMap(
+                  Map<String, dynamic>.from(e as Map),
+                ),
               )
               .toList() ??
           const [],
-      status: OrderStatus.values.firstWhere(
-        (e) => e.name == map['status'],
-        orElse: () => OrderStatus.draft,
-      ),
+      status: rawStatus == 'ready'
+          ? OrderStatus.readyForPickup
+          : OrderStatus.values.firstWhere(
+              (e) => e.name == rawStatus,
+              orElse: () => OrderStatus.draft,
+            ),
       paymentMethod: OrderPaymentMethod.values.firstWhere(
-        (e) => e.name == map['paymentMethod'],
+        (e) => e.name == (map['paymentMethod'] ?? map['payment_method']),
         orElse: () => OrderPaymentMethod.qris,
       ),
-      amountPaid: (map['amountPaid'] as num?)?.toInt() ?? 0,
-      createdAt: map['createdAt'] != null
-          ? DateTime.tryParse(map['createdAt'] as String) ?? DateTime.now()
-          : DateTime.now(),
+      amountPaid: ((map['amountPaid'] ?? map['amount_paid']) as num?)?.toInt() ?? 0,
+      createdAt: rawCreatedAt is String
+          ? DateTime.tryParse(rawCreatedAt) ?? DateTime.now()
+          : rawCreatedAt is DateTime
+              ? rawCreatedAt
+              : DateTime.now(),
     );
   }
 }

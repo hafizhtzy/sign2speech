@@ -30,14 +30,50 @@ class HistoryItem {
     };
   }
 
+  /// PostgreSQL snake_case serialization for `translations_history` table.
+  Map<String, dynamic> toPostgresMap() {
+    return {
+      'id': id,
+      'original_content': originalContent,
+      'translated_content': translatedContent,
+      'direction': direction.name,
+      'sign_language_type': signLanguageType,
+      'timestamp': timestamp.toIso8601String(),
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+    };
+  }
+
   factory HistoryItem.fromMap(Map<String, dynamic> map) {
+    final rawDirection = map['direction'];
+    TranslationDirection parsedDirection = TranslationDirection.signToSpeech;
+    if (rawDirection is int &&
+        rawDirection >= 0 &&
+        rawDirection < TranslationDirection.values.length) {
+      parsedDirection = TranslationDirection.values[rawDirection];
+    } else if (rawDirection is String) {
+      parsedDirection = TranslationDirection.values.firstWhere(
+        (e) => e.name == rawDirection,
+        orElse: () => TranslationDirection.signToSpeech,
+      );
+    }
+
+    final rawTimestamp =
+        (map['timestamp'] ?? map['created_at'] ?? map['createdAt'])?.toString();
+
     return HistoryItem(
-      id: map['id'] as String,
-      originalContent: map['originalContent'] as String,
-      translatedContent: map['translatedContent'] as String,
-      direction: TranslationDirection.values[map['direction'] as int],
-      signLanguageType: map['signLanguageType'] as String? ?? 'BISINDO',
-      timestamp: DateTime.parse(map['timestamp'] as String),
+      id: (map['id'] ?? '') as String,
+      originalContent:
+          (map['originalContent'] ?? map['original_content'] ?? '') as String,
+      translatedContent:
+          (map['translatedContent'] ?? map['translated_content'] ?? '')
+              as String,
+      direction: parsedDirection,
+      signLanguageType: (map['signLanguageType'] ??
+              map['sign_language_type'] ??
+              'BISINDO') as String,
+      timestamp: rawTimestamp != null
+          ? (DateTime.tryParse(rawTimestamp) ?? DateTime.now())
+          : DateTime.now(),
     );
   }
 

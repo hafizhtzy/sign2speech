@@ -1,21 +1,64 @@
 class AppConstants {
   AppConstants._();
 
-  /// Primary Firebase Hosting Project ID
-  static const String signHostingProjectId = 'sign-language-c5d23';
+  // ── 1. Konfigurasi Supabase (Cloud-to-Local Ready via .env) ──────────────
+  /// URL utama instance Supabase.
+  /// Diinjeksikan secara aman dari file `.env` via `--dart-define-from-file=.env`.
+  /// Fallback defaultValue berupa placeholder aman agar tidak membocorkan URL riil ke git publik.
+  static const String supabaseUrl = String.fromEnvironment(
+    'SUPABASE_URL',
+    defaultValue: 'https://sign2speech-cloud.supabase.co',
+  );
 
-  /// Primary Firebase Hosting Base URL for Sign Language videos and assets
-  static const String signBaseUrl = 'https://sign-language-c5d23.web.app';
+  /// Anon Key publik Supabase (aman di client karena tabel dilindungi RLS PostgreSQL).
+  /// Diinjeksikan secara aman dari file `.env` via `--dart-define-from-file=.env`.
+  /// Fallback defaultValue berupa dummy key agar unit test dapat berjalan tanpa .env.
+  static const String supabaseAnonKey = String.fromEnvironment(
+    'SUPABASE_ANON_KEY',
+    defaultValue:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpZ24yc3BlZWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE2NzIwMDAsImV4cCI6MjA0NzI0ODAwMH0.sign2speech-public-anon-key',
+  );
 
-  /// Alternative Firebase Hosting Base URL
-  static const String signAltBaseUrl = 'https://sign-language-c5d23.firebaseapp.com';
+  /// Publishable Key format baru Supabase (opsional/alternatif anon key).
+  static const String supabasePublishableKey = String.fromEnvironment(
+    'SUPABASE_PUBLISHABLE_KEY',
+    defaultValue: '',
+  );
 
-  /// Remote endpoint for the official video catalog JSON
+  // ── 2. Konfigurasi Bucket Supabase Storage ───────────────────────────────
+  /// Bucket publik untuk menyimpan foto menu kopi (dikompres <= 800x800 px).
+  static const String menuPhotosBucket = 'menu-photos';
+
+  /// Bucket publik untuk menyimpan catalog.json dan video bahasa isyarat (*.mp4).
+  static const String signVideosBucket = 'sign-videos';
+
+  /// Base URL publik untuk mengakses foto menu kopi di Supabase Storage.
+  static const String menuPhotosBaseUrl =
+      '$supabaseUrl/storage/v1/object/public/$menuPhotosBucket';
+
+  // ── 3. Konfigurasi CDN Video Bahasa Isyarat (Supabase Storage) ───────────
+  /// Identifier project / bucket penyimpanan video bahasa isyarat.
+  static const String signHostingProjectId = signVideosBucket;
+
+  /// Base URL utama untuk pengambilan video bahasa isyarat (*.mp4) dan catalog.json
+  /// langsung dari Supabase Storage bucket `sign-videos`.
+  static const String signBaseUrl = String.fromEnvironment(
+    'SIGN_BASE_URL',
+    defaultValue: '$supabaseUrl/storage/v1/object/public/$signVideosBucket',
+  );
+
+  /// Alternative / Secondary CDN URL sebagai fallback sekunder Supabase Storage.
+  static const String signAltBaseUrl =
+      '$supabaseUrl/storage/v1/object/public/$signVideosBucket';
+
+  /// Remote endpoint untuk pengambilan file katalog video JSON.
   static const String signCatalogUrl = '$signBaseUrl/catalog.json';
 
-  /// Bundled local asset path for the official catalog JSON
-  static const String signCatalogAssetPath = 'assets/sign_language/catalog.json';
+  /// Path aset lokal fallback untuk katalog JSON.
+  static const String signCatalogAssetPath =
+      'assets/sign_language/catalog.json';
 
-  /// Hosting domain name for display purposes
-  static const String signHostingDomain = 'sign-language-c5d23.web.app';
+  /// Identifier host / path storage untuk validasi URL.
+  static const String signHostingDomain =
+      'storage/v1/object/public/sign-videos';
 }

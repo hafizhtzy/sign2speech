@@ -2,18 +2,20 @@ import '../../features/sign_language/models/sign_language_catalog.dart';
 
 import 'package:get/get.dart';
 
-import '../../features/cafe_pos/data/datasources/firestore_cafe_pos_service.dart';
+import '../../features/cafe_pos/data/datasources/cafe_menu_storage_service.dart';
+import '../../features/cafe_pos/data/datasources/supabase_cafe_pos_service.dart';
+import '../../features/cafe_pos/data/datasources/supabase_counter_session_service.dart';
 import '../../features/history/controllers/history_controller.dart';
 import '../../features/history/services/history_store.dart';
-import '../../features/history/services/firestore_history_service.dart';
+import '../../features/history/services/supabase_history_service.dart';
 import '../../features/settings/controllers/settings_controller.dart';
-import '../../features/settings/services/firestore_settings_service.dart';
+import '../../features/settings/services/supabase_settings_service.dart';
 import '../../features/sign_language/controllers/bisindo_recognition_controller.dart';
 import '../../features/sign_language/controllers/sign_language_controller.dart';
 import '../../features/sign_language/controllers/text_to_sign_controller.dart';
 import '../../features/sign_language/services/bisindo_classifier_service.dart';
 import '../../features/sign_language/services/bisindo_tts_service.dart';
-import '../../features/sign_language/services/firestore_transcript_service.dart';
+import '../../features/sign_language/services/supabase_transcript_service.dart';
 import '../../features/sign_language/services/sign_language_asset_registry.dart';
 import '../../features/sign_language/services/sign_language_cache_service.dart';
 import '../../features/sign_language/services/camera_feed_service.dart';
@@ -37,10 +39,10 @@ class AppBinding extends Bindings {
     final historyStore = HistoryStore();
     final speechService = SpeechService();
 
-    final firestoreHistoryService = FirestoreHistoryService();
-    final firestoreSettingsService = FirestoreSettingsService();
-    final firestoreCafePosService = FirestoreCafePosService();
-    final firestoreTranscriptService = FirestoreTranscriptService();
+    final supabaseHistoryService = SupabaseHistoryService();
+    final supabaseSettingsService = SupabaseSettingsService();
+    final supabaseCafePosService = SupabaseCafePosService();
+    final supabaseTranscriptService = SupabaseTranscriptService();
 
     final catalog = SignLanguageCatalog.defaultCatalog();
     final repository = SignLanguageRepository(
@@ -57,10 +59,18 @@ class AppBinding extends Bindings {
     Get.put<BisindoTtsService>(ttsService, permanent: true);
     Get.put<SignTranscriptStore>(transcriptStore, permanent: true);
     Get.put<HistoryStore>(historyStore, permanent: true);
-    Get.put<FirestoreHistoryService>(firestoreHistoryService, permanent: true);
-    Get.put<FirestoreSettingsService>(firestoreSettingsService, permanent: true);
-    Get.put<FirestoreCafePosService>(firestoreCafePosService, permanent: true);
-    Get.put<FirestoreTranscriptService>(firestoreTranscriptService, permanent: true);
+    Get.put<SupabaseHistoryService>(supabaseHistoryService, permanent: true);
+    Get.put<SupabaseSettingsService>(supabaseSettingsService, permanent: true);
+    Get.put<SupabaseCafePosService>(supabaseCafePosService, permanent: true);
+    Get.put<SupabaseTranscriptService>(supabaseTranscriptService, permanent: true);
+    Get.lazyPut<SupabaseCounterSessionService>(
+      () => SupabaseCounterSessionService(),
+      fenix: true,
+    );
+    Get.lazyPut<CafeMenuStorageService>(
+      () => CafeMenuStorageService(),
+      fenix: true,
+    );
     Get.put<SpeechService>(speechService, permanent: true);
 
     // 2. Machine Learning Classifier Service
@@ -73,13 +83,13 @@ class AppBinding extends Bindings {
 
     // 4. Controllers
     Get.put<SettingsController>(
-      SettingsController(firestoreSettingsService: firestoreSettingsService),
+      SettingsController(supabaseSettingsService: supabaseSettingsService),
       permanent: true,
     );
     Get.put<HistoryController>(
       HistoryController(
         historyStore: historyStore,
-        firestoreHistoryService: firestoreHistoryService,
+        supabaseHistoryService: supabaseHistoryService,
       ),
       permanent: true,
     );

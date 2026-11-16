@@ -513,5 +513,13 @@ class AppStrings {
   static const String cafeStageAdvancePickup = 'cafe_stage_advance_pickup';
   static const String cafeStageWaitingPayment = 'cafe_stage_waiting_payment';
   static const String cafeStageOrderCompleted = 'cafe_stage_order_completed';
+
+  // ── Menu Photo CRUD (Supabase Storage) ─────────────────────────────────────
+  static const String cafeMenuPhotoChange = 'cafe_menu_photo_change';
+  static const String cafeMenuPhotoCamera = 'cafe_menu_photo_camera';
+  static const String cafeMenuPhotoGallery = 'cafe_menu_photo_gallery';
+  static const String cafeMenuPhotoUploading = 'cafe_menu_photo_uploading';
+  static const String cafeMenuPhotoUploadSuccess = 'cafe_menu_photo_upload_success';
+  static const String cafeMenuPhotoUploadFailed = 'cafe_menu_photo_upload_failed';
 }
 

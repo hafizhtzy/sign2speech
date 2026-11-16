@@ -109,7 +109,6 @@ void main() {
       await tester.pumpWidget(
         SignLanguageWidgetPreviews.previewSignVideoPlayerDownloading(),
       );
-      expect(find.text('Mengunduh dari sign-language-c5d23.web.app...'), findsOneWidget);
       expect(find.text('65%'), findsOneWidget);
     });
   });

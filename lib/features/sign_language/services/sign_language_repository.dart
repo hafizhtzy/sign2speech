@@ -73,8 +73,8 @@ class SignLanguageRepository {
         .trim();
   }
 
-  /// Dynamically constructs a SignVideoEntry matching the consistent CDN schema:
-  /// https://sign-language-c5d23.web.app/videos/{system}/{slug}_v1.mp4
+  /// Dynamically constructs a SignVideoEntry matching the consistent Supabase Storage CDN schema:
+  /// {supabaseUrl}/storage/v1/object/public/sign-videos/videos/{system}/{slug}_v1.mp4
   SignVideoEntry createDynamicEntry(String word, String signSystem) {
     final system =
         signSystem.toLowerCase().trim() == 'sibi' ? 'sibi' : 'bisindo';

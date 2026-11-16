@@ -496,7 +496,7 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
                   ),
                 ],
 
-                // Sub-panel untuk 2 Tablet (Sinkronisasi Ruang via Firestore)
+                // Sub-panel untuk 2 Tablet (Sinkronisasi Ruang via Supabase Realtime)
                 // Dipisahkan secara cerdas berdasarkan autentikasi PIN Staf:
                 // - Tablet Kasir (PIN valid): bertindak sebagai Host, generate & bagikan kode ruangan.
                 // - Tablet Pembeli (Tanpa PIN): bertindak sebagai Client, memasukkan kode untuk menghubungkan.

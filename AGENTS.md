@@ -4,6 +4,24 @@ Dokumen ini adalah aturan resmi tingkat proyek (*Project Rule*) untuk Google Ant
 
 ---
 
+## 0. GERBANG WAJIB SEBELUM NGODING / UBAH / UPDATE / TAMBAH / AUDIT KODE (HARD GATE)
+
+> **ATURAN MUTLAK (ZERO-CODE WITHOUT SKILL & RULE):**
+> Agen AI dan subagen **DILARANG KERAS** mulai menulis kode (`write_file`), mengubah/mengupdate kode (`edit_file`), memperbaiki bug, menambahkan fitur baru, atau melakukan audit kode **SEBELUM menemukan, membaca (`read_file`), dan menerapkan `SKILL.md` serta file aturan (`.agents/rules/*.md`) yang sesuai dengan fitur/domain tugas!**
+
+1. **Wajib Baca Skill & Rules Terlebih Dahulu:**
+   - **Tugas Supabase (Database, Query, RLS, Realtime, Storage Bucket `menu-photos`/`sign-videos`):** WAJIB baca [.agents/skills/supabase-postgres-best-practices/SKILL.md](file:///c:/fadli/project/sign2speech/.agents/skills/supabase-postgres-best-practices/SKILL.md) dan [.agents/rules/supabase-development-rules.md](file:///c:/fadli/project/sign2speech/.agents/rules/supabase-development-rules.md) sebelum menyentuh kode!
+   - **Tugas UI/UX, Widget, Layar Baru, Tema, atau Responsif:** WAJIB baca [.agents/rules/ui_development_rules.md](file:///c:/fadli/project/sign2speech/.agents/rules/ui_development_rules.md) serta `SKILL.md` terkait (`ui-ux-pro-max`, `flutter-build-responsive-layout`, `flutter-responsive`, `ui-states`) sebelum mengedit widget!
+   - **Tugas Debugging Bug / Error / Layar Putih / Overflow:** WAJIB baca `SKILL.md` dari `systematic-debugging` dan `flutter-fix-layout-issues` / `dart-fix-runtime-errors` sebelum mencoba memperbaiki kode!
+   - **Tugas Arsitektur, Controller GetX, & State Management:** WAJIB baca `SKILL.md` dari `flutter-apply-architecture-best-practices` dan `agency-software-architect`!
+   - **Tugas Voice AI (STT/TTS) & Kamera/TFLite:** WAJIB baca `SKILL.md` dari `voice-ai-engine-development`, `android-dev`, atau `performance-profiling`!
+   - **Tugas Testing & Audit Kode/Keamanan:** WAJIB baca `SKILL.md` dari `test-driven-development`, `agency-code-reviewer`, `security-predeploy-gate`, dan `verification-before-completion`!
+2. **Jika Belum Menemukan Skill yang Pas:**
+   - **DILARANG langsung ngoding!** Cari terlebih dahulu di katalog `.agents/skills/` atau baca `skill-advisor` dan `using-superpowers` sampai menemukan skill yang tepat.
+   - Panduan lengkap gerbang wajib ini tercantum di [.agents/rules/mandatory-skill-invocation-gate.md](file:///c:/fadli/project/sign2speech/.agents/rules/mandatory-skill-invocation-gate.md).
+
+---
+
 ## 1. Acuan Visual & Design System
 
 1. **Sumber Kebenaran Visual (Single Source of Truth):**
@@ -66,7 +84,7 @@ Muat persona agent atau skill secara spesifik sesuai tugas (*progressive disclos
 | **Testing & Otomasi QA** | `agency-test-automation-engineer` | `test-driven-development`, `flutter-add-widget-test`, `verification-before-completion` | Jalankan alur TDD, tulis tes gagal -> implementasi -> verifikasi hijau dengan mock fixtures. |
 | **Performa & Benchmark** | `agency-performance-benchmarker` | `performance-profiling`, `diagnose-android-overheating` | Pantau komputasi kamera/TFLite di background Isolate; dilarang membuat klaim metrik fiktif tanpa benchmark riil. |
 | **Dokumentasi & Platform** | `android-dev`, `kotlin-coroutines-expert` | `context7-mcp`, `context7-cli`, `find-docs` | Dokumentasi resmi dependency riil di `pubspec.yaml` dan bridging native CameraX non-blocking. |
-| **Firebase Backend & Security** | `firebase-backend-engineer` | `firebase-basics`, `firebase-firestore`, `firestore-rules-creation`, `firebase-security-rules-auditor`, `firebase-crashlytics` | Wajib patuhi panduan di [.agents/rules/firebase-development-rules.md](file:///c:/fadli/project/sign2speech/.agents/rules/firebase-development-rules.md). Clean Architecture Data Layer, zero open access rules, dan Dart 3 sealed class. |
+| **Supabase Backend & Security** | `agency-software-architect` | `supabase-postgres-best-practices`, `security-predeploy-gate` | Wajib patuhi panduan di [.agents/rules/supabase-development-rules.md](file:///c:/fadli/project/sign2speech/.agents/rules/supabase-development-rules.md). Clean Architecture Data Layer, PostgreSQL RLS, Cloud-to-Local Ready, dan Dart 3 sealed class `SupabaseResult<T>`. |
 
 ---
 
@@ -82,22 +100,18 @@ Muat persona agent atau skill secara spesifik sesuai tugas (*progressive disclos
 
 ---
 
-## 5. Standar Wajib Pengembangan & Keamanan Firebase (Best Practices)
+## 5. Standar Wajib Pengembangan & Keamanan Supabase (Best Practices)
 
-Setiap agen yang membuat atau memodifikasi fitur yang bersangkutan dengan Firebase **wajib mengikuti aturan baku ini**:
+Setiap agen yang membuat atau memodifikasi fitur yang bersangkutan dengan Supabase **wajib mengikuti aturan baku ini**:
 
 1. **Pemanggilan Skill Terkurasi:**
-   - Setup, CLI, & App Config: Wajib gunakan `firebase-basics`.
-   - Firestore Query, Batch, & Data Modeling: Wajib gunakan `firebase-firestore`.
-   - Pembuatan & Perubahan `firestore.rules`: Wajib gunakan `firestore-rules-creation`.
-   - Audit Keamanan Rules: Wajib gunakan `firebase-security-rules-auditor`.
-   - Crash Reporting & Monitoring: Wajib gunakan `firebase-crashlytics`.
+   - PostgreSQL Schema, Migrasi SQL, RLS, & Indexing: Wajib gunakan `supabase-postgres-best-practices`.
+   - Audit Keamanan Pra-Rilis: Wajib gunakan `security-predeploy-gate`.
 2. **Arsitektur Kode di Flutter (Clean Architecture + GetX):**
-   - Layanan Firebase **HANYA boleh berada di Data Layer** (`lib/features/<feature>/services/` atau `lib/data/datasources/`). Dilarang mengimpor `cloud_firestore` di widget/view atau domain entity.
-   - Gunakan **Dart 3 `sealed class`** (`FirestoreResult<T>`, `FirestoreSuccess<T>`, `FirestoreFailure<T>`) untuk pemodelan hasil Firestore dan tangani dengan exhaustive `switch`.
-   - Terapkan **defensive initialization (lazy null-safe getter)** pada service Firestore agar unit test & widget test dapat berjalan tanpa crash `[core/no-app]`.
-3. **Keamanan Mutlak (Zero Open Access):**
-   - **Dilarang keras** menulis `allow read, write: if true;` pada data pengguna/riwayat.
-   - Wajib memvalidasi kepemilikan user (`request.auth.uid == userId`) dan skema data pada operasi write.
-   - Setiap perubahan rules wajib dikompilasi dan divalidasi via `firebase deploy --only firestore:rules`.
-4. **Aturan Lengkap:** Baca panduan terperinci di [.agents/rules/firebase-development-rules.md](file:///c:/fadli/project/sign2speech/.agents/rules/firebase-development-rules.md).
+   - Layanan Supabase (`SupabaseClient`, `SupabaseStorageClient`, `RealtimeChannel`) **HANYA boleh berada di Data Layer** (`lib/features/<feature>/services/` atau `lib/features/<feature>/data/datasources/`). Dilarang mengimpor `supabase_flutter` di widget/view atau domain entity.
+   - Gunakan **Dart 3 `sealed class`** (`SupabaseResult<T>`, `SupabaseSuccess<T>`, `SupabaseFailure<T>`) untuk pemodelan hasil Supabase dan tangani dengan exhaustive `switch`.
+   - Terapkan **defensive initialization (lazy null-safe getter `SupabaseClient? get _supabase`)** pada service Supabase agar unit test & widget test dapat berjalan tanpa crash ketika `Supabase.initialize()` belum dipanggil.
+3. **Keamanan Mutlak (Row Level Security & Cloud-to-Local Ready):**
+   - Setiap tabel PostgreSQL wajib mengaktifkan `ENABLE ROW LEVEL SECURITY` dan `CHECK` constraints ketat.
+   - Konfigurasi URL wajib terpusat di `AppConstants.supabaseUrl` agar dapat dipindahkan dari Supabase Cloud ke Self-Hosted Supabase Docker di Mini PC Lokal hanya dengan mengubah 1 baris.
+4. **Aturan Lengkap:** Baca panduan terperinci di [.agents/rules/supabase-development-rules.md](file:///c:/fadli/project/sign2speech/.agents/rules/supabase-development-rules.md) dan [SUPABASE_ARCHITECTURE.md](file:///c:/fadli/project/sign2speech/SUPABASE_ARCHITECTURE.md).

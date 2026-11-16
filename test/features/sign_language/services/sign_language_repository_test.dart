@@ -110,7 +110,7 @@ void main() {
       );
     });
 
-    test('Tier 3: Resolves remote CDN from sign-language-c5d23.web.app for online vocabulary (Obat)', () async {
+    test('Tier 3: Resolves remote CDN from Supabase Storage for online vocabulary (Obat)', () async {
       final entry = catalog.findExact('Obat')!;
       expect(entry.remoteUrl, equals('${AppConstants.signBaseUrl}/videos/sibi/obat_v1.mp4'));
       final source = await repository.resolveVideoSource(entry);
@@ -143,7 +143,7 @@ void main() {
       );
     });
 
-    test('Resolves online video "baik" with CDN URL sign-language-c5d23.web.app/videos/bisindo/baik_v1.mp4', () async {
+    test('Resolves online video "baik" with Supabase Storage CDN URL', () async {
       final entry = catalog.findExact('Baik')!;
       expect(entry.remoteUrl, equals('${AppConstants.signBaseUrl}/videos/bisindo/baik_v1.mp4'));
       final source = await repository.resolveVideoSource(entry);

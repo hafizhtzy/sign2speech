@@ -60,3 +60,8 @@ android/key.properties
 /emulator_screen.png
 /screen*.png
 
+# Environment variables & secrets (Supabase API Keys & Local Secrets)
+.env
+.env.*
+!.env.example
+

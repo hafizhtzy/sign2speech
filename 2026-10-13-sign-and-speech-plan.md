@@ -23,13 +23,13 @@
 
 - Flutter Clean Architecture: Tidak ada dependensi `BuildContext` di dalam controller atau data layer.
 - Zero-Lag Camera Pipeline: CameraX ImageAnalysis wajib dikonfigurasi dengan `STRATEGY_KEEP_ONLY_LATEST` pada thread latar belakang terdedikasi (`Executors.newSingleThreadExecutor()`). Ekstraksi fitur 353D dan kalkulasi sekuens 706D wajib di-offload ke background Dart Isolate (`Isolate.run` / `compute`) agar Main UI Thread stabil pada 60 FPS tanpa frame drop.
-- Video CDN Hosting & Cache-on-Play: Base URL video hosting disetel ke `https://hajicare-sign.web.app/videos/{language}/{slug}_v1.mp4` (didukung offline Tier 1 APK asset & Tier 2 local cache). Pemutaran Tier 3 memutar streaming video secara langsung seraya mengunduh asinkron ke Tier 2 disk cache lokal.
+- Video Supabase Storage & Cache-on-Play: Base URL video hosting disetel ke `${AppConstants.supabaseUrl}/storage/v1/object/public/sign-videos/videos/{language}/{slug}_v1.mp4` (didukung offline Tier 1 APK asset & Tier 2 local cache). Pemutaran Tier 3 memutar streaming video secara langsung seraya mengunduh asinkron ke Tier 2 disk cache lokal.
 - Thread & Memory Safety: Semua stream controller, event channel subscription, dan video player controller wajib ditutup pada `onClose()`.
 - TTS Non-Overlapping: Pengucapan audio TTS Bahasa Indonesia (`id-ID`) wajib dieksekusi secara serial FIFO melalui rantai `Future` (`_speechChain`).
 - Race-Free Playback: Sesi pemutaran video wajib dilindungi token `_playSessionId` yang diincrement setiap kali kueri suara baru masuk.
 - Data Sanitization: Semua koordinat MediaPipe wajib melewati sanitasi numerik (mengubah `NaN` dan `Infinite` menjadi `0.0`).
 - Model Confidence: Ambang batas deteksi gestur MotionGRU minimal `confidence >= 0.70` dengan selisih probabilitas Top-1 vs Top-2 `margin >= 0.15`.
-- Offline First: Sumber video isyarat memprioritaskan Tier 1 (Asset APK), Tier 2 (Local Storage Cache), dan Tier 3 (Remote CDN Firebase Hosting).
+- Offline First: Sumber video isyarat memprioritaskan Tier 1 (Asset APK), Tier 2 (Local Storage Cache), dan Tier 3 (Remote Supabase Storage bucket `sign-videos`).
 - Download Atomicity: Unduhan kategori video wajib menggunakan ekstensi berkas sementara `.tmp` dan mekanisme *atomic rename*.
 
 ---

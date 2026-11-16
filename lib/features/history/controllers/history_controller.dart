@@ -2,12 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 import '../models/history_item.dart';
-import '../services/firestore_history_service.dart';
 import '../services/history_store.dart';
+import '../services/supabase_history_service.dart';
 
 class HistoryController extends GetxController {
   final HistoryStore historyStore;
-  final FirestoreHistoryService? firestoreHistoryService;
+  final SupabaseHistoryService? supabaseHistoryService;
 
   final RxList<HistoryItem> items = <HistoryItem>[].obs;
   final RxInt selectedFilterIndex =
@@ -16,7 +16,7 @@ class HistoryController extends GetxController {
 
   HistoryController({
     required this.historyStore,
-    this.firestoreHistoryService,
+    this.supabaseHistoryService,
   });
 
   @override
@@ -25,22 +25,22 @@ class HistoryController extends GetxController {
     loadHistory();
   }
 
-  /// Loads history from Cloud Firestore if available, otherwise falls back to local storage.
+  /// Loads history from Supabase if available, otherwise falls back to local storage.
   Future<void> loadHistory() async {
     isSyncing.value = true;
     try {
-      if (firestoreHistoryService != null) {
+      if (supabaseHistoryService != null) {
         final cloudResult =
-            await firestoreHistoryService!.fetchHistory(limit: 50);
+            await supabaseHistoryService!.fetchHistory(limit: 50);
         switch (cloudResult) {
-          case FirestoreSuccess(:final data):
+          case SupabaseSuccess(:final data):
             if (data.isNotEmpty) {
               items.assignAll(data);
               isSyncing.value = false;
               return;
             }
-          case FirestoreFailure(:final errorMessage):
-            debugPrint('Firestore fetch fallback: $errorMessage');
+          case SupabaseFailure(:final errorMessage):
+            debugPrint('Supabase fetch fallback: $errorMessage');
         }
       }
 
@@ -88,13 +88,13 @@ class HistoryController extends GetxController {
     await historyStore.saveItem(item);
     items.insert(0, item);
 
-    // 2. Sync to Cloud Firestore in the background
-    if (firestoreHistoryService != null) {
-      final result = await firestoreHistoryService!.saveHistory(item);
+    // 2. Sync to Supabase in the background
+    if (supabaseHistoryService != null) {
+      final result = await supabaseHistoryService!.saveHistory(item);
       switch (result) {
-        case FirestoreSuccess():
+        case SupabaseSuccess():
           break;
-        case FirestoreFailure(:final errorMessage):
+        case SupabaseFailure(:final errorMessage):
           debugPrint('History cloud sync notice: $errorMessage');
       }
     }
@@ -104,13 +104,13 @@ class HistoryController extends GetxController {
     await historyStore.deleteItem(id);
     items.removeWhere((e) => e.id == id);
 
-    if (firestoreHistoryService != null) {
-      final result = await firestoreHistoryService!.deleteHistory(id);
+    if (supabaseHistoryService != null) {
+      final result = await supabaseHistoryService!.deleteHistory(id);
       switch (result) {
-        case FirestoreSuccess():
+        case SupabaseSuccess():
           break;
-        case FirestoreFailure(:final errorMessage):
-          debugPrint('Firestore delete notice: $errorMessage');
+        case SupabaseFailure(:final errorMessage):
+          debugPrint('Supabase delete notice: $errorMessage');
       }
     }
   }

@@ -28,7 +28,7 @@ class CoffeeDetailScreen extends StatefulWidget {
 }
 
 class _CoffeeDetailScreenState extends State<CoffeeDetailScreen> {
-  late final CoffeeMenuItem item;
+  late CoffeeMenuItem item;
 
   late OrderTemperature _temperature;
   late OrderCupSize _cupSize;
@@ -37,6 +37,7 @@ class _CoffeeDetailScreenState extends State<CoffeeDetailScreen> {
   bool _extraShot = false;
   final int _quantity = 1;
   bool _isFavorite = false;
+  bool _isUploadingPhoto = false;
 
   BisindoTtsService get _ttsService => Get.isRegistered<BisindoTtsService>()
       ? Get.find<BisindoTtsService>()
@@ -341,6 +342,137 @@ class _CoffeeDetailScreenState extends State<CoffeeDetailScreen> {
     );
   }
 
+  Future<void> _handlePickAndUploadPhoto({required bool fromCamera}) async {
+    Navigator.of(context).pop();
+    if (_isUploadingPhoto) return;
+
+    setState(() => _isUploadingPhoto = true);
+    try {
+      final controller = Get.isRegistered<CafeCashierController>()
+          ? Get.find<CafeCashierController>()
+          : Get.put(CafeCashierController(localDataSource: _localDataSource));
+
+      final updated = await controller.pickAndUploadMenuPhoto(
+        item,
+        fromCamera: fromCamera,
+      );
+      if (!mounted) return;
+
+      if (updated != null) {
+        setState(() => item = updated);
+        AppSnackbar.show(
+          title: AppStrings.cafeMenuPhotoChange.tr,
+          message: AppStrings.cafeMenuPhotoUploadSuccess.tr,
+          variant: SnackbarVariant.success,
+        );
+      } else {
+        AppSnackbar.show(
+          title: AppStrings.cafeMenuPhotoChange.tr,
+          message: AppStrings.cafeMenuPhotoUploadFailed.tr,
+          variant: SnackbarVariant.warning,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isUploadingPhoto = false);
+      }
+    }
+  }
+
+  void _showPhotoSourceSheet() {
+    HapticFeedback.lightImpact();
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: ResponsiveBreakpoints.maxFormWidth,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.border,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  AppStrings.cafeMenuPhotoChange.tr,
+                  style: AppTypography.titleMedium.copyWith(
+                    color: AppColors.ink,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 52,
+                  child: ElevatedButton.icon(
+                    onPressed: () =>
+                        _handlePickAndUploadPhoto(fromCamera: true),
+                    icon: const Icon(Icons.photo_camera_rounded),
+                    label: Text(
+                      AppStrings.cafeMenuPhotoCamera.tr,
+                      style: AppTypography.labelLarge.copyWith(
+                        color: AppColors.surface,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.surface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 52,
+                  child: OutlinedButton.icon(
+                    onPressed: () =>
+                        _handlePickAndUploadPhoto(fromCamera: false),
+                    icon: Icon(
+                      Icons.photo_library_rounded,
+                      color: AppColors.primary,
+                    ),
+                    label: Text(
+                      AppStrings.cafeMenuPhotoGallery.tr,
+                      style: AppTypography.labelLarge.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: AppColors.border, width: 1.5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -405,7 +537,11 @@ class _CoffeeDetailScreenState extends State<CoffeeDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Circular Coffee Image & 3 Curved Composition Points
-                      CoffeeCompositionCircle(item: item),
+                      CoffeeCompositionCircle(
+                        item: item,
+                        onEditPhoto: _showPhotoSourceSheet,
+                        isUploadingPhoto: _isUploadingPhoto,
+                      ),
 
                       const SizedBox(height: 18),
 

@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../sign_language/services/bisindo_tts_service.dart';
-import '../services/firestore_settings_service.dart';
+import '../services/supabase_settings_service.dart';
 
 class SettingsController extends GetxController with WidgetsBindingObserver {
   static const String _keyRole = 'user_selected_role';
@@ -19,7 +19,7 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
   static const String _keyOnboarded = 'has_completed_onboarding';
   static const String _keyThemeMode = 'user_selected_theme_mode';
 
-  final FirestoreSettingsService? _firestoreSettingsService;
+  final SupabaseSettingsService? _supabaseSettingsService;
 
   final RxString selectedRole = 'Teman Tuli'.obs;
   final RxString selectedSignLanguage = 'BISINDO'.obs;
@@ -29,10 +29,10 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
   final RxBool hasCompletedOnboarding = false.obs;
   final Rx<ThemeMode> themeMode = ThemeMode.system.obs;
 
-  SettingsController({FirestoreSettingsService? firestoreSettingsService})
-      : _firestoreSettingsService = firestoreSettingsService ??
-            (Get.isRegistered<FirestoreSettingsService>()
-                ? Get.find<FirestoreSettingsService>()
+  SettingsController({SupabaseSettingsService? supabaseSettingsService})
+      : _supabaseSettingsService = supabaseSettingsService ??
+            (Get.isRegistered<SupabaseSettingsService>()
+                ? Get.find<SupabaseSettingsService>()
                 : null);
 
   bool get isDarkMode {
@@ -251,7 +251,7 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
   }
 
   void _syncToCloud() {
-    if (_firestoreSettingsService == null) return;
+    if (_supabaseSettingsService == null) return;
     final payload = {
       'role': selectedRole.value,
       'signLanguage': selectedSignLanguage.value,
@@ -261,6 +261,6 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
       'videoSpeed': videoSpeed.value,
       'hasCompletedOnboarding': hasCompletedOnboarding.value,
     };
-    unawaited(_firestoreSettingsService.saveSettings('default_user', payload));
+    unawaited(_supabaseSettingsService.saveSettings('default_user', payload));
   }
 }

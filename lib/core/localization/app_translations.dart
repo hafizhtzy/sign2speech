@@ -533,6 +533,14 @@ class AppTranslations extends Translations {
     AppStrings.cafeStageAdvancePickup: 'Lanjut: Ambil Kopi',
     AppStrings.cafeStageWaitingPayment: 'Menunggu Pembayaran',
     AppStrings.cafeStageOrderCompleted: 'Selesai & Order Baru',
+
+    // Menu Photo CRUD (Supabase Storage)
+    AppStrings.cafeMenuPhotoChange: 'Ubah Foto Menu',
+    AppStrings.cafeMenuPhotoCamera: 'Ambil dari Kamera',
+    AppStrings.cafeMenuPhotoGallery: 'Pilih dari Galeri',
+    AppStrings.cafeMenuPhotoUploading: 'Mengunggah foto menu...',
+    AppStrings.cafeMenuPhotoUploadSuccess: 'Foto menu berhasil diperbarui!',
+    AppStrings.cafeMenuPhotoUploadFailed: 'Gagal mengunggah foto menu',
   };
 
 
@@ -1054,6 +1062,14 @@ class AppTranslations extends Translations {
     AppStrings.cafeStageAdvancePickup: 'Proceed: Pick Up Coffee',
     AppStrings.cafeStageWaitingPayment: 'Waiting for Payment',
     AppStrings.cafeStageOrderCompleted: 'Done & New Order',
+
+    // Menu Photo CRUD (Supabase Storage)
+    AppStrings.cafeMenuPhotoChange: 'Change Menu Photo',
+    AppStrings.cafeMenuPhotoCamera: 'Take from Camera',
+    AppStrings.cafeMenuPhotoGallery: 'Choose from Gallery',
+    AppStrings.cafeMenuPhotoUploading: 'Uploading menu photo...',
+    AppStrings.cafeMenuPhotoUploadSuccess: 'Menu photo updated successfully!',
+    AppStrings.cafeMenuPhotoUploadFailed: 'Failed to upload menu photo',
   };
 }
 

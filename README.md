@@ -9,9 +9,9 @@ Aplikasi Flutter **Sign2Speech** untuk menjembatani komunikasi dua arah antara *
 - **Framework**: Flutter (Dart 3.x, Flutter 3.47.x)
 - **State Management & Dependency Injection**: **GetX** (`GetxController`, `Bindings`, `GetMaterialApp`)
 - **Pola Arsitektur**: Clean Architecture 3-Lapisan:
-  - **Presentation Layer** (`lib/presentation/`, `lib/core/widgets/`): 13 layar interaktif responsif, bottom navigation shell, GetX bindings, komponen UI mandiri.
-  - **Domain Layer** (`lib/features/sign_language/models/`, `lib/features/history/models/`): Entitas murni (`LandmarkFrame`, `BisindoPrediction`, `SignToken`, `SignVideoEntry`, `SignSearchResult`, `SignLanguageCatalog`, `HistoryItem`).
-  - **Data Layer** (`lib/features/sign_language/services/`, `lib/features/translator/services/`, `lib/features/history/services/`): Classifier TFLite MotionGRU, segmenter isyarat, FIFO TTS Indonesian queue, STT speech service, tiered video caching & repository.
+  - **Presentation Layer** (`lib/presentation/`, `lib/core/widgets/`, `lib/features/*/screens/`): Layar interaktif responsif multi-device, bottom navigation shell, GetX bindings, komponen UI mandiri.
+  - **Domain Layer** (`lib/features/sign_language/models/`, `lib/features/history/models/`, `lib/features/cafe_pos/domain/models/`): Entitas murni (`LandmarkFrame`, `BisindoPrediction`, `SignToken`, `SignVideoEntry`, `SignSearchResult`, `SignLanguageCatalog`, `HistoryItem`, `CafeMenuItem`, `CafeOrderTicket`, `CafeCounterSession`).
+  - **Data Layer** (`lib/features/*/services/`, `lib/features/cafe_pos/data/datasources/`): Classifier TFLite MotionGRU, segmenter isyarat, FIFO TTS Indonesian queue, STT speech service, tiered video caching, serta layanan **Supabase Backend (PostgreSQL, Realtime, Storage — Cloud-to-Local Ready)**: `CafeMenuStorageService`, `SupabaseCafePosService`, `SupabaseCounterSessionService`, `SupabaseHistoryService`, `SupabaseSettingsService`, dan `SupabaseTranscriptService` dengan `SupabaseResult<T>`.
 
 ---
 

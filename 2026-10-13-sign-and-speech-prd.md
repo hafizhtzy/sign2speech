@@ -203,13 +203,13 @@ Pencocokan teks ucapan yang telah dinormalisasi (*lowercase*, tanda baca dibersi
 - Opsi kontrol: Putar Ulang Seluruh Kalimat (*Loop All*), Putar Ulang Kata Tertentu (*Loop Word*), dan Pengaturan Kecepatan Video ($0.75\times$, $1.0\times$, $1.25\times$).
 - **Anti-Race Condition Protection (`_playSessionId`)**: Setiap input suara baru menaikkan nomor sesi pemutaran; jika ucapan baru masuk saat video lama sedang dimuat, pemutaran lama segera dibatalkan secara bersih.
 
-#### FR-S2S-14: Resolusi Video Hybrid (Offline Asset, Disk Cache & Remote CDN Hosting)
-- **Base CDN Hosting URL**: `https://hajicare-sign.web.app` (dapat dikonfigurasi melalui `SignLanguageConfig`).
-- Format endpoint video: `https://hajicare-sign.web.app/videos/{language}/{slug}_v1.mp4` (contoh: `https://hajicare-sign.web.app/videos/bisindo/baik_v1.mp4`).
+#### FR-S2S-14: Resolusi Video Hybrid (Offline Asset, Disk Cache & Remote Supabase Storage)
+- **Base Storage URL**: `${AppConstants.supabaseUrl}/storage/v1/object/public/sign-videos` (terpusat di `AppConstants.signCatalogBaseUrl`, mendukung Supabase Cloud & Self-Hosted Docker Mini PC).
+- Format endpoint video: `${AppConstants.signCatalogBaseUrl}/videos/{language}/{slug}_v1.mp4` (contoh: `.../storage/v1/object/public/sign-videos/videos/bisindo/baik_v1.mp4`).
 - **Strategi Resolusi 3-Tier**:
   1. **Tier 1 (Bundled Offline Assets)**: Kosakata inti, darurat, dan frekuensi tinggi (misal: salam, tolong, terima kasih, ya, tidak) dikemas langsung di dalam asset APK (`assets/videos/...`). Langsung diputar dengan $0\text{ ms}$ latensi jaringan tanpa kuota internet.
   2. **Tier 2 (Local Storage Disk Cache)**: Video yang pernah diputar atau diunduh sebelumnya tersimpan di direktori privat aplikasi (`getApplicationSupportDirectory()`).
-  3. **Tier 3 (Remote Hosting Stream + Cache-on-Play)**: Video yang belum ada di lokal dialirkan langsung dari CDN hosting `https://hajicare-sign.web.app/videos/...` via `VideoPlayerController.networkUrl`. Bersamaan dengan pemutaran, sistem secara asinkron mengunduh dan menyimpan berkas ke Tier 2 disk cache, sehingga pemutaran berikutnya otomatis offline.
+  3. **Tier 3 (Remote Supabase Storage Stream + Cache-on-Play)**: Video yang belum ada di lokal dialirkan langsung dari Supabase Storage bucket `sign-videos` via `VideoPlayerController.networkUrl`. Bersamaan dengan pemutaran, sistem secara asinkron mengunduh dan menyimpan berkas ke Tier 2 disk cache, sehingga pemutaran berikutnya otomatis offline.
 
 #### FR-S2S-15: Unduhan Kategori Atomik (`downloadCategory`)
 - Pengguna dapat mengunduh paket kosakata per kategori (misal: *Layanan Publik*, *Transportasi & Arah*, *Kesehatan Umum*, *Transaksi Harian*).

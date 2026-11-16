@@ -119,13 +119,13 @@ void main() {
                   category: 'makanan',
                   assetPath: '',
                   remoteUrl:
-                      'https://sign-language-c5d23.web.app/videos/bisindo/pisang_goreng_v1.mp4',
+                      'https://sign2speech-cloud.supabase.co/storage/v1/object/public/sign-videos/videos/bisindo/pisang_goreng_v1.mp4',
                   source: SignVideoSource.remote,
                 ),
               ],
               activeWordIndex: 0,
               videoSource:
-                  'https://sign-language-c5d23.web.app/videos/bisindo/pisang_goreng_v1.mp4',
+                  'https://sign2speech-cloud.supabase.co/storage/v1/object/public/sign-videos/videos/bisindo/pisang_goreng_v1.mp4',
               onDownload: () {
                 downloadTriggered = true;
               },
