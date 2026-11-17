@@ -1074,8 +1074,8 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
               Navigator.of(context).pop();
               CafeMenuCatalogSheet.show(
                 context: context,
-                catalog: CoffeeMenuItem.standardCatalog,
-                onSelectItem: (item) {
+                catalog: controller.menuCatalog,
+                onSelectItem: (CoffeeMenuItem item) {
                   controller.addRecommendedItemToTicket(item);
                   controller.onTranscriptReceived(
                     'pesan ${item.nameId}',

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:speech2sign/core/constants/app_routes.dart';
 import 'package:speech2sign/core/localization/app_strings.dart';
+import 'package:speech2sign/core/supabase/supabase_result.dart';
 import 'package:speech2sign/core/theme/app_colors.dart';
 import 'package:speech2sign/core/theme/app_typography.dart';
 import 'package:speech2sign/core/utils/currency_formatter.dart';
@@ -11,6 +12,7 @@ import 'package:speech2sign/core/widgets/responsive_layout.dart';
 import 'package:speech2sign/features/sign_language/services/bisindo_tts_service.dart';
 
 import '../controllers/cafe_cashier_controller.dart';
+import '../data/datasources/cafe_menu_storage_service.dart';
 import '../data/datasources/cafe_pos_local_data_source.dart';
 import '../domain/models/coffee_customization_draft.dart';
 import '../domain/models/coffee_menu_item.dart';
@@ -51,10 +53,22 @@ class _CoffeeDetailScreenState extends State<CoffeeDetailScreen> {
   @override
   void initState() {
     super.initState();
-    item = widget.menuItem ??
+    var initialItem = widget.menuItem ??
         (Get.arguments is CoffeeMenuItem
             ? Get.arguments as CoffeeMenuItem
             : CoffeeMenuItem.standardCatalog.first);
+
+    // Sync immediately if controller already holds cloud version with photo
+    if (Get.isRegistered<CafeCashierController>()) {
+      final ctrl = Get.find<CafeCashierController>();
+      final match = ctrl.menuCatalog
+          .where((m) => m.id == initialItem.id)
+          .firstOrNull;
+      if (match != null && match.imageUrl != null) {
+        initialItem = match;
+      }
+    }
+    item = initialItem;
 
     _temperature = item.defaultTemperature;
     _cupSize = OrderCupSize.medium;
@@ -62,6 +76,35 @@ class _CoffeeDetailScreenState extends State<CoffeeDetailScreen> {
     _sweetness = item.defaultSweetness;
 
     _loadSavedDraft();
+    _syncWithCloudMenu();
+  }
+
+  Future<void> _syncWithCloudMenu() async {
+    try {
+      final service = Get.isRegistered<CafeMenuStorageService>()
+          ? Get.find<CafeMenuStorageService>()
+          : CafeMenuStorageService();
+      final res = await service.fetchMenus();
+      if (res is SupabaseSuccess<List<CoffeeMenuItem>>) {
+        final match =
+            res.data.where((m) => m.id == item.id).firstOrNull;
+        if (match != null && match.imageUrl != null && mounted) {
+          setState(() {
+            item = item.copyWith(
+              imageUrl: match.imageUrl,
+              storagePath: match.storagePath,
+            );
+          });
+          if (Get.isRegistered<CafeCashierController>()) {
+            final ctrl = Get.find<CafeCashierController>();
+            final idx = ctrl.menuCatalog.indexWhere((m) => m.id == match.id);
+            if (idx >= 0) {
+              ctrl.menuCatalog[idx] = match;
+            }
+          }
+        }
+      }
+    } catch (_) {}
   }
 
   Future<void> _loadSavedDraft() async {

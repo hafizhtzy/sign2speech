@@ -62,8 +62,8 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
   void _showMenuCatalogSheet() {
     CafeMenuCatalogSheet.show(
       context: context,
-      catalog: CoffeeMenuItem.standardCatalog,
-      onSelectItem: (item) {
+      catalog: controller.menuCatalog,
+      onSelectItem: (CoffeeMenuItem item) {
         controller.addRecommendedItemToTicket(item);
         controller.onTranscriptReceived('pesan ${item.nameId}', triggerSign: true);
       },

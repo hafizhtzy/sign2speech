@@ -164,7 +164,7 @@ class CafeCashierController extends GetxController {
         _menuStorageService = menuStorageService ??
             (Get.isRegistered<CafeMenuStorageService>()
                 ? Get.find<CafeMenuStorageService>()
-                : null);
+                : CafeMenuStorageService());
 
 
   // ── 1. ACTIVE ORDER TICKET STATE ──────────────────────────────────────────

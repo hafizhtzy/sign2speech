@@ -120,10 +120,7 @@ class HistoryScreen extends StatelessWidget {
 
                   return ListView.separated(
                     physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 8,
-                    ),
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 104),
                     itemCount: list.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 10),
                     itemBuilder: (context, index) => _buildHistoryCard(

@@ -20,7 +20,8 @@ void main() {
   });
 
   group('Onboarding & Feature Flow Tests', () {
-    testWidgets('Onboarding 1 navigates to Onboarding 2', (tester) async {
+    testWidgets('Onboarding 3-step PageView navigates through to Choose Role',
+        (tester) async {
       await tester.pumpWidget(
         GetMaterialApp(
           theme: AppTheme.lightTheme,
@@ -34,14 +35,29 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Komunikasi Lebih Mudah'), findsOneWidget);
+      // Slide 1
+      expect(find.text('Komunikasi Lebih Mudah & Inklusif'), findsOneWidget);
       expect(find.text('Lanjut'), findsOneWidget);
 
       await tester.tap(find.text('Lanjut'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Untuk Semua Kesempatan'), findsOneWidget);
+      // Slide 2
+      expect(find.text('Deteksi Isyarat AI & Suara Lisan'), findsOneWidget);
+      expect(find.text('Lanjut'), findsOneWidget);
+
+      await tester.tap(find.text('Lanjut'));
+      await tester.pumpAndSettle();
+
+      // Slide 3
+      expect(find.text('Pilih Peran & Mulai Terhubung'), findsOneWidget);
       expect(find.text('Mulai Sekarang'), findsOneWidget);
+
+      // Tap 'Mulai Sekarang' -> Navigates to Choose Role
+      await tester.tap(find.text('Mulai Sekarang'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Pilih Peran'), findsOneWidget);
     });
 
     testWidgets('Choose Role updates selected role in SettingsController', (

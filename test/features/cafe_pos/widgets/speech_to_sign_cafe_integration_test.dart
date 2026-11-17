@@ -658,9 +658,8 @@ void main() {
       expect(find.text(AppStrings.cafeCatalogTitle.tr), findsOneWidget);
       expect(find.text(AppStrings.cafeCategoryAll.tr), findsOneWidget);
 
-      // Tap + Tambah on the first item in the catalog
-      final quickAddFinder =
-          find.widgetWithText(ElevatedButton, AppStrings.cafeQuickAdd.tr);
+      // Tap quick add "+" on the first item in the catalog
+      final quickAddFinder = find.byIcon(Icons.add_rounded);
       expect(quickAddFinder, findsWidgets);
       await tester.ensureVisible(quickAddFinder.first);
       await tester.pump();

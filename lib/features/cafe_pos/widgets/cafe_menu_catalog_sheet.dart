@@ -1,9 +1,11 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/currency_formatter.dart';
+import '../controllers/cafe_cashier_controller.dart';
 import '../domain/models/coffee_menu_item.dart';
 import '../domain/models/order_enums.dart';
 import '../screens/coffee_detail_screen.dart';
@@ -14,18 +16,18 @@ enum _CatalogCategory { all, milkCoffee, blackCoffee, gentleStomach, nonCoffee }
 /// Provides real-time search, category filtering, temperature badges,
 /// recipe tags, direct quick-add, and customization routing.
 class CafeMenuCatalogSheet extends StatefulWidget {
-  final List<CoffeeMenuItem> catalog;
+  final List<CoffeeMenuItem>? catalog;
   final void Function(CoffeeMenuItem item) onSelectItem;
 
   const CafeMenuCatalogSheet({
     super.key,
-    this.catalog = CoffeeMenuItem.standardCatalog,
+    this.catalog,
     required this.onSelectItem,
   });
 
   static Future<void> show({
     required BuildContext context,
-    List<CoffeeMenuItem> catalog = CoffeeMenuItem.standardCatalog,
+    List<CoffeeMenuItem>? catalog,
     required void Function(CoffeeMenuItem item) onSelectItem,
   }) {
     return showModalBottomSheet<void>(
@@ -47,15 +49,41 @@ class _CafeMenuCatalogSheetState extends State<CafeMenuCatalogSheet> {
   final TextEditingController _searchController = TextEditingController();
   _CatalogCategory _selectedCategory = _CatalogCategory.all;
   String _searchQuery = '';
+  Worker? _catalogWorker;
+
+  @override
+  void initState() {
+    super.initState();
+    // Refresh cloud menus in background and listen to reactive updates
+    if (Get.isRegistered<CafeCashierController>()) {
+      final ctrl = Get.find<CafeCashierController>();
+      _catalogWorker = ever<List<CoffeeMenuItem>>(ctrl.menuCatalog, (_) {
+        if (mounted) setState(() {});
+      });
+      ctrl.refreshCloudMenus();
+    }
+  }
 
   @override
   void dispose() {
+    _catalogWorker?.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
+  List<CoffeeMenuItem> get _effectiveCatalog {
+    if (widget.catalog != null) return widget.catalog!;
+    if (Get.isRegistered<CafeCashierController>()) {
+      final ctrl = Get.find<CafeCashierController>();
+      if (ctrl.menuCatalog.isNotEmpty) {
+        return ctrl.menuCatalog;
+      }
+    }
+    return CoffeeMenuItem.standardCatalog;
+  }
+
   List<CoffeeMenuItem> get _filteredItems {
-    return widget.catalog.where((item) {
+    return _effectiveCatalog.where((item) {
       // Category filter
       final matchesCategory = switch (_selectedCategory) {
         _CatalogCategory.all => true,
@@ -104,7 +132,6 @@ class _CafeMenuCatalogSheetState extends State<CafeMenuCatalogSheet> {
     final mediaQuery = MediaQuery.of(context);
     final bottomPadding = mediaQuery.padding.bottom;
     final sheetHeight = mediaQuery.size.height * 0.90;
-    final isCompact = mediaQuery.size.width < 600;
 
     return Align(
       alignment: Alignment.bottomCenter,
@@ -117,7 +144,7 @@ class _CafeMenuCatalogSheetState extends State<CafeMenuCatalogSheet> {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.20),
+                color: AppColors.primary.withValues(alpha: 0.20),
                 blurRadius: 32,
                 offset: const Offset(0, -8),
               ),
@@ -267,7 +294,7 @@ class _CafeMenuCatalogSheetState extends State<CafeMenuCatalogSheet> {
 
                 // Category Pills Selector
                 SizedBox(
-                  height: 38,
+                  height: 44,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),
@@ -276,31 +303,26 @@ class _CafeMenuCatalogSheetState extends State<CafeMenuCatalogSheet> {
                       _buildCategoryPill(
                         _CatalogCategory.all,
                         AppStrings.cafeCategoryAll.tr,
-                        Icons.dashboard_customize_rounded,
                       ),
                       const SizedBox(width: 8),
                       _buildCategoryPill(
                         _CatalogCategory.milkCoffee,
                         AppStrings.cafeCategoryMilkCoffee.tr,
-                        Icons.coffee_rounded,
                       ),
                       const SizedBox(width: 8),
                       _buildCategoryPill(
                         _CatalogCategory.blackCoffee,
                         AppStrings.cafeCategoryBlackCoffee.tr,
-                        Icons.local_fire_department_rounded,
                       ),
                       const SizedBox(width: 8),
                       _buildCategoryPill(
                         _CatalogCategory.gentleStomach,
                         AppStrings.cafeCategoryGentleStomach.tr,
-                        Icons.spa_rounded,
                       ),
                       const SizedBox(width: 8),
                       _buildCategoryPill(
                         _CatalogCategory.nonCoffee,
                         AppStrings.cafeCategoryNonCoffee.tr,
-                        Icons.eco_rounded,
                       ),
                     ],
                   ),
@@ -341,30 +363,38 @@ class _CafeMenuCatalogSheetState extends State<CafeMenuCatalogSheet> {
 
                 const Divider(height: 8, indent: 20, endIndent: 20),
 
-                // Menu Items List or Empty State
+                // Menu Items Grid or Empty State (reactive to cloud sync via worker)
                 Expanded(
-                  child: _filteredItems.isEmpty
-                      ? _buildEmptyState()
-                      : ListView.separated(
-                          physics: const BouncingScrollPhysics(),
-                          keyboardDismissBehavior:
-                              ScrollViewKeyboardDismissBehavior.onDrag,
-                          padding: EdgeInsets.fromLTRB(
-                            20,
-                            6,
-                            20,
-                            36 + bottomPadding,
-                          ),
-                          itemCount: _filteredItems.length,
-                          separatorBuilder: (_, _) => const SizedBox(height: 12),
-                          itemBuilder: (ctx, index) {
-                            final item = _filteredItems[index];
-                            return _buildModernMenuCard(
-                              item: item,
-                              isCompact: isCompact,
+                  child: Builder(
+                    builder: (context) {
+                      final items = _filteredItems;
+                      return items.isEmpty
+                          ? _buildEmptyState()
+                          : GridView.builder(
+                              physics: const BouncingScrollPhysics(),
+                              keyboardDismissBehavior:
+                                  ScrollViewKeyboardDismissBehavior.onDrag,
+                              padding: EdgeInsets.fromLTRB(
+                                20,
+                                8,
+                                20,
+                                36 + bottomPadding,
+                              ),
+                              // Adaptif: 2 kolom di HP, 3 kolom di tablet/sheet lebar.
+                              gridDelegate:
+                                  const SliverGridDelegateWithMaxCrossAxisExtent(
+                                maxCrossAxisExtent: 230,
+                                mainAxisSpacing: 14,
+                                crossAxisSpacing: 14,
+                                mainAxisExtent: 272,
+                              ),
+                              itemCount: items.length,
+                              itemBuilder: (ctx, index) {
+                                return _buildMenuGridCard(items[index]);
+                              },
                             );
-                          },
-                        ),
+                    },
+                  ),
                 ),
               ],
             ),
@@ -374,284 +404,266 @@ class _CafeMenuCatalogSheetState extends State<CafeMenuCatalogSheet> {
     );
   }
 
-  Widget _buildCategoryPill(
-    _CatalogCategory category,
-    String label,
-    IconData icon,
-  ) {
+  /// Pill kategori gaya minimal: tanpa ikon & border.
+  /// Aktif = caramel solid + teks putih, non-aktif = latte foam + teks ink.
+  Widget _buildCategoryPill(_CatalogCategory category, String label) {
     final isSelected = _selectedCategory == category;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedCategory = category;
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.surface,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.border,
-            width: 1.2,
-          ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.25),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 15,
-              color: isSelected ? AppColors.surface : AppColors.secondary,
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: label,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => setState(() => _selectedCategory = category),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+            constraints: const BoxConstraints(minHeight: 44, minWidth: 48),
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: isSelected ? AppColors.secondary : AppColors.bgSurface,
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(width: 5),
-            Text(
+            child: Text(
               label,
-              style: AppTypography.labelSmall.copyWith(
+              maxLines: 1,
+              style: AppTypography.labelLarge.copyWith(
                 color: isSelected ? AppColors.surface : AppColors.ink,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildModernMenuCard({
-    required CoffeeMenuItem item,
-    required bool isCompact,
-  }) {
-    final isIced = item.defaultTemperature == OrderTemperature.iced;
+  /// Kartu menu grid bergaya editorial: foto besar membulat, badge suhu
+  /// di pojok foto, nama, subjudul komposisi, harga, dan tombol "+" persegi.
+  /// Tap kartu = buka kustomisasi; tap "+" = tambah langsung ke nota.
+  Widget _buildMenuGridCard(CoffeeMenuItem item) {
+    final subtitle = item.composition.isNotEmpty
+        ? item.composition.first.label
+        : (item.tags.isNotEmpty ? item.tags.first : item.category);
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
+    return Semantics(
+      button: true,
+      label: '${item.nameId}, ${formatRupiah(item.basePrice)}',
+      child: Material(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border, width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Visual Container with Temperature Pill
-              Stack(
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: AppColors.paleMist,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Center(
-                      child: Icon(
-                        isIced
-                            ? Icons.icecream_rounded
-                            : Icons.coffee_rounded,
-                        color: isIced ? AppColors.secondary : AppColors.primary,
-                        size: 30,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 3,
-                    right: 3,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 5,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isIced
-                            ? const Color(0xFF2B5B84)
-                            : const Color(0xFFB34A26),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      child: Text(
-                        isIced ? 'ICED' : 'HOT',
-                        style: AppTypography.labelSmall.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 8.5,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+        borderRadius: BorderRadius.circular(20),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () {
+            Navigator.of(context).pop();
+            Get.to(() => CoffeeDetailScreen(menuItem: item));
+          },
+          child: Ink(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: AppColors.border.withValues(alpha: 0.6),
               ),
-              const SizedBox(width: 12),
-
-              // Title, Description, & Price
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.nameId,
-                      style: AppTypography.titleSmall.copyWith(
-                        color: AppColors.ink,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14.5,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.06),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Foto menu + badge suhu
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          _buildMenuImage(item),
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: _buildRatingBadge(item),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      item.descriptionId,
-                      maxLines: 2,
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Nama menu
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: Text(
+                      item.nameId,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.titleMedium.copyWith(
+                        color: AppColors.ink,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+
+                  // Subjudul (komposisi utama)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: Text(
+                      subtitle,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTypography.bodySmall.copyWith(
                         color: AppColors.muted,
-                        fontSize: 11.5,
-                        height: 1.25,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    // Price tag
-                    Text(
-                      formatRupiah(item.basePrice),
-                      style: AppTypography.titleMedium.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+                  ),
+                  const SizedBox(height: 6),
 
-          // Recipe Composition / Tags row
-          if (item.composition.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 6,
-              runSpacing: 4,
-              children: item.composition.take(3).map((comp) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 7,
-                    vertical: 2.5,
+                  // Harga + tombol tambah
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 2),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              formatRupiah(item.basePrice),
+                              maxLines: 1,
+                              style: AppTypography.titleMedium.copyWith(
+                                color: AppColors.ink,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      _buildQuickAddButton(item),
+                    ],
                   ),
-                  decoration: BoxDecoration(
-                    color: AppColors.paleMist,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: AppColors.border.withValues(alpha: 0.8),
-                    ),
-                  ),
-                  child: Text(
-                    '${comp.label} ${comp.percentage}',
-                    style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.secondary,
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                );
-              }).toList(),
+                ],
+              ),
             ),
-          ],
+          ),
+        ),
+      ),
+    );
+  }
 
-          const SizedBox(height: 10),
-
-          // Action Buttons: Kustomisasi & + Tambah
-          Row(
-            children: [
-              // Customize Button (Routes to CoffeeDetailScreen)
-              Expanded(
-                child: SizedBox(
-                  height: 42,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      Get.to(() => CoffeeDetailScreen(menuItem: item));
-                    },
-                    icon: Icon(
-                      Icons.tune_rounded,
-                      size: 15,
-                      color: AppColors.secondary,
-                    ),
-                    label: Text(
-                      AppStrings.cafeCustomize.tr,
-                      style: AppTypography.labelMedium.copyWith(
-                        color: AppColors.secondary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: AppColors.secondary, width: 1.1),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                    ),
-                  ),
+  /// Tombol "+" persegi caramel. Visual 40 dp, area sentuh 48 dp.
+  Widget _buildQuickAddButton(CoffeeMenuItem item) {
+    return Tooltip(
+      message: AppStrings.cafeQuickAdd.tr,
+      child: SizedBox(
+        width: 48,
+        height: 48,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () {
+              widget.onSelectItem(item);
+              Navigator.of(context).pop();
+            },
+            child: Center(
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.secondary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.add_rounded,
+                  color: AppColors.surface,
+                  size: 22,
                 ),
               ),
-              const SizedBox(width: 8),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
-              // Direct Quick-Add Button
-              Expanded(
-                child: SizedBox(
-                  height: 42,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      widget.onSelectItem(item);
-                      Navigator.of(context).pop();
-                    },
-                    icon: const Icon(
-                      Icons.add_shopping_cart_rounded,
-                      size: 15,
-                    ),
-                    label: Text(
-                      AppStrings.cafeQuickAdd.tr,
-                      style: AppTypography.labelMedium.copyWith(
-                        color: AppColors.surface,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.surface,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+  /// Badge rating bintang (★ 4.8) di pojok kanan atas foto persis referensi desain kartu modern.
+  Widget _buildRatingBadge(CoffeeMenuItem item) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.cameraDark.withValues(alpha: 0.55),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(12),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.star_rounded,
+            size: 13,
+            color: AppColors.amber,
+          ),
+          const SizedBox(width: 3),
+          Text(
+            '4.8',
+            style: AppTypography.labelSmall.copyWith(
+              color: AppColors.surface,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.2,
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Foto menu dari Supabase Storage (`menu-photos`) bila tersedia,
+  /// fallback ke placeholder ilustratif bertema latte.
+  Widget _buildMenuImage(CoffeeMenuItem item) {
+    final placeholder = _buildImagePlaceholder(item);
+    if (!item.hasNetworkImage) return placeholder;
+    return CachedNetworkImage(
+      imageUrl: item.imageUrl!,
+      fit: BoxFit.cover,
+      fadeInDuration: const Duration(milliseconds: 200),
+      placeholder: (_, _) => Container(color: AppColors.paleMist),
+      errorWidget: (_, _, _) => placeholder,
+    );
+  }
+
+  Widget _buildImagePlaceholder(CoffeeMenuItem item) {
+    final isIced = item.defaultTemperature == OrderTemperature.iced;
+    final isFood = item.category == 'snack';
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.paleMist,
+            AppColors.secondary.withValues(alpha: 0.28),
+          ],
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          isFood
+              ? Icons.bakery_dining_rounded
+              : (isIced ? Icons.local_drink_rounded : Icons.coffee_rounded),
+          size: 52,
+          color: AppColors.secondary.withValues(alpha: 0.85),
+        ),
       ),
     );
   }

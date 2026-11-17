@@ -102,6 +102,8 @@ void main() {
 
       // Test TTS voice test button (now translated to Test Voice)
       expect(find.text('Test Voice'), findsOneWidget);
+      await tester.ensureVisible(find.byIcon(Icons.play_circle_fill_rounded));
+      await tester.pumpAndSettle();
       await tester.tap(find.byIcon(Icons.play_circle_fill_rounded));
       await tester.pump();
     });

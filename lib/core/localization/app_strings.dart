@@ -42,6 +42,47 @@ class AppStrings {
   static const String onboarding1Desc = 'onboarding_1_desc';
   static const String onboarding2Title = 'onboarding_2_title';
   static const String onboarding2Desc = 'onboarding_2_desc';
+  static const String onboarding3Title = 'onboarding_3_title';
+  static const String onboarding3Desc = 'onboarding_3_desc';
+  static const String onboardingChipCamera = 'onboarding_chip_camera';
+  static const String onboardingChipSign = 'onboarding_chip_sign';
+  static const String onboardingSlide2BiDirectional =
+      'onboarding_slide2_bidirectional';
+  static const String onboardingSlide2VoiceBarista =
+      'onboarding_slide2_voice_barista';
+  static const String onboardingSlide2VoiceGreeting =
+      'onboarding_slide2_voice_greeting';
+  static const String onboardingSlide2CashierVoice =
+      'onboarding_slide2_cashier_voice';
+  static const String onboardingSlide2RealtimeDetection =
+      'onboarding_slide2_realtime_detection';
+  static const String onboardingSlide2VoiceSample =
+      'onboarding_slide2_voice_sample';
+  static const String onboardingSlide2AiCamera =
+      'onboarding_slide2_ai_camera';
+  static const String onboardingSlide2Accurate =
+      'onboarding_slide2_accurate';
+  static const String onboardingSlide2VoiceTranslation =
+      'onboarding_slide2_voice_translation';
+  static const String onboardingSlide3OrderTable =
+      'onboarding_slide3_order_table';
+  static const String onboardingSlide3OrderReady =
+      'onboarding_slide3_order_ready';
+  static const String onboardingSlide3Table04 = 'onboarding_slide3_table04';
+  static const String onboardingSlide3CustomCoffee =
+      'onboarding_slide3_custom_coffee';
+  static const String onboardingSlide3CustomCoffeeDesc =
+      'onboarding_slide3_custom_coffee_desc';
+  static const String onboardingSlide3CashierShortcut =
+      'onboarding_slide3_cashier_shortcut';
+  static const String onboardingSlide3CashierShortcutDesc =
+      'onboarding_slide3_cashier_shortcut_desc';
+  static const String onboardingCenterPill = 'onboarding_center_pill';
+  static const String onboardingMockupOrder = 'onboarding_mockup_order';
+  static const String onboardingMockupAi = 'onboarding_mockup_ai';
+  static const String onboardingMockupSpeech = 'onboarding_mockup_speech';
+  static const String onboardingMockupTts = 'onboarding_mockup_tts';
+  static const String onboardingMockupFlip = 'onboarding_mockup_flip';
   static const String chooseRoleTitle = 'choose_role_title';
   static const String chooseRoleSubtitle = 'choose_role_subtitle';
   static const String chooseLangTitle = 'choose_lang_title';
@@ -66,6 +107,19 @@ class AppStrings {
   static const String homeSpeechToSignBadge = 'home_speech_to_sign_badge';
   static const String homeSignToSpeechDesc = 'home_sign_to_speech_desc';
   static const String homeSpeechToSignDesc = 'home_speech_to_sign_desc';
+  static const String homeActionStart = 'home_action_start';
+  static const String homeWaveSearchHint = 'home_wave_search_hint';
+  static const String homeSelectSignLanguageDialog = 'home_select_sign_language_dialog';
+  static const String homeSelectSignLanguageDesc = 'home_select_sign_language_desc';
+  static const String homeSignBisindoTitle = 'home_sign_bisindo_title';
+  static const String homeSignBisindoDesc = 'home_sign_bisindo_desc';
+  static const String homeSignSibiTitle = 'home_sign_sibi_title';
+  static const String homeSignSibiDesc = 'home_sign_sibi_desc';
+  static const String homeQuickSearchTitle = 'home_quick_search_title';
+  static const String homeQuickSearchEmpty = 'home_quick_search_empty';
+  static const String homeQuickSearchSignCategory = 'home_quick_search_sign_category';
+  static const String homeQuickSearchMenuCategory = 'home_quick_search_menu_category';
+  static const String homeQuickSearchHistoryCategory = 'home_quick_search_history_category';
 
   // Sign to Speech (Camera)
   static const String cameraTitle = 'camera_title';
@@ -141,6 +195,19 @@ class AppStrings {
   // Settings
   static const String settingsTitle = 'settings_title';
   static const String settingsSectionPreferences = 'settings_section_preferences';
+  static const String settingsSectionGeneral = 'settings_section_general';
+  static const String settingsSectionAudioVideo = 'settings_section_audio_video';
+  static const String settingsSectionStorageConnection = 'settings_section_storage_connection';
+  static const String settingsSectionSupportAbout = 'settings_section_support_about';
+  static const String settingsProfileEditRole = 'settings_profile_edit_role';
+  static const String settingsProfileSubtitle = 'settings_profile_subtitle';
+  static const String settingsAboutVersion = 'settings_about_version';
+  static const String settingsAboutPrivacy = 'settings_about_privacy';
+  static const String settingsAboutPrivacyDesc = 'settings_about_privacy_desc';
+  static const String settingsGuideTitle = 'settings_guide_title';
+  static const String settingsGuideDesc = 'settings_guide_desc';
+  static const String settingsSupabaseConnection = 'settings_supabase_connection';
+  static const String settingsSupabaseDesc = 'settings_supabase_desc';
   static const String settingsAppLanguage = 'settings_app_language';
   static const String settingsAppLanguageDesc = 'settings_app_language_desc';
   static const String settingsSignLanguage = 'settings_sign_language';
@@ -183,8 +250,6 @@ class AppStrings {
   static const String cashierOpenAssistant = 'cashier_open_assistant';
 
   // Onboarding 3
-  static const String onboarding3Title = 'onboarding_3_title';
-  static const String onboarding3Desc = 'onboarding_3_desc';
   static const String onboardingBadgePresets = 'onboarding_badge_presets';
   static const String onboardingBadgeFlipScreen = 'onboarding_badge_flip_screen';
 

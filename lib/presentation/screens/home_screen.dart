@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+
+import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
@@ -9,6 +12,8 @@ import '../../core/widgets/responsive_layout.dart';
 import '../../core/widgets/status_badge.dart';
 import '../../features/history/controllers/history_controller.dart';
 import '../../features/settings/controllers/settings_controller.dart';
+import '../../features/sign_language/controllers/sign_language_controller.dart';
+import '../../features/sign_language/models/sign_language_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -29,658 +34,1674 @@ class _HomeScreenState extends State<HomeScreen> {
 
       return Scaffold(
         backgroundColor: AppColors.canvas,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: ResponsiveContentWrapper(
-            maxWidth: ResponsiveBreakpoints.maxDashboardWidth,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        body: ScrollConfiguration(
+          behavior: const ScrollBehavior().copyWith(
+            overscroll: false,
+          ),
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-              // Top Brand Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: AppColors.secondary.withValues(alpha: 0.12),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.secondary.withValues(alpha: 0.3),
-                            ),
-                          ),
-                          child: Center(
-                            child: Icon(
-                              Icons.sign_language_rounded,
-                              size: 20,
+                // 1. Dual-layer Organic Wave Header (Avatar, App Logo, BISINDO/SIBI & POS Actions)
+                _buildWaveHeader(context, settings),
+
+              // 2. Responsive Content Container
+              ResponsiveContentWrapper(
+                maxWidth: ResponsiveBreakpoints.maxDashboardWidth,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 14,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Search Bar below the wave
+                    _buildQuickSearchBar(context),
+                    const SizedBox(height: 18),
+
+                    // Greeting Banner with Left Accent Border
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.bgSurface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      padding: const EdgeInsets.all(18),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 4,
+                            height: 48,
+                            decoration: BoxDecoration(
                               color: AppColors.secondary,
+                              borderRadius: BorderRadius.circular(2),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              FittedBox(
-                                fit: BoxFit.scaleDown,
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  AppStrings.appTitle.tr,
-                                  maxLines: 1,
-                                  style: AppTypography.titleMedium.copyWith(
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 4,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    Text(
+                                      AppStrings.appTitle.tr,
+                                      maxLines: 1,
+                                      style: AppTypography.titleSmall.copyWith(
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                    Obx(
+                                      () => StatusBadge(
+                                        label: settings.selectedRole.value,
+                                        variant: BadgeVariant.neutral,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  AppStrings.homeGreeting.tr,
+                                  style: AppTypography.titleLarge.copyWith(
                                     fontWeight: FontWeight.w800,
-                                    color: AppColors.primary,
+                                    color: AppColors.ink,
                                   ),
                                 ),
-                              ),
-                              Text(
-                                AppStrings.appSubtitle.tr,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: AppTypography.bodySmall.copyWith(
-                                  color: AppColors.muted,
-                                  fontWeight: FontWeight.w500,
+                                const SizedBox(height: 6),
+                                Text(
+                                  AppStrings.homeGreetingDesc.tr,
+                                  style: AppTypography.bodySmall.copyWith(
+                                    color: AppColors.muted,
+                                    height: 1.4,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Obx(
-                    () => Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        StatusBadge(
-                          label: settings.selectedSignLanguage.value,
-                          variant: BadgeVariant.active,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3.5,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        StatusBadge(
-                          label: settings.selectedRole.value,
-                          variant: BadgeVariant.neutral,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              // Greeting Banner with Left Accent Border
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.bgSurface,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
-                ),
-                padding: const EdgeInsets.all(18),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 4,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            AppStrings.homeGreeting.tr,
-                            style: AppTypography.titleLarge.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.ink,
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            AppStrings.homeGreetingDesc.tr,
-                            style: AppTypography.bodySmall.copyWith(
-                              color: AppColors.muted,
-                              height: 1.4,
+                          const SizedBox(width: 14),
+                          Container(
+                            width: 54,
+                            height: 54,
+                            decoration: BoxDecoration(
+                              color: AppColors.secondary.withValues(
+                                alpha: 0.12,
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: AppColors.secondary.withValues(
+                                  alpha: 0.25,
+                                ),
+                              ),
+                            ),
+                            child: Center(
+                              child: Icon(
+                                Icons.waving_hand_rounded,
+                                size: 28,
+                                color: AppColors.secondary,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 14),
-                    Container(
-                      width: 54,
-                      height: 54,
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: AppColors.secondary.withValues(alpha: 0.25),
-                        ),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.waving_hand_rounded,
-                          size: 28,
-                          color: AppColors.secondary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-              // ── Alat Pintar Kasir & Layar Pelanggan ──────────────
-              AppCard(
-                onTap: () => Get.toNamed(AppRoutes.cafeCashierCounter),
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: AppColors.secondary.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.point_of_sale_rounded,
-                        color: AppColors.secondary,
-                        size: 24,
+                    // ── Alat Pintar Kasir & Layar Pelanggan ──────────────
+                    AppCard(
+                      onTap: () => Get.toNamed(AppRoutes.cafeCashierCounter),
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: AppColors.secondary.withValues(
+                                alpha: 0.12,
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: AppColors.secondary.withValues(
+                                  alpha: 0.3,
+                                ),
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.point_of_sale_rounded,
+                              color: AppColors.secondary,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        AppStrings.cashierAssistantTitle.tr,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: AppTypography.titleMedium
+                                            .copyWith(
+                                              fontWeight: FontWeight.w800,
+                                              color: AppColors.ink,
+                                            ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.matcha.withValues(
+                                          alpha: 0.12,
+                                        ),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        'FITUR KASIR',
+                                        style: AppTypography.labelSmall
+                                            .copyWith(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w800,
+                                              color: AppColors.matcha,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  AppStrings.cashierAssistantSubtitle.tr,
+                                  style: AppTypography.bodySmall.copyWith(
+                                    color: AppColors.muted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 16,
+                            color: AppColors.muted,
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
+                    const SizedBox(height: 22),
+
+                    // ── Mode Penerjemah Utama ────────────────────────────────────
+                    Text(
+                      AppStrings.homeMainModes.tr,
+                      style: AppTypography.titleLarge.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    if (context.isLargeScreen)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: _buildPopoutFeatureCard(
+                              title: 'Sign to Speech',
+                              subtitle: AppStrings.homeSignToSpeechDesc.tr,
+                              tag: AppStrings.homeSignToSpeechBadge.tr,
+                              imageAsset:
+                                  'assets/komponen_img/3d_camera_card.png',
+                              color: AppColors.isDark
+                                  ? AppColors.surface
+                                  : AppColors.primary,
+                              textColor: AppColors.isDark
+                                  ? AppColors.ink
+                                  : AppColors.textOnDark,
+                              topRightIcon: Icons.auto_awesome_rounded,
+                              onTap: () =>
+                                  Get.toNamed(AppRoutes.signToSpeechCamera),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildPopoutFeatureCard(
+                              title: 'Speech to Sign',
+                              subtitle: AppStrings.homeSpeechToSignDesc.tr,
+                              tag: AppStrings.homeSpeechToSignBadge.tr,
+                              imageAsset: 'assets/komponen_img/3d_mic_card.png',
+                              color: AppColors.isDark
+                                  ? AppColors.surface
+                                  : AppColors.secondary,
+                              textColor: AppColors.isDark
+                                  ? AppColors.ink
+                                  : AppColors.textOnDark,
+                              topRightIcon: Icons.graphic_eq_rounded,
+                              onTap: () =>
+                                  Get.toNamed(AppRoutes.speechToSignMic),
+                            ),
+                          ),
+                        ],
+                      )
+                    else ...[
+                      _buildPopoutFeatureCard(
+                        title: 'Sign to Speech',
+                        subtitle: AppStrings.homeSignToSpeechDesc.tr,
+                        tag: AppStrings.homeSignToSpeechBadge.tr,
+                        imageAsset: 'assets/komponen_img/3d_camera_card.png',
+                        color: AppColors.isDark
+                            ? AppColors.surface
+                            : AppColors.primary,
+                        textColor: AppColors.isDark
+                            ? AppColors.ink
+                            : AppColors.textOnDark,
+                        topRightIcon: Icons.auto_awesome_rounded,
+                        onTap: () => Get.toNamed(AppRoutes.signToSpeechCamera),
+                      ),
+                      const SizedBox(height: 10),
+                      _buildPopoutFeatureCard(
+                        title: 'Speech to Sign',
+                        subtitle: AppStrings.homeSpeechToSignDesc.tr,
+                        tag: AppStrings.homeSpeechToSignBadge.tr,
+                        imageAsset: 'assets/komponen_img/3d_mic_card.png',
+                        color: AppColors.isDark
+                            ? AppColors.surface
+                            : AppColors.secondary,
+                        textColor: AppColors.isDark
+                            ? AppColors.ink
+                            : AppColors.textOnDark,
+                        topRightIcon: Icons.graphic_eq_rounded,
+                        onTap: () => Get.toNamed(AppRoutes.speechToSignMic),
+                      ),
+                    ],
+                    const SizedBox(height: 20),
+
+                    // Recent History Teaser
+                    Obx(() {
+                      final recent = history.items.take(2).toList();
+                      if (recent.isEmpty) return const SizedBox.shrink();
+
+                      return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Expanded(
                                 child: Text(
-                                  AppStrings.cashierAssistantTitle.tr,
+                                  AppStrings.homeRecentConversation.tr,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: AppTypography.titleMedium.copyWith(
-                                    fontWeight: FontWeight.w800,
+                                    fontWeight: FontWeight.w700,
                                     color: AppColors.ink,
                                   ),
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.matcha.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
+                              TextButton(
+                                onPressed: () => Get.toNamed(AppRoutes.history),
                                 child: Text(
-                                  'FITUR KASIR',
-                                  style: AppTypography.labelSmall.copyWith(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.matcha,
+                                  AppStrings.navHistory.tr,
+                                  style: AppTypography.labelMedium.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.secondary,
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            AppStrings.cashierAssistantSubtitle.tr,
-                            style: AppTypography.bodySmall.copyWith(
-                              color: AppColors.muted,
+                          const SizedBox(height: 8),
+                          ...recent.map(
+                            (item) => Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: AppCard(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                onTap: () => Get.toNamed(AppRoutes.history),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 36,
+                                      height: 36,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.bgSurface,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Icon(
+                                        item.direction.index == 0
+                                            ? Icons.sign_language_rounded
+                                            : Icons.record_voice_over_rounded,
+                                        color: AppColors.secondary,
+                                        size: 18,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            item.translatedContent,
+                                            style: AppTypography.titleSmall
+                                                .copyWith(
+                                                  fontWeight: FontWeight.w700,
+                                                  color: AppColors.ink,
+                                                ),
+                                          ),
+                                          Text(
+                                            item.signLanguageType,
+                                            style: AppTypography.bodySmall
+                                                .copyWith(
+                                                  color: AppColors.muted,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.chevron_right,
+                                      color: AppColors.textMuted,
+                                      size: 20,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
+                    const SizedBox(height: 104),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    });
+  }
+
+  Widget _buildPopoutFeatureCard({
+    required String title,
+    required String subtitle,
+    required String tag,
+    required String imageAsset,
+    required Color color,
+    required Color textColor,
+    required IconData topRightIcon,
+    required VoidCallback onTap,
+  }) {
+    final isDark = AppColors.isDark;
+    final buttonTextColor = color == AppColors.surface
+        ? AppColors.primary
+        : color;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 32),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // 1. Card Container
+          Material(
+            color: color,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(28),
+              side: BorderSide(
+                color: isDark ? AppColors.border : Colors.transparent,
+                width: 1,
+              ),
+            ),
+            elevation: 0,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(28),
+              child: Ink(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withValues(alpha: isDark ? 0.08 : 0.24),
+                      blurRadius: 22,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 84, 20, 22),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Tag Code / Type
+                      Text(
+                        tag,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.labelSmall.copyWith(
+                          color: textColor.withValues(alpha: 0.78),
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+
+                      // Main Title & Action Button Row
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  title,
+                                  style: AppTypography.titleLarge.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: textColor,
+                                    fontSize: 24,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  subtitle,
+                                  style: AppTypography.bodySmall.copyWith(
+                                    fontWeight: FontWeight.w400,
+                                    color: textColor.withValues(alpha: 0.85),
+                                    height: 1.35,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+
+                          // Unique Curved White Pill Button (Reference style)
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(22),
+                                bottomLeft: Radius.circular(22),
+                                topRight: Radius.circular(16),
+                                bottomRight: Radius.circular(20),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.12),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 12,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  AppStrings.homeActionStart.tr,
+                                  style: AppTypography.labelLarge.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: buttonTextColor,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(
+                                  Icons.arrow_forward_rounded,
+                                  size: 16,
+                                  color: buttonTextColor,
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 16,
-                      color: AppColors.muted,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 22),
+            ),
+          ),
 
-              // ── Mode Penerjemah Utama ────────────────────────────────────
-              Text(
-                AppStrings.homeMainModes.tr,
-                style: AppTypography.titleLarge.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.ink,
+          // 2. Top-Left 3D Popout Object (Camera 3D / Mic 3D)
+          Positioned(
+            top: -28,
+            left: 14,
+            child: IgnorePointer(
+              child: SizedBox(
+                width: 108,
+                height: 108,
+                child: Image.asset(
+                  imageAsset,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
                 ),
               ),
-              const SizedBox(height: 12),
+            ),
+          ),
 
-              if (context.isLargeScreen)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: _buildFeatureCard(
-                        title: 'Sign to Speech',
-                        subtitle: AppStrings.homeSignToSpeechDesc.tr,
-                        tag: AppStrings.homeSignToSpeechBadge.tr,
-                        color: AppColors.isDark ? AppColors.surface : AppColors.primary,
-                        textColor: AppColors.isDark ? AppColors.ink : AppColors.textOnDark,
-                        tagBgColor: AppColors.isDark
-                            ? AppColors.paleMist
-                            : AppColors.textOnDark.withValues(alpha: 0.14),
-                        dividerColor: AppColors.isDark
-                            ? AppColors.border
-                            : AppColors.textOnDark.withValues(alpha: 0.20),
-                        icon: Icons.camera_alt_rounded,
-                        onTap: () => Get.toNamed(AppRoutes.signToSpeechCamera),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildFeatureCard(
-                        title: 'Speech to Sign',
-                        subtitle: AppStrings.homeSpeechToSignDesc.tr,
-                        tag: AppStrings.homeSpeechToSignBadge.tr,
-                        color: AppColors.isDark ? AppColors.surface : AppColors.secondary,
-                        textColor: AppColors.isDark ? AppColors.ink : AppColors.textOnDark,
-                        tagBgColor: AppColors.isDark
-                            ? AppColors.secondary.withValues(alpha: 0.16)
-                            : AppColors.textOnDark.withValues(alpha: 0.16),
-                        dividerColor: AppColors.isDark
-                            ? AppColors.border
-                            : AppColors.textOnDark.withValues(alpha: 0.25),
-                        icon: Icons.mic_rounded,
-                        onTap: () => Get.toNamed(AppRoutes.speechToSignMic),
-                      ),
-                    ),
-                  ],
-                )
-              else ...[
-                _buildFeatureCard(
-                  title: 'Sign to Speech',
-                  subtitle: AppStrings.homeSignToSpeechDesc.tr,
-                  tag: AppStrings.homeSignToSpeechBadge.tr,
-                  color: AppColors.isDark ? AppColors.surface : AppColors.primary,
-                  textColor: AppColors.isDark ? AppColors.ink : AppColors.textOnDark,
-                  tagBgColor: AppColors.isDark
-                      ? AppColors.paleMist
-                      : AppColors.textOnDark.withValues(alpha: 0.14),
-                  dividerColor: AppColors.isDark
-                      ? AppColors.border
-                      : AppColors.textOnDark.withValues(alpha: 0.20),
-                  icon: Icons.camera_alt_rounded,
-                  onTap: () => Get.toNamed(AppRoutes.signToSpeechCamera),
+          // 3. Top-Right Glassmorphic Icon Pill
+          Positioned(
+            top: 14,
+            right: 16,
+            child: IgnorePointer(
+              child: Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.25),
+                    width: 1.2,
+                  ),
                 ),
-                const SizedBox(height: 14),
-                _buildFeatureCard(
-                  title: 'Speech to Sign',
-                  subtitle: AppStrings.homeSpeechToSignDesc.tr,
-                  tag: AppStrings.homeSpeechToSignBadge.tr,
-                  color: AppColors.isDark ? AppColors.surface : AppColors.secondary,
-                  textColor: AppColors.isDark ? AppColors.ink : AppColors.textOnDark,
-                  tagBgColor: AppColors.isDark
-                      ? AppColors.secondary.withValues(alpha: 0.16)
-                      : AppColors.textOnDark.withValues(alpha: 0.16),
-                  dividerColor: AppColors.isDark
-                      ? AppColors.border
-                      : AppColors.textOnDark.withValues(alpha: 0.25),
-                  icon: Icons.mic_rounded,
-                  onTap: () => Get.toNamed(AppRoutes.speechToSignMic),
+                child: Center(
+                  child: Icon(topRightIcon, color: textColor, size: 20),
                 ),
-              ],
-              const SizedBox(height: 24),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-              // Quick Categories Shortcut (Katalog Isyarat Kafe)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      AppStrings.homeCafeCatalog.tr,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.titleMedium.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.ink,
+  // ── DUAL-LAYER ORGANIC WAVE HEADER ──────────────────────────────────────────
+  Widget _buildWaveHeader(BuildContext context, SettingsController settings) {
+    final topPadding = MediaQuery.of(context).padding.top;
+    final headerHeight = topPadding + 152.0;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Common vertical center for 100% SEJAJAR alignment of Avatar, Logo, & SIBI Button
+    final centerY = topPadding + 44.0;
+
+    return SizedBox(
+      height: headerHeight,
+      width: double.infinity,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // 1. Organic Wave Background with Central Valley & Right Dip
+          Positioned.fill(
+            child: CustomPaint(
+              painter: DualWaveHeaderPainter(
+                backWaveColor: isDark
+                    ? const Color(0xFF222222)
+                    : AppColors.secondary.withValues(alpha: 0.55),
+                frontWaveColor: isDark
+                    ? const Color(0xFF141414)
+                    : AppColors.primary,
+                isDark: isDark,
+              ),
+            ),
+          ),
+
+          // 2. Left: User Profile Avatar (100% SEJAJAR at centerY)
+          Positioned(
+            top: centerY - 26.0,
+            left: 18,
+            child: _buildAvatarButton(context, settings),
+          ),
+
+          // 3. Center: Sign2Speech App Logo Floating in Central Valley (100% SEJAJAR & exact Screen Center)
+          Positioned(
+            top: centerY - 26.0,
+            left: 0,
+            right: 0,
+            child: Center(child: _buildAppLogoTile(context)),
+          ),
+
+          // 4. Right: BISINDO/SIBI Selector (100% SEJAJAR at centerY, Cradled by Right Valley)
+          Positioned(
+            top: centerY - 23.0,
+            right: 18,
+            child: _buildRightActionButtons(context, settings),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAvatarButton(BuildContext context, SettingsController settings) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Semantics(
+      label: 'Profil Pengguna dan Pengaturan',
+      button: true,
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          Get.toNamed(AppRoutes.settings);
+        },
+        child: Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isDark ? AppColors.darkSurface : AppColors.surface,
+            border: Border.all(
+              color: isDark
+                  ? AppColors.darkBorder
+                  : AppColors.secondary.withValues(alpha: 0.35),
+              width: 2.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isDark
+                        ? AppColors.darkBgSurface
+                        : const Color(0xFF4A6B53).withValues(alpha: 0.15),
+                  ),
+                  child: ClipOval(
+                    child: Image.asset(
+                      AppAssets.roleTemanTuli,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Center(
+                        child: Icon(
+                          Icons.person_rounded,
+                          color: isDark
+                              ? AppColors.darkPrimary
+                              : AppColors.primary,
+                          size: 24,
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  TextButton(
-                    onPressed: () => Get.toNamed(AppRoutes.signLibrary),
-                    child: Text(
-                      AppStrings.homeViewAll.tr,
-                      style: AppTypography.labelMedium.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.secondary,
+                ),
+              ),
+              Positioned(
+                bottom: 1,
+                right: 1,
+                child: Container(
+                  width: 13,
+                  height: 13,
+                  decoration: BoxDecoration(
+                    color: AppColors.matcha,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isDark ? AppColors.darkSurface : AppColors.surface,
+                      width: 2.0,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppLogoTile(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Semantics(
+      label: 'Logo Sign2Speech',
+      child: Container(
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: isDark ? 0.12 : 0.20),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: isDark ? 0.22 : 0.32),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.30 : 0.12),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(8),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.asset(
+            'assets/icon/app_icon_oatmilk.png',
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => Image.asset(
+              'assets/icon/app_icon.png',
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => const Icon(
+                Icons.sign_language_rounded,
+                color: Colors.white,
+                size: 26,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRightActionButtons(
+    BuildContext context,
+    SettingsController settings,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Semantics(
+      label: 'Pilih model bahasa isyarat',
+      button: true,
+      child: GestureDetector(
+        onTap: () => _showSignLanguageDialog(context, settings),
+        child: Container(
+          height: 46,
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 46),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: isDark ? 0.12 : 0.20),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: isDark ? 0.22 : 0.32),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.10),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.sign_language_rounded,
+                color: Colors.white,
+                size: 19,
+              ),
+              const SizedBox(width: 6),
+              Obx(
+                () => Text(
+                  settings.selectedSignLanguage.value,
+                  style: AppTypography.labelMedium.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.6,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 3),
+              const Icon(
+                Icons.arrow_drop_down_rounded,
+                color: Colors.white70,
+                size: 19,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── QUICK SEARCH BAR (BELOW THE WAVE) ───────────────────────────────────────
+  Widget _buildQuickSearchBar(BuildContext context) {
+    return Semantics(
+      label: 'Bilah pencarian cepat isyarat dan menu kafe',
+      button: true,
+      child: GestureDetector(
+        onTap: () => _showQuickSearchSheet(context),
+        child: Container(
+          height: 52,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(26),
+            border: Border.all(color: AppColors.border, width: 1.2),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.search_rounded, color: AppColors.secondary, size: 22),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  AppStrings.homeWaveSearchHint.tr,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.muted,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColors.bgSurface,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.tune_rounded,
+                  size: 16,
+                  color: AppColors.secondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── SIGN LANGUAGE MODEL SELECTION DIALOG (CENTER) ───────────────────────────
+  void _showSignLanguageDialog(
+    BuildContext context,
+    SettingsController settings,
+  ) {
+    HapticFeedback.lightImpact();
+    Get.dialog(
+      Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 440),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: AppColors.border, width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.14),
+                blurRadius: 24,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: AppColors.secondary.withValues(alpha: 0.25),
                       ),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        Icons.sign_language_rounded,
+                        color: AppColors.secondary,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppStrings.homeSelectSignLanguageDialog.tr,
+                          style: AppTypography.titleMedium.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.ink,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          AppStrings.homeSelectSignLanguageDesc.tr,
+                          style: AppTypography.bodySmall.copyWith(
+                            color: AppColors.muted,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: Row(
-                  children: [
-                    _buildCategoryPill(
-                      'Minuman & Menu',
-                      Icons.coffee_rounded,
-                      onTap: () => Get.toNamed(AppRoutes.coffeeDetail),
-                    ),
-                    const SizedBox(width: 8),
-                    _buildCategoryPill(
-                      'Takaran (Es/Gula)',
-                      Icons.tune_rounded,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildCategoryPill(
-                      'Kasir & Bayar',
-                      Icons.point_of_sale_rounded,
-                      onTap: () => Get.toNamed(AppRoutes.cafeCashierCounter),
-                    ),
-                    const SizedBox(width: 8),
-                    _buildCategoryPill(
-                      'Sapaan Kafe',
-                      Icons.waving_hand_outlined,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildCategoryPill(
-                      'Bawa Pulang',
-                      Icons.shopping_bag_outlined,
-                    ),
-                  ],
-                ),
-              ),
               const SizedBox(height: 20),
 
-              // Recent History Teaser
+              // Option 1: BISINDO
               Obx(() {
-                final recent = history.items.take(2).toList();
-                if (recent.isEmpty) return const SizedBox.shrink();
+                final isSelected =
+                    settings.selectedSignLanguage.value == 'BISINDO';
+                return _buildSignOptionTile(
+                  title: AppStrings.homeSignBisindoTitle.tr,
+                  badge: 'ALAMI • 2 TANGAN',
+                  description: AppStrings.homeSignBisindoDesc.tr,
+                  isSelected: isSelected,
+                  badgeColor: AppColors.secondary,
+                  onTap: () async {
+                    HapticFeedback.mediumImpact();
+                    await settings.setSignLanguage('BISINDO');
+                    if (Get.isRegistered<SignLanguageController>()) {
+                      Get.find<SignLanguageController>().switchModel(
+                        SignLanguageModel.bisindo,
+                      );
+                    }
+                    Get.back();
+                    Get.snackbar(
+                      'Model Isyarat Diperbarui',
+                      'Model aktif sekarang: BISINDO',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: AppColors.primary,
+                      colorText: Colors.white,
+                      margin: const EdgeInsets.all(16),
+                      borderRadius: 12,
+                      duration: const Duration(seconds: 2),
+                    );
+                  },
+                );
+              }),
+              const SizedBox(height: 12),
 
-                return Column(
+              // Option 2: SIBI
+              Obx(() {
+                final isSelected =
+                    settings.selectedSignLanguage.value == 'SIBI';
+                return _buildSignOptionTile(
+                  title: AppStrings.homeSignSibiTitle.tr,
+                  badge: 'BAKU • 1 TANGAN',
+                  description: AppStrings.homeSignSibiDesc.tr,
+                  isSelected: isSelected,
+                  badgeColor: AppColors.amber,
+                  onTap: () async {
+                    HapticFeedback.mediumImpact();
+                    await settings.setSignLanguage('SIBI');
+                    if (Get.isRegistered<SignLanguageController>()) {
+                      Get.find<SignLanguageController>().switchModel(
+                        SignLanguageModel.sibi,
+                      );
+                    }
+                    Get.back();
+                    Get.snackbar(
+                      'Model Isyarat Diperbarui',
+                      'Model aktif sekarang: SIBI',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: AppColors.primary,
+                      colorText: Colors.white,
+                      margin: const EdgeInsets.all(16),
+                      borderRadius: 12,
+                      duration: const Duration(seconds: 2),
+                    );
+                  },
+                );
+              }),
+              const SizedBox(height: 20),
+
+              // Close button
+              OutlinedButton(
+                onPressed: () => Get.back(),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.ink,
+                  side: BorderSide(color: AppColors.border),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: Text(
+                  'Tutup',
+                  style: AppTypography.labelLarge.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.ink,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSignOptionTile({
+    required String title,
+    required String badge,
+    required String description,
+    required bool isSelected,
+    required Color badgeColor,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.primary.withValues(alpha: 0.06)
+                : AppColors.bgSurface.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected ? AppColors.primary : AppColors.border,
+              width: isSelected ? 2 : 1,
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 24,
+                height: 24,
+                margin: const EdgeInsets.only(top: 2),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isSelected ? AppColors.primary : Colors.transparent,
+                  border: Border.all(
+                    color: isSelected ? AppColors.primary : AppColors.muted,
+                    width: 2,
+                  ),
+                ),
+                child: isSelected
+                    ? const Center(
+                        child: Icon(
+                          Icons.check_rounded,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Expanded(
-                          child: Text(
-                            AppStrings.homeRecentConversation.tr,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTypography.titleMedium.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.ink,
-                            ),
+                        Text(
+                          title,
+                          style: AppTypography.titleMedium.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.ink,
                           ),
                         ),
                         const SizedBox(width: 8),
-                        TextButton(
-                          onPressed: () => Get.toNamed(AppRoutes.history),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: badgeColor.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
                           child: Text(
-                            AppStrings.navHistory.tr,
-                            style: AppTypography.labelMedium.copyWith(
+                            badge,
+                            style: AppTypography.labelSmall.copyWith(
+                              color: badgeColor,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.secondary,
+                              letterSpacing: 0.4,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    ...recent.map(
-                      (item) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: AppCard(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          onTap: () => Get.toNamed(AppRoutes.history),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: AppColors.bgSurface,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Icon(
-                                  item.direction.index == 0
-                                      ? Icons.sign_language_rounded
-                                      : Icons.record_voice_over_rounded,
-                                  color: AppColors.secondary,
-                                  size: 18,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      item.translatedContent,
-                                      style: AppTypography.titleSmall.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColors.ink,
-                                      ),
-                                    ),
-                                    Text(
-                                      item.signLanguageType,
-                                      style: AppTypography.bodySmall.copyWith(
-                                        color: AppColors.muted,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Icon(
-                                Icons.chevron_right,
-                                color: AppColors.textMuted,
-                                size: 20,
-                              ),
-                            ],
-                          ),
-                        ),
+                    const SizedBox(height: 4),
+                    Text(
+                      description,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.muted,
+                        height: 1.35,
                       ),
                     ),
                   ],
-                );
-              }),
-              const SizedBox(height: 24),
+                ),
+              ),
             ],
           ),
         ),
       ),
-    ),
     );
-    });
   }
 
-  Widget _buildFeatureCard({
-    required String title,
-    required String subtitle,
-    required String tag,
-    required Color color,
-    required Color textColor,
-    required Color tagBgColor,
-    required Color dividerColor,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: color,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-        side: BorderSide(
-          color: AppColors.isDark ? AppColors.border : Colors.transparent,
-          width: 1,
-        ),
-      ),
-      elevation: 0,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
-        child: Padding(
-          padding: const EdgeInsets.all(22),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: tagBgColor,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        tag,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.labelSmall.copyWith(
-                          color: textColor,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
+  // ── QUICK SEARCH MODAL BOTTOM SHEET ─────────────────────────────────────────
+  void _showQuickSearchSheet(BuildContext context) {
+    HapticFeedback.lightImpact();
+    final searchCtrl = TextEditingController();
+    final history = Get.find<HistoryController>();
+
+    final signWords = <Map<String, String>>[
+      {'word': 'Halo', 'desc': 'Sapaan ramah kafe'},
+      {'word': 'Kopi', 'desc': 'Kosakata dasar kafe'},
+      {'word': 'Terima Kasih', 'desc': 'Ucapan terima kasih'},
+      {'word': 'Air', 'desc': 'Air putih / mineral'},
+      {'word': 'Susu', 'desc': 'Susu segar / oat milk'},
+      {'word': 'Mandi', 'desc': 'Aktivitas harian'},
+      {'word': 'Minum', 'desc': 'Pesanan minuman'},
+      {'word': 'Tuli', 'desc': 'Budaya & Komunitas Tuli'},
+      {'word': 'Makan', 'desc': 'Makanan / snack kafe'},
+      {'word': 'Bantu', 'desc': 'Minta bantuan barista'},
+      {'word': 'Dimana', 'desc': 'Tanya lokasi kasir/meja'},
+      {'word': 'Apa Kabar', 'desc': 'Sapaan hangat'},
+      {'word': 'Lapar', 'desc': 'Kebutuhan makan'},
+      {'word': 'Haus', 'desc': 'Kebutuhan minum'},
+      {'word': 'Sakit', 'desc': 'Kondisi kesehatan'},
+      {'word': 'Berapa', 'desc': 'Tanya harga pesanan'},
+    ];
+
+    final cafeMenus = <Map<String, String>>[
+      {'name': 'Oat Cappuccino', 'price': 'Rp 32.000', 'tag': 'HOT / ICED'},
+      {'name': 'Iced Oat Caramel Latte', 'price': 'Rp 35.000', 'tag': 'ICED'},
+      {
+        'name': 'Double Shot Kopi Susu Aren',
+        'price': 'Rp 28.000',
+        'tag': 'ICED',
+      },
+      {'name': 'Low-Acid Oat Latte', 'price': 'Rp 34.000', 'tag': 'HOT'},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final query = searchCtrl.text.trim().toLowerCase();
+
+            final filteredSigns = query.isEmpty
+                ? <Map<String, String>>[]
+                : signWords
+                      .where((s) => s['word']!.toLowerCase().contains(query))
+                      .toList();
+
+            final filteredMenus = query.isEmpty
+                ? <Map<String, String>>[]
+                : cafeMenus
+                      .where((m) => m['name']!.toLowerCase().contains(query))
+                      .toList();
+
+            final filteredHistory = query.isEmpty
+                ? <dynamic>[]
+                : history.items
+                      .where(
+                        (h) =>
+                            h.originalContent.toLowerCase().contains(query) ||
+                            h.translatedContent.toLowerCase().contains(query),
+                      )
+                      .take(3)
+                      .toList();
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.78,
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
+                border: Border.all(color: AppColors.border),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.15),
+                    blurRadius: 20,
+                    offset: const Offset(0, -4),
                   ),
-                  const SizedBox(width: 8),
+                ],
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  // Drag Handle
                   Container(
-                    width: 40,
-                    height: 40,
+                    width: 44,
+                    height: 4,
                     decoration: BoxDecoration(
-                      color: tagBgColor,
-                      shape: BoxShape.circle,
+                      color: AppColors.border,
+                      borderRadius: BorderRadius.circular(2),
                     ),
-                    child: Icon(icon, color: textColor, size: 20),
                   ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              Text(
-                title,
-                style: AppTypography.headlineMedium.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: textColor,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                subtitle,
-                style: AppTypography.bodyMedium.copyWith(
-                  fontWeight: FontWeight.w400,
-                  color: textColor.withValues(alpha: 0.85),
-                  height: 1.45,
-                ),
-              ),
-              // Cafe Ticket Dashed Divider Detail
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final boxWidth =
-                      constraints.maxWidth.isFinite ? constraints.maxWidth : 300.0;
-                  const dashWidth = 5.0;
-                  const dashSpace = 4.0;
-                  final dashCount =
-                      (boxWidth / (dashWidth + dashSpace)).floor().clamp(1, 100);
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: List.generate(dashCount, (_) {
-                        return SizedBox(
-                          width: dashWidth,
-                          height: 1,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(color: dividerColor),
+                  const SizedBox(height: 16),
+
+                  // Search Bar Input Field
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.bgSurface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.search_rounded,
+                            color: AppColors.secondary,
+                            size: 22,
                           ),
-                        );
-                      }),
-                    ),
-                  );
-                },
-              ),
-              Row(
-                children: [
-                  Text(
-                    AppStrings.startNow.tr,
-                    style: AppTypography.labelLarge.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: textColor,
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextField(
+                              controller: searchCtrl,
+                              autofocus: true,
+                              style: AppTypography.bodyMedium.copyWith(
+                                color: AppColors.ink,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: AppStrings.homeWaveSearchHint.tr,
+                                hintStyle: AppTypography.bodyMedium.copyWith(
+                                  color: AppColors.muted,
+                                ),
+                                border: InputBorder.none,
+                                isDense: true,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                              ),
+                              onChanged: (_) => setModalState(() {}),
+                            ),
+                          ),
+                          if (searchCtrl.text.isNotEmpty)
+                            GestureDetector(
+                              onTap: () {
+                                searchCtrl.clear();
+                                setModalState(() {});
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.border.withValues(
+                                    alpha: 0.6,
+                                  ),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.close_rounded,
+                                  size: 14,
+                                  color: AppColors.ink,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 6),
-                  Icon(Icons.arrow_forward_rounded, size: 16, color: textColor),
+                  const SizedBox(height: 16),
+
+                  // Content Results
+                  Expanded(
+                    child: query.isEmpty
+                        ? _buildPopularSearchSuggestions((selected) {
+                            searchCtrl.text = selected;
+                            setModalState(() {});
+                          })
+                        : _buildSearchResultsList(
+                            context: context,
+                            query: query,
+                            signs: filteredSigns,
+                            menus: filteredMenus,
+                            histories: filteredHistory,
+                          ),
+                  ),
                 ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildPopularSearchSuggestions(Function(String) onSelect) {
+    final chips = [
+      'Oat Cappuccino',
+      'Halo',
+      'Terima Kasih',
+      'Less Ice',
+      'Double Shot Kopi Susu',
+      'QRIS',
+      'Air',
+      'Bantu',
+    ];
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      children: [
+        Text(
+          'Pencarian Populer di Kafe',
+          style: AppTypography.labelLarge.copyWith(
+            fontWeight: FontWeight.w700,
+            color: AppColors.ink,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 10,
+          children: chips.map((c) {
+            return GestureDetector(
+              onTap: () => onSelect(c),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.bgSurface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.trending_up_rounded,
+                      size: 14,
+                      color: AppColors.secondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      c,
+                      style: AppTypography.labelMedium.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchResultsList({
+    required BuildContext context,
+    required String query,
+    required List<Map<String, String>> signs,
+    required List<Map<String, String>> menus,
+    required List<dynamic> histories,
+  }) {
+    if (signs.isEmpty && menus.isEmpty && histories.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.search_off_rounded, size: 48, color: AppColors.muted),
+              const SizedBox(height: 12),
+              Text(
+                AppStrings.homeQuickSearchEmpty.tr,
+                textAlign: TextAlign.center,
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.muted,
+                ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
+      );
+    }
 
-  Widget _buildCategoryPill(String title, IconData icon, {VoidCallback? onTap}) {
-    return GestureDetector(
-      onTap: onTap ?? () => Get.toNamed(AppRoutes.signLibrary),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 16, color: AppColors.secondary),
-            const SizedBox(width: 8),
-            Text(
-              title,
-              style: AppTypography.labelMedium.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.ink,
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      children: [
+        // Category 1: Pustaka Isyarat
+        if (signs.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              AppStrings.homeQuickSearchSignCategory.tr,
+              style: AppTypography.labelLarge.copyWith(
+                fontWeight: FontWeight.w800,
+                color: AppColors.secondary,
               ),
             ),
-          ],
-        ),
-      ),
+          ),
+          ...signs.map((s) {
+            return ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: AppColors.secondary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.sign_language_rounded,
+                  color: AppColors.secondary,
+                  size: 20,
+                ),
+              ),
+              title: Text(
+                s['word']!,
+                style: AppTypography.titleSmall.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
+                ),
+              ),
+              subtitle: Text(
+                s['desc']!,
+                style: AppTypography.bodySmall.copyWith(color: AppColors.muted),
+              ),
+              trailing: Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 14,
+                color: AppColors.muted,
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Get.toNamed(AppRoutes.speechToSignResult, arguments: s['word']);
+              },
+            );
+          }),
+          const SizedBox(height: 14),
+        ],
+
+        // Category 2: Menu Kafe
+        if (menus.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              AppStrings.homeQuickSearchMenuCategory.tr,
+              style: AppTypography.labelLarge.copyWith(
+                fontWeight: FontWeight.w800,
+                color: AppColors.matcha,
+              ),
+            ),
+          ),
+          ...menus.map((m) {
+            return ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: AppColors.matcha.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.local_cafe_rounded,
+                  color: AppColors.matcha,
+                  size: 20,
+                ),
+              ),
+              title: Text(
+                m['name']!,
+                style: AppTypography.titleSmall.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
+                ),
+              ),
+              subtitle: Text(
+                m['price']!,
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.muted,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              trailing: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.bgSurface,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  m['tag']!,
+                  style: AppTypography.labelSmall.copyWith(
+                    color: AppColors.ink,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Get.toNamed(AppRoutes.cafeCashierCounter);
+              },
+            );
+          }),
+        ],
+      ],
     );
+  }
+}
+
+// ── CUSTOM PAINTER: ORGANIC DUAL-WAVE HEADER ─────────────────────────────────
+class DualWaveHeaderPainter extends CustomPainter {
+  final Color backWaveColor;
+  final Color frontWaveColor;
+  final bool isDark;
+
+  DualWaveHeaderPainter({
+    required this.backWaveColor,
+    required this.frontWaveColor,
+    this.isDark = false,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // ── LAYER 1: BACK CARAMEL ACCENT WAVE (Adds Depth Crema Rim) ────────────
+    final backPaint = Paint()
+      ..color = backWaveColor
+      ..style = PaintingStyle.fill;
+
+    final backPath = Path()
+      ..moveTo(0, 0)
+      ..lineTo(0, h * 0.64)
+      // Left curve under avatar towards crest
+      ..cubicTo(w * 0.08, h * 0.66, w * 0.18, h * 0.52, w * 0.28, h * 0.50)
+      // Plunge into wide, deep central valley
+      ..cubicTo(w * 0.36, h * 0.48, w * 0.40, h * 0.96, w * 0.50, h * 0.96)
+      // Ascend out of central valley up to intermediate ridge
+      ..cubicTo(w * 0.60, h * 0.96, w * 0.64, h * 0.58, w * 0.70, h * 0.58)
+      // Small gentle valley cradling SIBI/BISINDO button
+      ..cubicTo(w * 0.76, h * 0.58, w * 0.80, h * 0.78, w * 0.86, h * 0.78)
+      // Ascend to right edge
+      ..cubicTo(w * 0.92, h * 0.78, w * 0.96, h * 0.68, w, h * 0.68)
+      ..lineTo(w, 0)
+      ..close();
+
+    canvas.drawPath(backPath, backPaint);
+
+    // ── LAYER 2: FRONT MAIN WAVE (Rich Espresso / AMOLED Dark) ──────────────
+    final frontPaint = Paint()
+      ..color = frontWaveColor
+      ..style = PaintingStyle.fill;
+
+    final frontPath = Path()
+      ..moveTo(0, 0)
+      ..lineTo(0, h * 0.58)
+      // Left curve under avatar towards crest
+      ..cubicTo(w * 0.08, h * 0.60, w * 0.18, h * 0.46, w * 0.28, h * 0.44)
+      // Plunge into wide, deep central valley cradling the logo
+      ..cubicTo(w * 0.36, h * 0.42, w * 0.40, h * 0.90, w * 0.50, h * 0.90)
+      // Ascend out of central valley up to intermediate ridge
+      ..cubicTo(w * 0.60, h * 0.90, w * 0.64, h * 0.52, w * 0.70, h * 0.52)
+      // Small gentle valley cradling SIBI/BISINDO button
+      ..cubicTo(w * 0.76, h * 0.52, w * 0.80, h * 0.72, w * 0.86, h * 0.72)
+      // Ascend to right edge
+      ..cubicTo(w * 0.92, h * 0.72, w * 0.96, h * 0.62, w, h * 0.62)
+      ..lineTo(w, 0)
+      ..close();
+
+    // Subtle drop shadow cast by front wave
+    final shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: isDark ? 0.38 : 0.10)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+    canvas.drawPath(frontPath, shadowPaint);
+
+    canvas.drawPath(frontPath, frontPaint);
+
+    // ── LAYER 3: THIN CONTOURED ACCENT LINE (Parallels Wave Contours) ───────
+    final accentPaint = Paint()
+      ..color = Colors.white.withValues(alpha: isDark ? 0.14 : 0.22)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    final accentPath = Path()
+      ..moveTo(0, h * 0.58)
+      ..cubicTo(w * 0.08, h * 0.60, w * 0.18, h * 0.46, w * 0.28, h * 0.44)
+      ..cubicTo(w * 0.36, h * 0.42, w * 0.40, h * 0.90, w * 0.50, h * 0.90)
+      ..cubicTo(w * 0.60, h * 0.90, w * 0.64, h * 0.52, w * 0.70, h * 0.52)
+      ..cubicTo(w * 0.76, h * 0.52, w * 0.80, h * 0.72, w * 0.86, h * 0.72)
+      ..cubicTo(w * 0.92, h * 0.72, w * 0.96, h * 0.62, w, h * 0.62);
+
+    canvas.drawPath(accentPath, accentPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant DualWaveHeaderPainter oldDelegate) {
+    return oldDelegate.backWaveColor != backWaveColor ||
+        oldDelegate.frontWaveColor != frontWaveColor ||
+        oldDelegate.isDark != isDark;
   }
 }

@@ -7,16 +7,16 @@ class AppConstants {
   /// Fallback defaultValue berupa placeholder aman agar tidak membocorkan URL riil ke git publik.
   static const String supabaseUrl = String.fromEnvironment(
     'SUPABASE_URL',
-    defaultValue: 'https://sign2speech-cloud.supabase.co',
+    defaultValue: 'https://dfvcydfzjwvkzstdvpaf.supabase.co',
   );
 
   /// Anon Key publik Supabase (aman di client karena tabel dilindungi RLS PostgreSQL).
   /// Diinjeksikan secara aman dari file `.env` via `--dart-define-from-file=.env`.
-  /// Fallback defaultValue berupa dummy key agar unit test dapat berjalan tanpa .env.
+  /// Fallback defaultValue berupa anon key resmi proyek untuk kemudahan testing lokal & emulator.
   static const String supabaseAnonKey = String.fromEnvironment(
     'SUPABASE_ANON_KEY',
     defaultValue:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpZ24yc3BlZWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE2NzIwMDAsImV4cCI6MjA0NzI0ODAwMH0.sign2speech-public-anon-key',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRmdmN5ZGZ6and2a3pzdGR2cGFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ3NDUzMTIsImV4cCI6MjExMDMyMTMxMn0.FAqZPR5XnUOA9IW1O6T6uM3WmHqTtksQ8JV1ANOeNGc',
   );
 
   /// Publishable Key format baru Supabase (opsional/alternatif anon key).

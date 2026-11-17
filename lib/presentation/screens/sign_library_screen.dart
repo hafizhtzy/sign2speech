@@ -528,7 +528,7 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                 )
               else if (context.isLargeScreen)
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 104),
                   sliver: SliverGrid(
                     gridDelegate:
                         const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -546,7 +546,7 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                 )
               else
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 104),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
