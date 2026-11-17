@@ -1636,17 +1636,52 @@ class DualWaveHeaderPainter extends CustomPainter {
 
     final backPath = Path()
       ..moveTo(0, 0)
-      ..lineTo(0, h * 0.64)
-      // Left curve under avatar towards crest
-      ..cubicTo(w * 0.08, h * 0.66, w * 0.18, h * 0.52, w * 0.28, h * 0.50)
-      // Plunge into wide, deep central valley
-      ..cubicTo(w * 0.36, h * 0.48, w * 0.40, h * 0.96, w * 0.50, h * 0.96)
-      // Ascend out of central valley up to intermediate ridge
-      ..cubicTo(w * 0.60, h * 0.96, w * 0.64, h * 0.58, w * 0.70, h * 0.58)
-      // Small gentle valley cradling SIBI/BISINDO button
-      ..cubicTo(w * 0.76, h * 0.58, w * 0.80, h * 0.78, w * 0.86, h * 0.78)
+      ..lineTo(0, h * 0.36)
+      // Left curve past avatar towards central valley
+      ..cubicTo(
+        w * 0.08,
+        h * 0.36,
+        w * 0.16,
+        h * 0.58,
+        w * 0.28,
+        h * 0.62,
+      )
+      // Broad, wide central valley
+      ..cubicTo(
+        w * 0.38,
+        h * 0.66,
+        w * 0.42,
+        h * 0.90,
+        w * 0.50,
+        h * 0.90,
+      )
+      // Ascend to dividing ridge
+      ..cubicTo(
+        w * 0.58,
+        h * 0.90,
+        w * 0.64,
+        h * 0.58,
+        w * 0.72,
+        h * 0.56,
+      )
+      // Small gentle valley under SIBI/BISINDO button
+      ..cubicTo(
+        w * 0.77,
+        h * 0.54,
+        w * 0.81,
+        h * 0.72,
+        w * 0.87,
+        h * 0.72,
+      )
       // Ascend to right edge
-      ..cubicTo(w * 0.92, h * 0.78, w * 0.96, h * 0.68, w, h * 0.68)
+      ..cubicTo(
+        w * 0.93,
+        h * 0.72,
+        w * 0.97,
+        h * 0.60,
+        w,
+        h * 0.60,
+      )
       ..lineTo(w, 0)
       ..close();
 
@@ -1659,17 +1694,52 @@ class DualWaveHeaderPainter extends CustomPainter {
 
     final frontPath = Path()
       ..moveTo(0, 0)
-      ..lineTo(0, h * 0.58)
-      // Left curve under avatar towards crest
-      ..cubicTo(w * 0.08, h * 0.60, w * 0.18, h * 0.46, w * 0.28, h * 0.44)
-      // Plunge into wide, deep central valley cradling the logo
-      ..cubicTo(w * 0.36, h * 0.42, w * 0.40, h * 0.90, w * 0.50, h * 0.90)
-      // Ascend out of central valley up to intermediate ridge
-      ..cubicTo(w * 0.60, h * 0.90, w * 0.64, h * 0.52, w * 0.70, h * 0.52)
+      ..lineTo(0, h * 0.30)
+      // Left curve past avatar towards central valley
+      ..cubicTo(
+        w * 0.08,
+        h * 0.30,
+        w * 0.16,
+        h * 0.52,
+        w * 0.28,
+        h * 0.56,
+      )
+      // Broad, wide central valley cradling Sign2Speech logo
+      ..cubicTo(
+        w * 0.38,
+        h * 0.60,
+        w * 0.42,
+        h * 0.84,
+        w * 0.50,
+        h * 0.84,
+      )
+      // Ascend to dividing ridge
+      ..cubicTo(
+        w * 0.58,
+        h * 0.84,
+        w * 0.64,
+        h * 0.52,
+        w * 0.72,
+        h * 0.50,
+      )
       // Small gentle valley cradling SIBI/BISINDO button
-      ..cubicTo(w * 0.76, h * 0.52, w * 0.80, h * 0.72, w * 0.86, h * 0.72)
+      ..cubicTo(
+        w * 0.77,
+        h * 0.48,
+        w * 0.81,
+        h * 0.66,
+        w * 0.87,
+        h * 0.66,
+      )
       // Ascend to right edge
-      ..cubicTo(w * 0.92, h * 0.72, w * 0.96, h * 0.62, w, h * 0.62)
+      ..cubicTo(
+        w * 0.93,
+        h * 0.66,
+        w * 0.97,
+        h * 0.54,
+        w,
+        h * 0.54,
+      )
       ..lineTo(w, 0)
       ..close();
 
@@ -1688,12 +1758,12 @@ class DualWaveHeaderPainter extends CustomPainter {
       ..strokeWidth = 2.0;
 
     final accentPath = Path()
-      ..moveTo(0, h * 0.58)
-      ..cubicTo(w * 0.08, h * 0.60, w * 0.18, h * 0.46, w * 0.28, h * 0.44)
-      ..cubicTo(w * 0.36, h * 0.42, w * 0.40, h * 0.90, w * 0.50, h * 0.90)
-      ..cubicTo(w * 0.60, h * 0.90, w * 0.64, h * 0.52, w * 0.70, h * 0.52)
-      ..cubicTo(w * 0.76, h * 0.52, w * 0.80, h * 0.72, w * 0.86, h * 0.72)
-      ..cubicTo(w * 0.92, h * 0.72, w * 0.96, h * 0.62, w, h * 0.62);
+      ..moveTo(0, h * 0.30)
+      ..cubicTo(w * 0.08, h * 0.30, w * 0.16, h * 0.52, w * 0.28, h * 0.56)
+      ..cubicTo(w * 0.38, h * 0.60, w * 0.42, h * 0.84, w * 0.50, h * 0.84)
+      ..cubicTo(w * 0.58, h * 0.84, w * 0.64, h * 0.52, w * 0.72, h * 0.50)
+      ..cubicTo(w * 0.77, h * 0.48, w * 0.81, h * 0.66, w * 0.87, h * 0.66)
+      ..cubicTo(w * 0.93, h * 0.66, w * 0.97, h * 0.54, w, h * 0.54);
 
     canvas.drawPath(accentPath, accentPaint);
   }

@@ -59,11 +59,12 @@ class SettingsScreen extends StatelessWidget {
           ],
         ),
         body: SafeArea(
+          bottom: false,
           child: ResponsiveContentWrapper(
             maxWidth: ResponsiveBreakpoints.maxContentWidth,
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 114),
               child:
                   (context.isExpanded &&
                       MediaQuery.sizeOf(context).height >= 550)

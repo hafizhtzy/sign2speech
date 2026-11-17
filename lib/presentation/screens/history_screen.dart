@@ -57,6 +57,7 @@ class HistoryScreen extends StatelessWidget {
         ],
       ),
       body: SafeArea(
+        bottom: false,
         child: ResponsiveContentWrapper(
           maxWidth: ResponsiveBreakpoints.maxDashboardWidth,
           child: Column(
@@ -95,10 +96,7 @@ class HistoryScreen extends StatelessWidget {
                   if (context.isLargeScreen) {
                     return GridView.builder(
                       physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 8,
-                      ),
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 114),
                       gridDelegate:
                           const SliverGridDelegateWithMaxCrossAxisExtent(
                         maxCrossAxisExtent: 460,
@@ -120,7 +118,7 @@ class HistoryScreen extends StatelessWidget {
 
                   return ListView.separated(
                     physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 104),
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 114),
                     itemCount: list.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 10),
                     itemBuilder: (context, index) => _buildHistoryCard(
