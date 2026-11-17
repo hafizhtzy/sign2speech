@@ -32,407 +32,412 @@ class _HomeScreenState extends State<HomeScreen> {
       // Rebuild dynamically when themeMode changes
       settings.themeMode.value;
 
-      return Scaffold(
-        backgroundColor: AppColors.canvas,
-        body: ScrollConfiguration(
-          behavior: const ScrollBehavior().copyWith(
-            overscroll: false,
-          ),
-          child: SingleChildScrollView(
-            physics: const ClampingScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // 1. Dual-layer Organic Wave Header (Avatar, App Logo, BISINDO/SIBI & POS Actions)
-                _buildWaveHeader(context, settings),
+      return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light.copyWith(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
+        child: Scaffold(
+          backgroundColor: AppColors.canvas,
+          body: ScrollConfiguration(
+            behavior: const ScrollBehavior().copyWith(overscroll: false),
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // 1. Dual-layer Organic Wave Header (Avatar, App Logo, BISINDO/SIBI & POS Actions)
+                  _buildWaveHeader(context, settings),
 
-              // 2. Responsive Content Container
-              ResponsiveContentWrapper(
-                maxWidth: ResponsiveBreakpoints.maxDashboardWidth,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 14,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Search Bar below the wave
-                    _buildQuickSearchBar(context),
-                    const SizedBox(height: 18),
+                // 2. Responsive Content Container
+                ResponsiveContentWrapper(
+                  maxWidth: ResponsiveBreakpoints.maxDashboardWidth,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 14,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Search Bar below the wave
+                      _buildQuickSearchBar(context),
+                      const SizedBox(height: 20),
 
-                    // Greeting Banner with Left Accent Border
-                    Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.bgSurface,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      padding: const EdgeInsets.all(18),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 4,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: AppColors.secondary,
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 4,
-                                  crossAxisAlignment: WrapCrossAlignment.center,
-                                  children: [
-                                    Text(
-                                      AppStrings.appTitle.tr,
-                                      maxLines: 1,
-                                      style: AppTypography.titleSmall.copyWith(
-                                        fontWeight: FontWeight.w800,
-                                        color: AppColors.primary,
-                                      ),
-                                    ),
-                                    Obx(
-                                      () => StatusBadge(
-                                        label: settings.selectedRole.value,
-                                        variant: BadgeVariant.neutral,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 2.5,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  AppStrings.homeGreeting.tr,
-                                  style: AppTypography.titleLarge.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.ink,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  AppStrings.homeGreetingDesc.tr,
-                                  style: AppTypography.bodySmall.copyWith(
-                                    color: AppColors.muted,
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Container(
-                            width: 54,
-                            height: 54,
-                            decoration: BoxDecoration(
-                              color: AppColors.secondary.withValues(
-                                alpha: 0.12,
-                              ),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: AppColors.secondary.withValues(
-                                  alpha: 0.25,
-                                ),
-                              ),
-                            ),
-                            child: Center(
-                              child: Icon(
-                                Icons.waving_hand_rounded,
-                                size: 28,
+                      // Greeting Banner with Left Accent Border
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.bgSurface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        padding: const EdgeInsets.all(18),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 4,
+                              height: 48,
+                              decoration: BoxDecoration(
                                 color: AppColors.secondary,
+                                borderRadius: BorderRadius.circular(2),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // ── Alat Pintar Kasir & Layar Pelanggan ──────────────
-                    AppCard(
-                      onTap: () => Get.toNamed(AppRoutes.cafeCashierCounter),
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: AppColors.secondary.withValues(
-                                alpha: 0.12,
-                              ),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: AppColors.secondary.withValues(
-                                  alpha: 0.3,
-                                ),
-                              ),
-                            ),
-                            child: Icon(
-                              Icons.point_of_sale_rounded,
-                              color: AppColors.secondary,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        AppStrings.cashierAssistantTitle.tr,
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 4,
+                                    crossAxisAlignment:
+                                        WrapCrossAlignment.center,
+                                    children: [
+                                      Text(
+                                        AppStrings.appTitle.tr,
                                         maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: AppTypography.titleMedium
+                                        style: AppTypography.titleSmall
                                             .copyWith(
                                               fontWeight: FontWeight.w800,
-                                              color: AppColors.ink,
+                                              color: AppColors.primary,
                                             ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.matcha.withValues(
-                                          alpha: 0.12,
+                                      Obx(
+                                        () => StatusBadge(
+                                          label: settings.selectedRole.value,
+                                          variant: BadgeVariant.neutral,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 2.5,
+                                          ),
                                         ),
-                                        borderRadius: BorderRadius.circular(6),
                                       ),
-                                      child: Text(
-                                        'FITUR KASIR',
-                                        style: AppTypography.labelSmall
-                                            .copyWith(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w800,
-                                              color: AppColors.matcha,
-                                            ),
-                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    AppStrings.homeGreeting.tr,
+                                    style: AppTypography.titleLarge.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.ink,
                                     ),
-                                  ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    AppStrings.homeGreetingDesc.tr,
+                                    style: AppTypography.bodySmall.copyWith(
+                                      color: AppColors.muted,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Container(
+                              width: 54,
+                              height: 54,
+                              decoration: BoxDecoration(
+                                color: AppColors.secondary.withValues(
+                                  alpha: 0.12,
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  AppStrings.cashierAssistantSubtitle.tr,
-                                  style: AppTypography.bodySmall.copyWith(
-                                    color: AppColors.muted,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: AppColors.secondary.withValues(
+                                    alpha: 0.25,
+                                  ),
+                                ),
+                              ),
+                              child: Center(
+                                child: Icon(
+                                  Icons.waving_hand_rounded,
+                                  size: 28,
+                                  color: AppColors.secondary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // ── Alat Pintar Kasir & Layar Pelanggan ──────────────
+                      AppCard(
+                        onTap: () => Get.toNamed(AppRoutes.cafeCashierCounter),
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: AppColors.secondary.withValues(
+                                  alpha: 0.12,
+                                ),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: AppColors.secondary.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.point_of_sale_rounded,
+                                color: AppColors.secondary,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          AppStrings.cashierAssistantTitle.tr,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: AppTypography.titleMedium
+                                              .copyWith(
+                                                fontWeight: FontWeight.w800,
+                                                color: AppColors.ink,
+                                              ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.matcha.withValues(
+                                            alpha: 0.12,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    AppStrings.cashierAssistantSubtitle.tr,
+                                    style: AppTypography.bodySmall.copyWith(
+                                      color: AppColors.muted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              size: 16,
+                              color: AppColors.muted,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 22),
+
+                      // ── Mode Penerjemah Utama ────────────────────────────────────
+                      Text(
+                        AppStrings.homeMainModes.tr,
+                        style: AppTypography.titleLarge.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.ink,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      if (context.isLargeScreen)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: _buildPopoutFeatureCard(
+                                title: 'Sign to Speech',
+                                subtitle: AppStrings.homeSignToSpeechDesc.tr,
+                                tag: AppStrings.homeSignToSpeechBadge.tr,
+                                imageAsset:
+                                    'assets/komponen_img/3d_camera_card.png',
+                                color: AppColors.isDark
+                                    ? AppColors.surface
+                                    : AppColors.primary,
+                                textColor: AppColors.isDark
+                                    ? AppColors.ink
+                                    : AppColors.textOnDark,
+                                topRightIcon: Icons.auto_awesome_rounded,
+                                onTap: () =>
+                                    Get.toNamed(AppRoutes.signToSpeechCamera),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildPopoutFeatureCard(
+                                title: 'Speech to Sign',
+                                subtitle: AppStrings.homeSpeechToSignDesc.tr,
+                                tag: AppStrings.homeSpeechToSignBadge.tr,
+                                imageAsset:
+                                    'assets/komponen_img/3d_mic_card.png',
+                                color: AppColors.isDark
+                                    ? AppColors.surface
+                                    : AppColors.secondary,
+                                textColor: AppColors.isDark
+                                    ? AppColors.ink
+                                    : AppColors.textOnDark,
+                                topRightIcon: Icons.graphic_eq_rounded,
+                                onTap: () =>
+                                    Get.toNamed(AppRoutes.speechToSignMic),
+                              ),
+                            ),
+                          ],
+                        )
+                      else ...[
+                        _buildPopoutFeatureCard(
+                          title: 'Sign to Speech',
+                          subtitle: AppStrings.homeSignToSpeechDesc.tr,
+                          tag: AppStrings.homeSignToSpeechBadge.tr,
+                          imageAsset: 'assets/komponen_img/3d_camera_card.png',
+                          color: AppColors.isDark
+                              ? AppColors.surface
+                              : AppColors.primary,
+                          textColor: AppColors.isDark
+                              ? AppColors.ink
+                              : AppColors.textOnDark,
+                          topRightIcon: Icons.auto_awesome_rounded,
+                          onTap: () =>
+                              Get.toNamed(AppRoutes.signToSpeechCamera),
+                        ),
+                        const SizedBox(height: 10),
+                        _buildPopoutFeatureCard(
+                          title: 'Speech to Sign',
+                          subtitle: AppStrings.homeSpeechToSignDesc.tr,
+                          tag: AppStrings.homeSpeechToSignBadge.tr,
+                          imageAsset: 'assets/komponen_img/3d_mic_card.png',
+                          color: AppColors.isDark
+                              ? AppColors.surface
+                              : AppColors.secondary,
+                          textColor: AppColors.isDark
+                              ? AppColors.ink
+                              : AppColors.textOnDark,
+                          topRightIcon: Icons.graphic_eq_rounded,
+                          onTap: () => Get.toNamed(AppRoutes.speechToSignMic),
+                        ),
+                      ],
+                      const SizedBox(height: 20),
+
+                      // Recent History Teaser
+                      Obx(() {
+                        final recent = history.items.take(2).toList();
+                        if (recent.isEmpty) return const SizedBox.shrink();
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    AppStrings.homeRecentConversation.tr,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: AppTypography.titleMedium.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.ink,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                TextButton(
+                                  onPressed: () =>
+                                      Get.toNamed(AppRoutes.history),
+                                  child: Text(
+                                    AppStrings.navHistory.tr,
+                                    style: AppTypography.labelMedium.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.secondary,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
-                          ),
-                          Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            size: 16,
-                            color: AppColors.muted,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 22),
-
-                    // ── Mode Penerjemah Utama ────────────────────────────────────
-                    Text(
-                      AppStrings.homeMainModes.tr,
-                      style: AppTypography.titleLarge.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.ink,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    if (context.isLargeScreen)
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: _buildPopoutFeatureCard(
-                              title: 'Sign to Speech',
-                              subtitle: AppStrings.homeSignToSpeechDesc.tr,
-                              tag: AppStrings.homeSignToSpeechBadge.tr,
-                              imageAsset:
-                                  'assets/komponen_img/3d_camera_card.png',
-                              color: AppColors.isDark
-                                  ? AppColors.surface
-                                  : AppColors.primary,
-                              textColor: AppColors.isDark
-                                  ? AppColors.ink
-                                  : AppColors.textOnDark,
-                              topRightIcon: Icons.auto_awesome_rounded,
-                              onTap: () =>
-                                  Get.toNamed(AppRoutes.signToSpeechCamera),
+                            const SizedBox(height: 8),
+                            ...recent.map(
+                              (item) => Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: AppCard(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  onTap: () => Get.toNamed(AppRoutes.history),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 36,
+                                        height: 36,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.bgSurface,
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          item.direction.index == 0
+                                              ? Icons.sign_language_rounded
+                                              : Icons.record_voice_over_rounded,
+                                          color: AppColors.secondary,
+                                          size: 18,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              item.translatedContent,
+                                              style: AppTypography.titleSmall
+                                                  .copyWith(
+                                                    fontWeight: FontWeight.w700,
+                                                    color: AppColors.ink,
+                                                  ),
+                                            ),
+                                            Text(
+                                              item.signLanguageType,
+                                              style: AppTypography.bodySmall
+                                                  .copyWith(
+                                                    color: AppColors.muted,
+                                                  ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Icon(
+                                        Icons.chevron_right,
+                                        color: AppColors.textMuted,
+                                        size: 20,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildPopoutFeatureCard(
-                              title: 'Speech to Sign',
-                              subtitle: AppStrings.homeSpeechToSignDesc.tr,
-                              tag: AppStrings.homeSpeechToSignBadge.tr,
-                              imageAsset: 'assets/komponen_img/3d_mic_card.png',
-                              color: AppColors.isDark
-                                  ? AppColors.surface
-                                  : AppColors.secondary,
-                              textColor: AppColors.isDark
-                                  ? AppColors.ink
-                                  : AppColors.textOnDark,
-                              topRightIcon: Icons.graphic_eq_rounded,
-                              onTap: () =>
-                                  Get.toNamed(AppRoutes.speechToSignMic),
-                            ),
-                          ),
-                        ],
-                      )
-                    else ...[
-                      _buildPopoutFeatureCard(
-                        title: 'Sign to Speech',
-                        subtitle: AppStrings.homeSignToSpeechDesc.tr,
-                        tag: AppStrings.homeSignToSpeechBadge.tr,
-                        imageAsset: 'assets/komponen_img/3d_camera_card.png',
-                        color: AppColors.isDark
-                            ? AppColors.surface
-                            : AppColors.primary,
-                        textColor: AppColors.isDark
-                            ? AppColors.ink
-                            : AppColors.textOnDark,
-                        topRightIcon: Icons.auto_awesome_rounded,
-                        onTap: () => Get.toNamed(AppRoutes.signToSpeechCamera),
-                      ),
-                      const SizedBox(height: 10),
-                      _buildPopoutFeatureCard(
-                        title: 'Speech to Sign',
-                        subtitle: AppStrings.homeSpeechToSignDesc.tr,
-                        tag: AppStrings.homeSpeechToSignBadge.tr,
-                        imageAsset: 'assets/komponen_img/3d_mic_card.png',
-                        color: AppColors.isDark
-                            ? AppColors.surface
-                            : AppColors.secondary,
-                        textColor: AppColors.isDark
-                            ? AppColors.ink
-                            : AppColors.textOnDark,
-                        topRightIcon: Icons.graphic_eq_rounded,
-                        onTap: () => Get.toNamed(AppRoutes.speechToSignMic),
-                      ),
+                          ],
+                        );
+                      }),
+                      const SizedBox(height: 104),
                     ],
-                    const SizedBox(height: 20),
-
-                    // Recent History Teaser
-                    Obx(() {
-                      final recent = history.items.take(2).toList();
-                      if (recent.isEmpty) return const SizedBox.shrink();
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  AppStrings.homeRecentConversation.tr,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: AppTypography.titleMedium.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.ink,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              TextButton(
-                                onPressed: () => Get.toNamed(AppRoutes.history),
-                                child: Text(
-                                  AppStrings.navHistory.tr,
-                                  style: AppTypography.labelMedium.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.secondary,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          ...recent.map(
-                            (item) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: AppCard(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                                onTap: () => Get.toNamed(AppRoutes.history),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 36,
-                                      height: 36,
-                                      decoration: BoxDecoration(
-                                        color: AppColors.bgSurface,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Icon(
-                                        item.direction.index == 0
-                                            ? Icons.sign_language_rounded
-                                            : Icons.record_voice_over_rounded,
-                                        color: AppColors.secondary,
-                                        size: 18,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            item.translatedContent,
-                                            style: AppTypography.titleSmall
-                                                .copyWith(
-                                                  fontWeight: FontWeight.w700,
-                                                  color: AppColors.ink,
-                                                ),
-                                          ),
-                                          Text(
-                                            item.signLanguageType,
-                                            style: AppTypography.bodySmall
-                                                .copyWith(
-                                                  color: AppColors.muted,
-                                                ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Icon(
-                                      Icons.chevron_right,
-                                      color: AppColors.textMuted,
-                                      size: 20,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    }),
-                    const SizedBox(height: 104),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -633,11 +638,9 @@ class _HomeScreenState extends State<HomeScreen> {
   // ── DUAL-LAYER ORGANIC WAVE HEADER ──────────────────────────────────────────
   Widget _buildWaveHeader(BuildContext context, SettingsController settings) {
     final topPadding = MediaQuery.of(context).padding.top;
-    final headerHeight = topPadding + 152.0;
+    const bodyH = 114.0;
+    final headerHeight = topPadding + bodyH;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // Common vertical center for 100% SEJAJAR alignment of Avatar, Logo, & SIBI Button
-    final centerY = topPadding + 44.0;
 
     return SizedBox(
       height: headerHeight,
@@ -645,40 +648,41 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // 1. Organic Wave Background with Central Valley & Right Dip
+          // 1. Organic S-Wave Background (Matching Reference Image 2 Geometry)
           Positioned.fill(
             child: CustomPaint(
               painter: DualWaveHeaderPainter(
+                topPadding: topPadding,
                 backWaveColor: isDark
-                    ? const Color(0xFF222222)
-                    : AppColors.secondary.withValues(alpha: 0.55),
+                    ? AppColors.darkBgSurface
+                    : AppColors.secondary.withValues(alpha: 0.35),
                 frontWaveColor: isDark
-                    ? const Color(0xFF141414)
+                    ? AppColors.darkSurface
                     : AppColors.primary,
                 isDark: isDark,
               ),
             ),
           ),
 
-          // 2. Left: User Profile Avatar (100% SEJAJAR at centerY)
+          // 2. Left: User Profile Avatar Nested Under the Left Arch Pocket
           Positioned(
-            top: centerY - 26.0,
-            left: 18,
+            top: topPadding + 30.0,
+            left: 24,
             child: _buildAvatarButton(context, settings),
           ),
 
-          // 3. Center: Sign2Speech App Logo Floating in Central Valley (100% SEJAJAR & exact Screen Center)
+          // 3. Center: Sign2Speech Squircle Tile Inside the Central Wave Belly
           Positioned(
-            top: centerY - 26.0,
+            top: topPadding + 24.0,
             left: 0,
             right: 0,
             child: Center(child: _buildAppLogoTile(context)),
           ),
 
-          // 4. Right: BISINDO/SIBI Selector (100% SEJAJAR at centerY, Cradled by Right Valley)
+          // 4. Right: BISINDO/SIBI Selector Cleanly Inside the Right Espresso Area
           Positioned(
-            top: centerY - 23.0,
-            right: 18,
+            top: topPadding + 28.0,
+            right: 22,
             child: _buildRightActionButtons(context, settings),
           ),
         ],
@@ -698,66 +702,56 @@ class _HomeScreenState extends State<HomeScreen> {
           Get.toNamed(AppRoutes.settings);
         },
         child: Container(
-          width: 52,
-          height: 52,
+          width: 54,
+          height: 54,
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isDark ? AppColors.darkSurface : AppColors.surface,
+            borderRadius: BorderRadius.circular(18),
+            color: isDark ? AppColors.darkBgSurface : AppColors.primary,
             border: Border.all(
               color: isDark
                   ? AppColors.darkBorder
-                  : AppColors.secondary.withValues(alpha: 0.35),
-              width: 2.2,
+                  : AppColors.secondary.withValues(alpha: 0.40),
+              width: 2.0,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+                color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.12),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
             ],
           ),
           child: Stack(
+            clipBehavior: Clip.none,
             children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isDark
-                        ? AppColors.darkBgSurface
-                        : const Color(0xFF4A6B53).withValues(alpha: 0.15),
-                  ),
-                  child: ClipOval(
-                    child: Image.asset(
-                      AppAssets.roleTemanTuli,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Center(
-                        child: Icon(
-                          Icons.person_rounded,
-                          color: isDark
-                              ? AppColors.darkPrimary
-                              : AppColors.primary,
-                          size: 24,
-                        ),
+              Positioned.fill(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.asset(
+                    AppAssets.roleTemanTuli,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Center(
+                      child: Icon(
+                        Icons.person_rounded,
+                        color: Colors.white,
+                        size: 26,
                       ),
                     ),
                   ),
                 ),
               ),
               Positioned(
-                bottom: 1,
-                right: 1,
+                bottom: -2,
+                right: -2,
                 child: Container(
-                  width: 13,
-                  height: 13,
+                  width: 14,
+                  height: 14,
                   decoration: BoxDecoration(
                     color: AppColors.matcha,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: isDark ? AppColors.darkSurface : AppColors.surface,
-                      width: 2.0,
+                      color: isDark ? AppColors.darkCanvas : AppColors.canvas,
+                      width: 2.2,
                     ),
                   ),
                 ),
@@ -775,32 +769,25 @@ class _HomeScreenState extends State<HomeScreen> {
     return Semantics(
       label: 'Logo Sign2Speech',
       child: Container(
-        width: 52,
-        height: 52,
+        width: 50,
+        height: 50,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: isDark ? 0.12 : 0.20),
-          borderRadius: BorderRadius.circular(18),
+          color: Colors.white.withValues(alpha: isDark ? 0.08 : 0.11),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: Colors.white.withValues(alpha: isDark ? 0.22 : 0.32),
-            width: 1.2,
+            color: Colors.white.withValues(alpha: isDark ? 0.14 : 0.18),
+            width: 1.0,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.30 : 0.12),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
         ),
-        padding: const EdgeInsets.all(8),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Image.asset(
-            'assets/icon/app_icon_oatmilk.png',
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) => Image.asset(
+          borderRadius: BorderRadius.circular(15),
+          child: Transform.scale(
+            scale: 1.32,
+            child: Image.asset(
               'assets/icon/app_icon.png',
-              fit: BoxFit.contain,
+              fit: BoxFit.cover,
+              color: Colors.white.withValues(alpha: 0.06),
+              colorBlendMode: BlendMode.plus,
               errorBuilder: (context, error, stackTrace) => const Icon(
                 Icons.sign_language_rounded,
                 color: Colors.white,
@@ -825,23 +812,16 @@ class _HomeScreenState extends State<HomeScreen> {
       child: GestureDetector(
         onTap: () => _showSignLanguageDialog(context, settings),
         child: Container(
-          height: 46,
-          constraints: const BoxConstraints(minWidth: 48, minHeight: 46),
-          padding: const EdgeInsets.symmetric(horizontal: 14),
+          height: 42,
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 42),
+          padding: const EdgeInsets.symmetric(horizontal: 13),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: isDark ? 0.12 : 0.20),
-            borderRadius: BorderRadius.circular(22),
+            color: Colors.white.withValues(alpha: isDark ? 0.10 : 0.13),
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: Colors.white.withValues(alpha: isDark ? 0.22 : 0.32),
-              width: 1.2,
+              color: Colors.white.withValues(alpha: isDark ? 0.16 : 0.22),
+              width: 1.0,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.10),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-              ),
-            ],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -849,7 +829,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const Icon(
                 Icons.sign_language_rounded,
                 color: Colors.white,
-                size: 19,
+                size: 18,
               ),
               const SizedBox(width: 6),
               Obx(
@@ -858,16 +838,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: AppTypography.labelMedium.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w800,
-                    letterSpacing: 0.6,
-                    fontSize: 13,
+                    letterSpacing: 0.5,
+                    fontSize: 12.5,
                   ),
                 ),
               ),
-              const SizedBox(width: 3),
+              const SizedBox(width: 2),
               const Icon(
-                Icons.arrow_drop_down_rounded,
+                Icons.keyboard_arrow_down_rounded,
                 color: Colors.white70,
-                size: 19,
+                size: 18,
               ),
             ],
           ),
@@ -1612,13 +1592,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// ── CUSTOM PAINTER: ORGANIC DUAL-WAVE HEADER ─────────────────────────────────
+// ── CUSTOM PAINTER: ORGANIC S-WAVE HEADER (MATCHING REFERENCE IMAGE 2) ──────
 class DualWaveHeaderPainter extends CustomPainter {
+  final double topPadding;
   final Color backWaveColor;
   final Color frontWaveColor;
   final bool isDark;
 
   DualWaveHeaderPainter({
+    this.topPadding = 0.0,
     required this.backWaveColor,
     required this.frontWaveColor,
     this.isDark = false,
@@ -1627,150 +1609,123 @@ class DualWaveHeaderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width;
-    final h = size.height;
+    final top = topPadding;
+    final bodyH = (size.height - top).clamp(80.0, 200.0);
 
-    // ── LAYER 1: BACK CARAMEL ACCENT WAVE (Adds Depth Crema Rim) ────────────
-    final backPaint = Paint()
-      ..color = backWaveColor
-      ..style = PaintingStyle.fill;
-
-    final backPath = Path()
-      ..moveTo(0, 0)
-      ..lineTo(0, h * 0.36)
-      // Left curve past avatar towards central valley
-      ..cubicTo(
-        w * 0.08,
-        h * 0.36,
-        w * 0.16,
-        h * 0.58,
-        w * 0.28,
-        h * 0.62,
-      )
-      // Broad, wide central valley
-      ..cubicTo(
-        w * 0.38,
-        h * 0.66,
-        w * 0.42,
-        h * 0.90,
-        w * 0.50,
-        h * 0.90,
-      )
-      // Ascend to dividing ridge
-      ..cubicTo(
-        w * 0.58,
-        h * 0.90,
-        w * 0.64,
-        h * 0.58,
-        w * 0.72,
-        h * 0.56,
-      )
-      // Small gentle valley under SIBI/BISINDO button
-      ..cubicTo(
-        w * 0.77,
-        h * 0.54,
-        w * 0.81,
-        h * 0.72,
-        w * 0.87,
-        h * 0.72,
-      )
-      // Ascend to right edge
-      ..cubicTo(
-        w * 0.93,
-        h * 0.72,
-        w * 0.97,
-        h * 0.60,
-        w,
-        h * 0.60,
-      )
-      ..lineTo(w, 0)
-      ..close();
-
-    canvas.drawPath(backPath, backPaint);
-
-    // ── LAYER 2: FRONT MAIN WAVE (Rich Espresso / AMOLED Dark) ──────────────
+    // ── LAYER 1: MAIN ESPRESSO / DARK S-WAVE (Reference Image 2 Contour) ────
     final frontPaint = Paint()
       ..color = frontWaveColor
       ..style = PaintingStyle.fill;
 
     final frontPath = Path()
       ..moveTo(0, 0)
-      ..lineTo(0, h * 0.30)
-      // Left curve past avatar towards central valley
+      ..lineTo(0, top + bodyH * 0.40)
+      // 1. High smooth dome arch over the left Avatar pocket
       ..cubicTo(
-        w * 0.08,
-        h * 0.30,
-        w * 0.16,
-        h * 0.52,
-        w * 0.28,
-        h * 0.56,
+        w * 0.04,
+        top + bodyH * 0.24,
+        w * 0.09,
+        top + bodyH * 0.20,
+        w * 0.14,
+        top + bodyH * 0.20,
       )
-      // Broad, wide central valley cradling Sign2Speech logo
+      // 2. Smooth C2 S-curve sweeping down into the wide central belly
       ..cubicTo(
-        w * 0.38,
-        h * 0.60,
-        w * 0.42,
-        h * 0.84,
-        w * 0.50,
-        h * 0.84,
+        w * 0.25,
+        top + bodyH * 0.20,
+        w * 0.33,
+        top + bodyH * 0.90,
+        w * 0.48,
+        top + bodyH * 0.90,
       )
-      // Ascend to dividing ridge
+      // 3. Gentle rise from the central belly to the soft right crest
       ..cubicTo(
-        w * 0.58,
-        h * 0.84,
-        w * 0.64,
-        h * 0.52,
-        w * 0.72,
-        h * 0.50,
+        w * 0.60,
+        top + bodyH * 0.90,
+        w * 0.65,
+        top + bodyH * 0.72,
+        w * 0.75,
+        top + bodyH * 0.72,
       )
-      // Small gentle valley cradling SIBI/BISINDO button
+      // 4. Gentle downward slope to the right edge (keeps SIBI button 100% inside dark header)
       ..cubicTo(
-        w * 0.77,
-        h * 0.48,
-        w * 0.81,
-        h * 0.66,
-        w * 0.87,
-        h * 0.66,
-      )
-      // Ascend to right edge
-      ..cubicTo(
+        w * 0.84,
+        top + bodyH * 0.72,
         w * 0.93,
-        h * 0.66,
-        w * 0.97,
-        h * 0.54,
+        top + bodyH * 0.81,
         w,
-        h * 0.54,
+        top + bodyH * 0.90,
       )
       ..lineTo(w, 0)
       ..close();
 
-    // Subtle drop shadow cast by front wave
+    // Soft ambient shadow under the wave
     final shadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: isDark ? 0.38 : 0.10)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+      ..color = Colors.black.withValues(alpha: isDark ? 0.32 : 0.07)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
     canvas.drawPath(frontPath, shadowPaint);
 
     canvas.drawPath(frontPath, frontPaint);
 
-    // ── LAYER 3: THIN CONTOURED ACCENT LINE (Parallels Wave Contours) ───────
-    final accentPaint = Paint()
+    // ── LAYER 2: DELICATE UPPER-LEFT ACCENT LINE (Inside Dark Header) ───────
+    final upperAccentPaint = Paint()
       ..color = Colors.white.withValues(alpha: isDark ? 0.14 : 0.22)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
+      ..strokeWidth = 1.25;
 
-    final accentPath = Path()
-      ..moveTo(0, h * 0.30)
-      ..cubicTo(w * 0.08, h * 0.30, w * 0.16, h * 0.52, w * 0.28, h * 0.56)
-      ..cubicTo(w * 0.38, h * 0.60, w * 0.42, h * 0.84, w * 0.50, h * 0.84)
-      ..cubicTo(w * 0.58, h * 0.84, w * 0.64, h * 0.52, w * 0.72, h * 0.50)
-      ..cubicTo(w * 0.77, h * 0.48, w * 0.81, h * 0.66, w * 0.87, h * 0.66)
-      ..cubicTo(w * 0.93, h * 0.66, w * 0.97, h * 0.54, w, h * 0.54);
+    final upperAccentPath = Path()
+      ..moveTo(0, top + bodyH * 0.28)
+      ..cubicTo(
+        w * 0.04,
+        top + bodyH * 0.12,
+        w * 0.09,
+        top + bodyH * 0.09,
+        w * 0.14,
+        top + bodyH * 0.09,
+      )
+      ..cubicTo(
+        w * 0.25,
+        top + bodyH * 0.09,
+        w * 0.33,
+        top + bodyH * 0.90,
+        w * 0.48,
+        top + bodyH * 0.90,
+      );
 
-    canvas.drawPath(accentPath, accentPaint);
+    canvas.drawPath(upperAccentPath, upperAccentPaint);
+
+    // ── LAYER 3: SUBTLE LOWER-RIGHT CONTOUR WHISPER LINE (On Canvas Side) ───
+    final lowerWhisperPaint = Paint()
+      ..color = backWaveColor.withValues(alpha: isDark ? 0.25 : 0.22)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.1;
+
+    final lowerWhisperPath = Path()
+      ..moveTo(w * 0.48, top + bodyH * 0.90)
+      ..cubicTo(
+        w * 0.60,
+        top + bodyH * 0.90,
+        w * 0.65,
+        top + bodyH * 0.78,
+        w * 0.75,
+        top + bodyH * 0.78,
+      )
+      ..cubicTo(
+        w * 0.84,
+        top + bodyH * 0.78,
+        w * 0.93,
+        top + bodyH * 0.86,
+        w,
+        top + bodyH * 0.95,
+      );
+
+    canvas.drawPath(lowerWhisperPath, lowerWhisperPaint);
   }
 
   @override
   bool shouldRepaint(covariant DualWaveHeaderPainter oldDelegate) {
-    return oldDelegate.backWaveColor != backWaveColor ||
+    return oldDelegate.topPadding != topPadding ||
+        oldDelegate.backWaveColor != backWaveColor ||
         oldDelegate.frontWaveColor != frontWaveColor ||
         oldDelegate.isDark != isDark;
   }

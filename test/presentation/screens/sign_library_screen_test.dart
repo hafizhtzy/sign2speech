@@ -72,4 +72,39 @@ void main() {
       expect(find.text('Halo'), findsNothing);
     },
   );
+
+  testWidgets(
+    'SignLibraryScreen paginates entries and updates page controls correctly',
+    (tester) async {
+      await tester.pumpWidget(
+        GetMaterialApp(
+          translations: AppTranslations(),
+          locale: const Locale('id', 'ID'),
+          home: const SignLibraryScreen(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Scroll down to reveal PaginationControlBar
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -600));
+      await tester.pumpAndSettle();
+
+      // Check pagination info on page 1
+      expect(find.text('Halaman 1 dari 8'), findsOneWidget);
+      expect(find.text('Menampilkan 1-12 dari 90 kosakata'), findsOneWidget);
+
+      // Tap Page 2 chip
+      final page2Finder = find.widgetWithText(InkWell, '2');
+      expect(page2Finder, findsWidgets);
+      await tester.tap(page2Finder.first);
+      await tester.pumpAndSettle();
+
+      // Scroll to verify updated pagination state
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -600));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Halaman 2 dari 8'), findsOneWidget);
+      expect(find.text('Menampilkan 13-24 dari 90 kosakata'), findsOneWidget);
+    },
+  );
 }

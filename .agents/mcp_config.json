@@ -2,6 +2,15 @@
   "mcpServers": {
     "context7": {
       "serverUrl": "https://mcp.context7.com/mcp"
+    },
+    "dart": {
+      "command": "dart",
+      "args": [
+        "mcp-server"
+      ]
+    },
+    "developerKnowledge": {
+      "url": "https://developerknowledge.googleapis.com/mcp"
     }
   }
 }

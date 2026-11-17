@@ -14,6 +14,9 @@ class AppStrings {
   static const String copy = 'copy';
   static const String listen = 'listen';
   static const String next = 'next';
+  static const String previous = 'previous';
+  static const String paginationShowing = 'pagination_showing';
+  static const String paginationPageOf = 'pagination_page_of';
   static const String skip = 'skip';
   static const String start = 'start';
   static const String startApp = 'start_app';

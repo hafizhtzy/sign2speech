@@ -35,6 +35,7 @@
 | `AdaptiveLayout` | `lib/core/widgets/responsive_layout.dart` | `({required WidgetBuilder compact, WidgetBuilder? medium, WidgetBuilder? expanded})` | Builder layout adaptif berbasis lebar kontainer (bukan sekadar full screen window). |
 | `CashierFab` | `lib/core/widgets/cashier_fab.dart` | `({required VoidCallback onPressed, bool isExpanded})` | Floating Action Button melayang untuk akses cepat kasir kafe & bantuan. |
 | `StatusBadge` | `lib/core/widgets/status_badge.dart` | `({required String label, required Color color, IconData? icon})` | Chip/badge indikator status (aktif, offline/matcha, pending, selesai). |
+| `PaginationControlBar` | `lib/presentation/widgets/pagination_control_bar.dart` | `({required int currentPage, required int totalPages, required int totalItems, int itemsPerPage = 12, required ValueChanged<int> onPageChanged})` | Bilah navigasi pagination adaptif dengan kontrol Prev/Next, nomor halaman, touch target $\ge 48\text{dp}$, dan info item. |
 
 ---
 

@@ -10,6 +10,7 @@ import '../../core/widgets/responsive_layout.dart';
 import '../../features/sign_language/controllers/text_to_sign_controller.dart';
 import '../../features/sign_language/models/sign_video_entry.dart';
 import '../../features/sign_language/services/sign_language_repository.dart';
+import '../widgets/pagination_control_bar.dart';
 
 class SignLibraryScreen extends StatefulWidget {
   const SignLibraryScreen({super.key});
@@ -20,6 +21,7 @@ class SignLibraryScreen extends StatefulWidget {
 
 class _SignLibraryScreenState extends State<SignLibraryScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   final SignLanguageRepository repository = Get.find<SignLanguageRepository>();
 
   /// Filter bahasa isyarat: 'Semua', 'BISINDO', atau 'SIBI'
@@ -27,6 +29,10 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
 
   /// Filter kategori kosakata
   String _selectedCategory = 'Semua';
+
+  /// Pagination halaman aktif (1-indexed) dan ukuran halaman
+  int _currentPage = 1;
+  static const int _pageSize = 12;
 
   double _downloadProgress = 0.0;
   bool _isDownloading = false;
@@ -47,7 +53,22 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _goToPage(int page, int totalPages) {
+    if (page < 1 || page > totalPages) return;
+    setState(() {
+      _currentPage = page;
+    });
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeOutCubic,
+      );
+    }
   }
 
   bool _matchesCategory(SignVideoEntry entry, String selectedCategory) {
@@ -226,7 +247,14 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final entries = _filteredEntries;
+    final allFiltered = _filteredEntries;
+    final totalItems = allFiltered.length;
+    final totalPages = (totalItems / _pageSize).ceil();
+    final safeCurrentPage = totalPages == 0
+        ? 1
+        : _currentPage.clamp(1, totalPages);
+    final startIndex = (safeCurrentPage - 1) * _pageSize;
+    final pagedEntries = allFiltered.skip(startIndex).take(_pageSize).toList();
 
     return Scaffold(
       backgroundColor: AppColors.canvas,
@@ -243,6 +271,7 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
         child: ResponsiveContentWrapper(
           maxWidth: ResponsiveBreakpoints.maxDashboardWidth,
           child: CustomScrollView(
+            controller: _scrollController,
             physics: const BouncingScrollPhysics(),
             slivers: [
               // ── 1. HEADER CONTROLS (SEARCH, FILTERS, DOWNLOAD BANNER) ────
@@ -255,7 +284,9 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                       padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
                       child: TextField(
                         controller: _searchController,
-                        onChanged: (_) => setState(() {}),
+                        onChanged: (_) => setState(() {
+                          _currentPage = 1;
+                        }),
                         decoration: InputDecoration(
                           hintText: AppStrings.librarySearchPlaceholder.tr,
                           hintStyle: TextStyle(
@@ -272,7 +303,9 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                                   ),
                                   onPressed: () {
                                     _searchController.clear();
-                                    setState(() {});
+                                    setState(() {
+                                      _currentPage = 1;
+                                    });
                                   },
                                 )
                               : null,
@@ -320,6 +353,7 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                                 onTap: () {
                                   setState(() {
                                     _selectedLanguage = lang;
+                                    _currentPage = 1;
                                   });
                                 },
                                 child: AnimatedContainer(
@@ -381,6 +415,7 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                               onSelected: (_) {
                                 setState(() {
                                   _selectedCategory = cat;
+                                  _currentPage = 1;
                                 });
                               },
                               selectedColor: AppColors.secondary,
@@ -442,7 +477,7 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                                   Text(
                                     _isDownloading
                                         ? 'Mengunduh... (${(_downloadProgress * 100).toInt()}%)'
-                                        : 'Unduh Filter Ini (${entries.length} video)',
+                                        : 'Unduh Filter Ini ($totalItems video)',
                                     style: TextStyle(
                                       fontSize: 12.5,
                                       fontWeight: FontWeight.w700,
@@ -491,7 +526,7 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
               ),
 
               // ── 2. VOCABULARY LIST OR EMPTY STATE ───────────────────────
-              if (entries.isEmpty)
+              if (totalItems == 0)
                 SliverFillRemaining(
                   hasScrollBody: false,
                   child: Padding(
@@ -529,7 +564,7 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                 )
               else if (context.isLargeScreen)
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 114),
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
                   sliver: SliverGrid(
                     gridDelegate:
                         const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -540,14 +575,14 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) =>
-                          _buildVocabularyCard(context, entries[index]),
-                      childCount: entries.length,
+                          _buildVocabularyCard(context, pagedEntries[index]),
+                      childCount: pagedEntries.length,
                     ),
                   ),
                 )
               else
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 114),
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
@@ -557,12 +592,32 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                         }
                         return _buildVocabularyCard(
                           context,
-                          entries[itemIndex],
+                          pagedEntries[itemIndex],
                         );
                       },
-                      childCount: entries.isEmpty ? 0 : entries.length * 2 - 1,
+                      childCount:
+                          pagedEntries.isEmpty ? 0 : pagedEntries.length * 2 - 1,
                     ),
                   ),
+                ),
+
+              // ── 3. PAGINATION CONTROL BAR (FOOTER) ────────────────────────
+              if (totalItems > 0 && totalPages > 1)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 114),
+                    child: PaginationControlBar(
+                      currentPage: safeCurrentPage,
+                      totalPages: totalPages,
+                      totalItems: totalItems,
+                      itemsPerPage: _pageSize,
+                      onPageChanged: (page) => _goToPage(page, totalPages),
+                    ),
+                  ),
+                )
+              else if (totalItems > 0)
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 114),
                 ),
             ],
           ),
