@@ -14,7 +14,9 @@ import 'package:speech2sign/features/translator/services/speech_service.dart';
 
 import '../../../core/supabase/supabase_result.dart';
 import '../../../core/localization/app_translations.dart';
+
 import 'package:image_picker/image_picker.dart';
+
 import '../data/datasources/cafe_menu_storage_service.dart';
 import '../data/datasources/cafe_pos_local_data_source.dart';
 import '../data/datasources/supabase_cafe_pos_service.dart';
@@ -29,7 +31,6 @@ import '../domain/models/parsed_cafe_order_slot.dart';
 import '../domain/services/coffee_recommender_service.dart';
 import '../domain/services/order_slot_parser_service.dart';
 import '../domain/services/queue_pager_service.dart';
-
 
 enum CafeCameraActiveFeature {
   none,
@@ -99,15 +100,17 @@ class CafeCashierController extends GetxController {
 
   CafePosLocalDataSource get localDataSource => _localDataSource;
   SupabaseCafePosService? get supabaseCafePosService => _supabaseCafePosService;
-  SupabaseCounterSessionService? get counterSessionService => _counterSessionService;
+  SupabaseCounterSessionService? get counterSessionService =>
+      _counterSessionService;
   CafeMenuStorageService? get menuStorageService => _menuStorageService;
   Worker? _ticketStorageWorker;
   Worker? _queueStorageWorker;
   StreamSubscription<dynamic>? _sessionStreamSub;
 
   /// Reactive catalog of coffee menus (merges standardCatalog with dynamic Supabase `cafe_menus`).
-  final RxList<CoffeeMenuItem> menuCatalog =
-      <CoffeeMenuItem>[...CoffeeMenuItem.standardCatalog].obs;
+  final RxList<CoffeeMenuItem> menuCatalog = <CoffeeMenuItem>[
+    ...CoffeeMenuItem.standardCatalog,
+  ].obs;
   final RxBool isUploadingMenuPhoto = false.obs;
 
   CafeCashierController({
@@ -123,48 +126,56 @@ class CafeCashierController extends GetxController {
     SupabaseCounterSessionService? counterSessionService,
     CafeMenuStorageService? menuStorageService,
     TextToSignController? textToSignController,
-  })  : _orderSlotParserService =
-            orderSlotParserService ?? OrderSlotParserService(),
-        _coffeeRecommenderService =
-            coffeeRecommenderService ?? const CoffeeRecommenderService(),
-        _queuePagerService = queuePagerService ?? QueuePagerService(),
-        _ttsService = ttsService ??
-            (Get.isRegistered<BisindoTtsService>()
-                ? Get.find<BisindoTtsService>()
-                : BisindoTtsService()),
-        _speechService = speechService ??
-            (Get.isRegistered<SpeechService>()
-                ? Get.find<SpeechService>()
-                : SpeechService()),
-        _cameraFeedService = cameraFeedService ??
-            (Get.isRegistered<CameraFeedService>()
-                ? Get.find<CameraFeedService>()
-                : null),
-        _signLanguageController = signLanguageController ??
-            (Get.isRegistered<SignLanguageController>()
-                ? Get.find<SignLanguageController>()
-                : null),
-        _textToSignController = textToSignController ??
-            (Get.isRegistered<TextToSignController>()
-                ? Get.find<TextToSignController>()
-                : null),
-        _localDataSource = localDataSource ??
-            (Get.isRegistered<CafePosLocalDataSource>()
-                ? Get.find<CafePosLocalDataSource>()
-                : CafePosLocalDataSource()),
-        _supabaseCafePosService = supabaseCafePosService ??
-            (Get.isRegistered<SupabaseCafePosService>()
-                ? Get.find<SupabaseCafePosService>()
-                : null),
-        _counterSessionService = counterSessionService ??
-            (Get.isRegistered<SupabaseCounterSessionService>()
-                ? Get.find<SupabaseCounterSessionService>()
-                : null),
-        _menuStorageService = menuStorageService ??
-            (Get.isRegistered<CafeMenuStorageService>()
-                ? Get.find<CafeMenuStorageService>()
-                : CafeMenuStorageService());
-
+  }) : _orderSlotParserService =
+           orderSlotParserService ?? OrderSlotParserService(),
+       _coffeeRecommenderService =
+           coffeeRecommenderService ?? const CoffeeRecommenderService(),
+       _queuePagerService = queuePagerService ?? QueuePagerService(),
+       _ttsService =
+           ttsService ??
+           (Get.isRegistered<BisindoTtsService>()
+               ? Get.find<BisindoTtsService>()
+               : BisindoTtsService()),
+       _speechService =
+           speechService ??
+           (Get.isRegistered<SpeechService>()
+               ? Get.find<SpeechService>()
+               : SpeechService()),
+       _cameraFeedService =
+           cameraFeedService ??
+           (Get.isRegistered<CameraFeedService>()
+               ? Get.find<CameraFeedService>()
+               : null),
+       _signLanguageController =
+           signLanguageController ??
+           (Get.isRegistered<SignLanguageController>()
+               ? Get.find<SignLanguageController>()
+               : null),
+       _textToSignController =
+           textToSignController ??
+           (Get.isRegistered<TextToSignController>()
+               ? Get.find<TextToSignController>()
+               : null),
+       _localDataSource =
+           localDataSource ??
+           (Get.isRegistered<CafePosLocalDataSource>()
+               ? Get.find<CafePosLocalDataSource>()
+               : CafePosLocalDataSource()),
+       _supabaseCafePosService =
+           supabaseCafePosService ??
+           (Get.isRegistered<SupabaseCafePosService>()
+               ? Get.find<SupabaseCafePosService>()
+               : null),
+       _counterSessionService =
+           counterSessionService ??
+           (Get.isRegistered<SupabaseCounterSessionService>()
+               ? Get.find<SupabaseCounterSessionService>()
+               : null),
+       _menuStorageService =
+           menuStorageService ??
+           (Get.isRegistered<CafeMenuStorageService>()
+               ? Get.find<CafeMenuStorageService>()
+               : CafeMenuStorageService());
 
   // ── 1. ACTIVE ORDER TICKET STATE ──────────────────────────────────────────
   final Rx<CafeOrderTicket> currentTicket = Rx<CafeOrderTicket>(
@@ -184,8 +195,9 @@ class CafeCashierController extends GetxController {
   final RxList<CafeOrderTicket> activeOrdersQueue = <CafeOrderTicket>[].obs;
 
   // ── 2. AUTO-ORDER SLOT PARSER & SPEECH (FITUR 1 & 6) ──────────────────────
-  final Rx<ParsedCafeOrderSlot?> activeParsedSlot =
-      Rx<ParsedCafeOrderSlot?>(null);
+  final Rx<ParsedCafeOrderSlot?> activeParsedSlot = Rx<ParsedCafeOrderSlot?>(
+    null,
+  );
   final RxString liveTranscript = ''.obs;
   final RxList<String> liveOrderWords = <String>[].obs;
   DateTime _lastLiveSignTime = DateTime.fromMillisecondsSinceEpoch(0);
@@ -200,8 +212,32 @@ class CafeCashierController extends GetxController {
   final RxInt spellingRemainingMs = 1500.obs;
 
   static const List<String> fullAlphabet = [
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+    'A',
+    'B',
+    'C',
+    'D',
+    'E',
+    'F',
+    'G',
+    'H',
+    'I',
+    'J',
+    'K',
+    'L',
+    'M',
+    'N',
+    'O',
+    'P',
+    'Q',
+    'R',
+    'S',
+    'T',
+    'U',
+    'V',
+    'W',
+    'X',
+    'Y',
+    'Z',
   ];
 
   // ── 4. AI BARISTA SOMMELIER (FITUR 3) ──────────────────────────────────────
@@ -241,8 +277,8 @@ class CafeCashierController extends GetxController {
 
   List<String> get currentChallengeVocabulary =>
       _activeSignModel.value == SignLanguageModel.sibi
-          ? sibiChallengeVocabulary
-          : challengeVocabulary;
+      ? sibiChallengeVocabulary
+      : challengeVocabulary;
 
   final RxInt challengeWordIndex = 0.obs;
   final RxString activeChallengeSign = 'TERIMA KASIH'.obs;
@@ -278,6 +314,11 @@ class CafeCashierController extends GetxController {
   static const String defaultCounterId = 'KAFE-01';
   final RxString counterId = defaultCounterId.obs;
 
+  /// Menandai apakah tablet ber-role CUSTOMER sudah berhasil melakukan pairing
+  /// dengan kode ruangan Kasir (untuk tablet kafe yang tertempel di meja kasir).
+  RxBool? _isPairedCustomerSession;
+  RxBool get isPairedCustomerSession => _isPairedCustomerSession ??= false.obs;
+
   // ── 12. SINGLE-TABLET FLIP MODE ───────────────────────────────────────────
   /// True = layar di-flip 180° untuk mode hadap-harap (1 tablet, kasir + pembeli).
   final RxBool isFlipped = false.obs;
@@ -310,8 +351,9 @@ class CafeCashierController extends GetxController {
     super.onInit();
     AppTranslations.ensureLoaded();
     // Default initial recommendation
-    activeRecommendation.value =
-        _coffeeRecommenderService.recommendCoffee('kopi susu oat');
+    activeRecommendation.value = _coffeeRecommenderService.recommendCoffee(
+      'kopi susu oat',
+    );
     _syncModelWithSettings();
     if (Get.isRegistered<SettingsController>()) {
       ever(Get.find<SettingsController>().selectedSignLanguage, (lang) {
@@ -512,7 +554,9 @@ class CafeCashierController extends GetxController {
     });
 
     _queueStorageWorker?.dispose();
-    _queueStorageWorker = ever<List<CafeOrderTicket>>(activeOrdersQueue, (queue) {
+    _queueStorageWorker = ever<List<CafeOrderTicket>>(activeOrdersQueue, (
+      queue,
+    ) {
       _localDataSource.saveActiveQueue(queue);
     });
   }
@@ -611,7 +655,9 @@ class CafeCashierController extends GetxController {
 
   /// Lompat langsung ke tahap tertentu (dipanggil dari UI button).
   void goToStage(CafeOrderStage stage, {bool force = false}) {
-    if (!force && stage == CafeOrderStage.pickup && !currentTicket.value.isPaid) {
+    if (!force &&
+        stage == CafeOrderStage.pickup &&
+        !currentTicket.value.isPaid) {
       _showStageSnackbar(
         'Pembayaran Belum Dilakukan',
         'Silakan selesaikan simulasi pembayaran (QRIS atau Tunai) terlebih dahulu sebelum ke tahap Ambil Kopi.',
@@ -676,9 +722,11 @@ class CafeCashierController extends GetxController {
   /// Dipanggil dari onTranscriptReceived saat allergy terdeteksi.
   void _checkAndAutoSwitchDairyAllergy(List<DietaryAlertTag> alerts) {
     if (dairyAllergyAutoSwitched.value) return;
-    final hasDairyAllergy = alerts.any((a) =>
-        a.type == DietaryAlertType.dairyAllergy ||
-        a.type == DietaryAlertType.lactoseIntolerant);
+    final hasDairyAllergy = alerts.any(
+      (a) =>
+          a.type == DietaryAlertType.dairyAllergy ||
+          a.type == DietaryAlertType.lactoseIntolerant,
+    );
     if (!hasDairyAllergy) return;
 
     // Auto-switch semua item yang menggunakan freshDairy ke oatMilk
@@ -740,9 +788,21 @@ class CafeCashierController extends GetxController {
     final cleanCode = code.trim().toUpperCase();
     if (cleanCode.isEmpty) return;
     setPairingCounterId(cleanCode);
-    isCashierView.value = false; // Tablet yang menghubungkan adalah sisi pembeli
+    isPairedCustomerSession.value = true;
+    isCashierView.value =
+        false; // Tablet yang menghubungkan adalah sisi pembeli
+    if (currentStage.value == CafeOrderStage.idle) {
+      currentStage.value = CafeOrderStage.ordering;
+    }
     await setDeviceMode(CounterDeviceMode.dualTabletLocked);
     startSessionStream();
+  }
+
+  /// Putuskan sesi pairing tablet pembeli dari meja kasir.
+  void disconnectPairedCustomerSession() {
+    isPairedCustomerSession.value = false;
+    _sessionStreamSub?.cancel();
+    _sessionStreamSub = null;
   }
 
   /// Mulai listen real-time session dari Supabase (untuk tablet pembeli).
@@ -750,15 +810,13 @@ class CafeCashierController extends GetxController {
     _sessionStreamSub?.cancel();
     final svc = _counterSessionService;
     if (svc == null) return;
-    _sessionStreamSub =
-        svc.streamSession(counterId.value).listen((session) {
+    _sessionStreamSub = svc.streamSession(counterId.value).listen((session) {
       // Sinkronisasi stage dari cloud ke tablet pembeli
       if (session.stage != currentStage.value) {
         currentStage.value = session.stage;
       }
     });
   }
-
 
   // ── CAMERA & GESTURE RECOGNITION COORDINATION ────────────────────────────
 
@@ -938,8 +996,9 @@ class CafeCashierController extends GetxController {
       } else {
         final parsed = _orderSlotParserService.parseTranscript(sentence);
         activeParsedSlot.value = parsed;
-        activeRecommendation.value =
-            _coffeeRecommenderService.recommendCoffee(sentence);
+        activeRecommendation.value = _coffeeRecommenderService.recommendCoffee(
+          sentence,
+        );
         _triggerSignVideo(sentence);
       }
       try {
@@ -996,8 +1055,7 @@ class CafeCashierController extends GetxController {
     }
 
     // Feature 3: Evaluate Barista Sommelier Recommendation
-    final recommendation =
-        _coffeeRecommenderService.recommendCoffee(trimmed);
+    final recommendation = _coffeeRecommenderService.recommendCoffee(trimmed);
     activeRecommendation.value = recommendation;
   }
 
@@ -1048,8 +1106,9 @@ class CafeCashierController extends GetxController {
   }
 
   void addItemToTicket(ParsedCafeOrderSlot slot) {
-    final updatedList = List<ParsedCafeOrderSlot>.from(currentTicket.value.items)
-      ..add(slot);
+    final updatedList = List<ParsedCafeOrderSlot>.from(
+      currentTicket.value.items,
+    )..add(slot);
     currentTicket.value = currentTicket.value.copyWith(
       items: updatedList,
       status: OrderStatus.draft,
@@ -1058,9 +1117,9 @@ class CafeCashierController extends GetxController {
 
   void removeItemFromTicket(int index) {
     if (index >= 0 && index < currentTicket.value.items.length) {
-      final updatedList =
-          List<ParsedCafeOrderSlot>.from(currentTicket.value.items)
-            ..removeAt(index);
+      final updatedList = List<ParsedCafeOrderSlot>.from(
+        currentTicket.value.items,
+      )..removeAt(index);
       currentTicket.value = currentTicket.value.copyWith(items: updatedList);
     }
   }
@@ -1135,8 +1194,10 @@ class CafeCashierController extends GetxController {
 
   void deleteSpellingLetter() {
     if (customerCupNameBuffer.value.isNotEmpty) {
-      customerCupNameBuffer.value = customerCupNameBuffer.value
-          .substring(0, customerCupNameBuffer.value.length - 1);
+      customerCupNameBuffer.value = customerCupNameBuffer.value.substring(
+        0,
+        customerCupNameBuffer.value.length - 1,
+      );
     }
   }
 
@@ -1200,8 +1261,9 @@ class CafeCashierController extends GetxController {
         onTranscriptReceived('pesan americano hitam tanpa gula tanpa susu');
         break;
       default:
-        activeRecommendation.value =
-            _coffeeRecommenderService.recommendCoffee('kopi susu oat');
+        activeRecommendation.value = _coffeeRecommenderService.recommendCoffee(
+          'kopi susu oat',
+        );
         break;
     }
   }
@@ -1238,8 +1300,9 @@ class CafeCashierController extends GetxController {
     );
     lastQueueCallEvent.value = event;
     if (ticket.items.isNotEmpty && ticket.grandTotal > 0) {
-      currentTicket.value =
-          currentTicket.value.copyWith(status: OrderStatus.readyForPickup);
+      currentTicket.value = currentTicket.value.copyWith(
+        status: OrderStatus.readyForPickup,
+      );
     }
   }
 
@@ -1252,8 +1315,9 @@ class CafeCashierController extends GetxController {
     lastQueueCallEvent.value = event;
     isDeafCallActive.value = true;
     if (ticket.items.isNotEmpty && ticket.grandTotal > 0) {
-      currentTicket.value =
-          currentTicket.value.copyWith(status: OrderStatus.readyForPickup);
+      currentTicket.value = currentTicket.value.copyWith(
+        status: OrderStatus.readyForPickup,
+      );
     }
 
     try {
@@ -1329,17 +1393,14 @@ class CafeCashierController extends GetxController {
         startCustomerNameSpelling();
         break;
       case 4:
-        activeCustomerQuickReplies.assignAll([
-          'Buka QRIS Sekarang',
-        ]);
+        activeCustomerQuickReplies.assignAll(['Buka QRIS Sekarang']);
         setPaymentMethod(OrderPaymentMethod.qris);
         break;
       case 5:
-        activeCustomerQuickReplies.assignAll([
-          'Terima Kasih Barista!',
-        ]);
-        currentTicket.value =
-            currentTicket.value.copyWith(status: OrderStatus.preparing);
+        activeCustomerQuickReplies.assignAll(['Terima Kasih Barista!']);
+        currentTicket.value = currentTicket.value.copyWith(
+          status: OrderStatus.preparing,
+        );
         break;
       default:
         activeCustomerQuickReplies.clear();
@@ -1362,17 +1423,20 @@ class CafeCashierController extends GetxController {
         final size = reply.contains('Small')
             ? OrderCupSize.small
             : (reply.contains('Large')
-                ? OrderCupSize.large
-                : OrderCupSize.medium);
-        activeParsedSlot.value = activeParsedSlot.value!.copyWith(cupSize: size);
+                  ? OrderCupSize.large
+                  : OrderCupSize.medium);
+        activeParsedSlot.value = activeParsedSlot.value!.copyWith(
+          cupSize: size,
+        );
       } else if (reply.contains('Sugar')) {
         final sweetness = reply.contains('No Sugar')
             ? OrderSweetnessLevel.noSugar0
             : (reply.contains('Less Sugar')
-                ? OrderSweetnessLevel.lessSweet50
-                : OrderSweetnessLevel.normal100);
-        activeParsedSlot.value =
-            activeParsedSlot.value!.copyWith(sweetnessLevel: sweetness);
+                  ? OrderSweetnessLevel.lessSweet50
+                  : OrderSweetnessLevel.normal100);
+        activeParsedSlot.value = activeParsedSlot.value!.copyWith(
+          sweetnessLevel: sweetness,
+        );
       }
     }
 
@@ -1385,12 +1449,13 @@ class CafeCashierController extends GetxController {
       final size = reply.contains('Small')
           ? OrderCupSize.small
           : (reply.contains('Large')
-              ? OrderCupSize.large
-              : OrderCupSize.medium);
+                ? OrderCupSize.large
+                : OrderCupSize.medium);
       if (currentTicket.value.items.isNotEmpty) {
         final lastIdx = currentTicket.value.items.length - 1;
-        final updatedItems =
-            List<ParsedCafeOrderSlot>.from(currentTicket.value.items);
+        final updatedItems = List<ParsedCafeOrderSlot>.from(
+          currentTicket.value.items,
+        );
         updatedItems[lastIdx] = updatedItems[lastIdx].copyWith(cupSize: size);
         currentTicket.value = currentTicket.value.copyWith(items: updatedItems);
       }
@@ -1399,14 +1464,16 @@ class CafeCashierController extends GetxController {
       final sweetness = reply.contains('No Sugar')
           ? OrderSweetnessLevel.noSugar0
           : (reply.contains('Less Sugar')
-              ? OrderSweetnessLevel.lessSweet50
-              : OrderSweetnessLevel.normal100);
+                ? OrderSweetnessLevel.lessSweet50
+                : OrderSweetnessLevel.normal100);
       if (currentTicket.value.items.isNotEmpty) {
         final lastIdx = currentTicket.value.items.length - 1;
-        final updatedItems =
-            List<ParsedCafeOrderSlot>.from(currentTicket.value.items);
-        updatedItems[lastIdx] =
-            updatedItems[lastIdx].copyWith(sweetnessLevel: sweetness);
+        final updatedItems = List<ParsedCafeOrderSlot>.from(
+          currentTicket.value.items,
+        );
+        updatedItems[lastIdx] = updatedItems[lastIdx].copyWith(
+          sweetnessLevel: sweetness,
+        );
         currentTicket.value = currentTicket.value.copyWith(items: updatedItems);
       }
       _ttsService.speak('Takaran gula dicatat.', languageCode: 'id-ID');
@@ -1430,9 +1497,11 @@ class CafeCashierController extends GetxController {
     if (itemIndex >= 0 && itemIndex < currentTicket.value.items.length) {
       final item = currentTicket.value.items[itemIndex];
       final updatedAlerts = item.dietaryAlerts
-          .where((a) =>
-              a.type != DietaryAlertType.lactoseIntolerant &&
-              a.type != DietaryAlertType.dairyAllergy)
+          .where(
+            (a) =>
+                a.type != DietaryAlertType.lactoseIntolerant &&
+                a.type != DietaryAlertType.dairyAllergy,
+          )
           .toList();
       final updatedSlot = item.copyWith(
         milkType: newMilk,
@@ -1526,7 +1595,9 @@ class CafeCashierController extends GetxController {
 
   /// Adds or updates an order in the active orders queue
   void _addOrUpdateQueueOrder(CafeOrderTicket ticket) {
-    final idx = activeOrdersQueue.indexWhere((t) => t.orderId == ticket.orderId);
+    final idx = activeOrdersQueue.indexWhere(
+      (t) => t.orderId == ticket.orderId,
+    );
     if (idx >= 0) {
       activeOrdersQueue[idx] = ticket;
     } else {
@@ -1598,7 +1669,9 @@ class CafeCashierController extends GetxController {
     try {
       await HapticFeedback.mediumImpact();
     } catch (_) {}
-    final customer = ticket.customerName.isEmpty ? 'Pelanggan' : ticket.customerName;
+    final customer = ticket.customerName.isEmpty
+        ? 'Pelanggan'
+        : ticket.customerName;
     await _ttsService.speak(
       'Pesanan nomor ${ticket.queueNumber} atas nama $customer sudah siap diambil.',
       languageCode: 'id-ID',
@@ -1628,7 +1701,10 @@ class CafeCashierController extends GetxController {
   }
 
   /// Calls a customer from the queue via Voice TTS or Deaf Pager
-  Future<void> callQueueCustomer(CafeOrderTicket ticket, {required bool isDeaf}) async {
+  Future<void> callQueueCustomer(
+    CafeOrderTicket ticket, {
+    required bool isDeaf,
+  }) async {
     if (isDeaf) {
       final event = await _queuePagerService.callDeafCustomer(
         queueNumber: ticket.queueNumber,
@@ -1687,8 +1763,7 @@ class CafeCashierController extends GetxController {
 
   void cycleNextChallengeWord() {
     final vocab = currentChallengeVocabulary;
-    challengeWordIndex.value =
-        (challengeWordIndex.value + 1) % vocab.length;
+    challengeWordIndex.value = (challengeWordIndex.value + 1) % vocab.length;
     activeChallengeSign.value = vocab[challengeWordIndex.value];
     challengeProgress.value = 0.0;
     isChallengeCompleted.value = false;

@@ -13,6 +13,7 @@ import '../domain/models/order_enums.dart';
 import '../screens/cafe_order_queue_screen.dart';
 import 'cafe_menu_catalog_sheet.dart';
 import 'cafe_staff_pin_dialog.dart';
+import 'report_low_stock_dialog.dart';
 
 /// Modal Bottom Sheet for Cafe Cashier Controls & Settings.
 /// Centralizes sign language model toggles, queue management, staff PIN authentication,
@@ -166,6 +167,11 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
 
                   // ── SECTION 2B: Akses Katalog Menu Kafe ────────────────────
                   _buildMenuCatalogTile(context),
+
+                  const SizedBox(height: 12),
+
+                  // ── SECTION 2C: Lapor Stok Menipis ke Admin (Addendum V3) ──
+                  _buildLowStockReportTile(context),
 
                   const SizedBox(height: 12),
 
@@ -1199,6 +1205,67 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
             child: const Text('Ya, Reset'),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLowStockReportTile(BuildContext context) {
+    return InkWell(
+      key: const Key('cashier_open_low_stock_report_tile'),
+      borderRadius: BorderRadius.circular(18),
+      onTap: () {
+        HapticFeedback.lightImpact();
+        Navigator.of(context).pop();
+        ReportLowStockDialog.show(
+          context,
+          catalog: controller.menuCatalog.toList(),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.inventory_2_outlined,
+              color: AppColors.secondary,
+              size: 22,
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppStrings.cashierReportLowStockBtn.tr,
+                    style: AppTypography.titleSmall.copyWith(
+                      color: AppColors.ink,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    AppStrings.cashierStockReadOnlyNotice.tr,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.muted,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: AppColors.muted,
+            ),
+          ],
+        ),
       ),
     );
   }

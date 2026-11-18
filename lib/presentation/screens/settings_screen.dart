@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+import '../../core/auth/controllers/auth_controller.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
@@ -27,9 +28,14 @@ class SettingsScreen extends StatelessWidget {
     final cacheService = Get.find<SignLanguageCacheService>();
 
     return Obx(() {
-      // Rebuild dynamically when themeMode or language changes
+      // Rebuild dynamically when themeMode, language, or auth state changes
       settings.themeMode.value;
       settings.selectedAppLanguage.value;
+      if (Get.isRegistered<AuthController>()) {
+        final auth = Get.find<AuthController>();
+        auth.currentProfile.value;
+        auth.sessionState.value;
+      }
 
       return Scaffold(
         backgroundColor: AppColors.canvas,
@@ -116,6 +122,8 @@ class SettingsScreen extends StatelessWidget {
                                 context,
                                 cacheService,
                               ),
+                              const SizedBox(height: 28),
+                              _buildLogoutCard(context),
                             ],
                           ),
                         ),
@@ -157,6 +165,9 @@ class SettingsScreen extends StatelessWidget {
                           AppStrings.settingsSectionSupportAbout.tr,
                         ),
                         _buildSupportAboutCard(context),
+                        const SizedBox(height: 28),
+
+                        _buildLogoutCard(context),
                       ],
                     ),
             ),
@@ -660,6 +671,325 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  // ── 7. ACCOUNT & LOGIN/LOGOUT CARD ────────────────────────────────────────
+  Widget _buildLogoutCard(BuildContext context) {
+    final auth = Get.isRegistered<AuthController>()
+        ? Get.find<AuthController>()
+        : null;
+    final isLoggedIn = auth?.isAuthenticated ?? false;
+    final profile = auth?.currentProfile.value;
+
+    if (!isLoggedIn) {
+      return AppCard(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Semantics(
+          label: AppStrings.authSignInBtn.tr,
+          button: true,
+          child: InkWell(
+            key: const Key('settings_login_button'),
+            onTap: () {
+              HapticFeedback.lightImpact();
+              Get.toNamed(AppRoutes.login);
+            },
+            borderRadius: BorderRadius.circular(14),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 56),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 14,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(11),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.login_rounded,
+                          size: 20,
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: .start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            AppStrings.authSignInBtn.tr,
+                            style: AppTypography.titleSmall.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.ink,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            AppStrings.authLoginSubtitle.tr,
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.muted,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      size: 20,
+                      color: AppColors.muted.withValues(alpha: 0.75),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return AppCard(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        children: [
+          if (profile != null && profile.role.canAccessAdminDashboard) ...[
+            _buildSettingsRowItem(
+              icon: Icons.admin_panel_settings_rounded,
+              iconColor: AppColors.secondary,
+              title: AppStrings.adminDashboardTitle.tr,
+              valueText: profile.role.dbValue,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                Get.toNamed(AppRoutes.adminDashboard);
+              },
+            ),
+            _buildRowDivider(),
+          ],
+          Semantics(
+            label: AppStrings.authSignOutBtn.tr,
+            button: true,
+            child: InkWell(
+              key: const Key('settings_logout_button'),
+              onTap: () {
+                HapticFeedback.lightImpact();
+                _showLogoutConfirmationDialog(context);
+              },
+              borderRadius: BorderRadius.circular(14),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 56),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 14,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: AppColors.error.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(11),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.logout_rounded,
+                            size: 20,
+                            color: AppColors.error,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: .start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              AppStrings.authSignOutBtn.tr,
+                              style: AppTypography.titleSmall.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.error,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (profile != null &&
+                                profile.email.isNotEmpty) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                '${profile.email} • ${profile.role.dbValue}',
+                                style: AppTypography.bodySmall.copyWith(
+                                  color: AppColors.muted,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 20,
+                        color: AppColors.error.withValues(alpha: 0.75),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── CENTERED LOGOUT CONFIRMATION DIALOG ───────────────────────────────────
+  Future<void> _showLogoutConfirmationDialog(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => Dialog(
+        key: const Key('logout_confirm_dialog'),
+        alignment: Alignment.center,
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(color: AppColors.border, width: 1.2),
+        ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: .center,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.error.withValues(alpha: 0.12),
+                    border: Border.all(
+                      color: AppColors.error.withValues(alpha: 0.25),
+                      width: 1.2,
+                    ),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.logout_rounded,
+                      color: AppColors.error,
+                      size: 28,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  AppStrings.authSignOutConfirmTitle.tr,
+                  textAlign: TextAlign.center,
+                  style: AppTypography.titleLarge.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  AppStrings.authSignOutConfirmDesc.tr,
+                  textAlign: TextAlign.center,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.muted,
+                    height: 1.45,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: OutlinedButton(
+                          key: const Key('logout_confirm_cancel_btn'),
+                          onPressed: () => Navigator.of(ctx).pop(false),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.ink,
+                            side: BorderSide(color: AppColors.border),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: Text(
+                            AppStrings.cancel.tr,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.labelLarge.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.ink,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: ElevatedButton(
+                          key: const Key('logout_confirm_submit_btn'),
+                          onPressed: () => Navigator.of(ctx).pop(true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.error,
+                            foregroundColor: AppColors.surface,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: Text(
+                            AppStrings.authSignOutBtn.tr,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.labelLarge.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.surface,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (confirmed == true) {
+      HapticFeedback.mediumImpact();
+      if (Get.isRegistered<AuthController>()) {
+        await Get.find<AuthController>().signOut();
+      }
+      Get.offAllNamed(AppRoutes.login);
+    }
   }
 
   // ── REUSABLE CLEAN MINIMALIST ROW ITEM ────────────────────────────────────

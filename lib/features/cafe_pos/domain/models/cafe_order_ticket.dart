@@ -9,8 +9,15 @@ class CafeOrderTicket {
   final List<ParsedCafeOrderSlot> items;
   final OrderStatus status;
   final OrderPaymentMethod paymentMethod;
+  final String paymentStatus; // 'unpaid', 'pending', 'paid', 'failed', 'expired', 'refunded', 'partially_refunded'
+  final String? customerId;
+  final String? cashierId;
+  final String orderSource; // 'customer_app' | 'cashier_pos'
+  final bool isSimulation;
   final int amountPaid;
   final DateTime createdAt;
+  final DateTime? paidAt;
+  final DateTime? expiresAt;
 
   final String customerNotes;
 
@@ -22,8 +29,15 @@ class CafeOrderTicket {
     required this.items,
     this.status = OrderStatus.draft,
     this.paymentMethod = OrderPaymentMethod.qris,
+    this.paymentStatus = 'unpaid',
+    this.customerId,
+    this.cashierId,
+    this.orderSource = 'customer_app',
+    this.isSimulation = false,
     this.amountPaid = 0,
     required this.createdAt,
+    this.paidAt,
+    this.expiresAt,
   });
 
   /// Total sum of all items in ticket.
@@ -40,8 +54,9 @@ class CafeOrderTicket {
   int get changeAmount =>
       (amountPaid >= grandTotal) ? (amountPaid - grandTotal) : 0;
 
-  /// Whether this ticket has been paid and confirmed (preparing in kitchen, ready, or completed).
+  /// Whether this ticket has been paid and confirmed.
   bool get isPaid =>
+      paymentStatus == 'paid' ||
       status == OrderStatus.completed ||
       status == OrderStatus.preparing ||
       status == OrderStatus.readyForPickup;
@@ -67,8 +82,15 @@ class CafeOrderTicket {
     List<ParsedCafeOrderSlot>? items,
     OrderStatus? status,
     OrderPaymentMethod? paymentMethod,
+    String? paymentStatus,
+    String? customerId,
+    String? cashierId,
+    String? orderSource,
+    bool? isSimulation,
     int? amountPaid,
     DateTime? createdAt,
+    DateTime? paidAt,
+    DateTime? expiresAt,
   }) {
     return CafeOrderTicket(
       orderId: orderId ?? this.orderId,
@@ -78,8 +100,15 @@ class CafeOrderTicket {
       items: items ?? this.items,
       status: status ?? this.status,
       paymentMethod: paymentMethod ?? this.paymentMethod,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
+      customerId: customerId ?? this.customerId,
+      cashierId: cashierId ?? this.cashierId,
+      orderSource: orderSource ?? this.orderSource,
+      isSimulation: isSimulation ?? this.isSimulation,
       amountPaid: amountPaid ?? this.amountPaid,
       createdAt: createdAt ?? this.createdAt,
+      paidAt: paidAt ?? this.paidAt,
+      expiresAt: expiresAt ?? this.expiresAt,
     );
   }
 
@@ -92,13 +121,22 @@ class CafeOrderTicket {
       'items': items.map((e) => e.toMap()).toList(),
       'status': status.name,
       'paymentMethod': paymentMethod.name,
+      'paymentStatus': paymentStatus,
+      if (customerId != null) 'customerId': customerId,
+      if (cashierId != null) 'cashierId': cashierId,
+      'orderSource': orderSource,
+      'isSimulation': isSimulation,
       'amountPaid': amountPaid,
       'createdAt': createdAt.toIso8601String(),
+      if (paidAt != null) 'paidAt': paidAt!.toIso8601String(),
+      if (expiresAt != null) 'expiresAt': expiresAt!.toIso8601String(),
     };
   }
 
   factory CafeOrderTicket.fromMap(Map<String, dynamic> map) {
     final rawCreatedAt = map['createdAt'] ?? map['created_at'];
+    final rawPaidAt = map['paidAt'] ?? map['paid_at'];
+    final rawExpiresAt = map['expiresAt'] ?? map['expires_at'];
     final rawStatus = map['status'] as String?;
     return CafeOrderTicket(
       orderId: (map['orderId'] ?? map['order_id']) as String? ?? '',
@@ -123,13 +161,24 @@ class CafeOrderTicket {
         (e) => e.name == (map['paymentMethod'] ?? map['payment_method']),
         orElse: () => OrderPaymentMethod.qris,
       ),
+      paymentStatus:
+          (map['paymentStatus'] ?? map['payment_status'] ?? 'unpaid')
+              .toString(),
+      customerId: (map['customerId'] ?? map['customer_id'])?.toString(),
+      cashierId: (map['cashierId'] ?? map['cashier_id'])?.toString(),
+      orderSource:
+          (map['orderSource'] ?? map['order_source'] ?? 'customer_app')
+              .toString(),
+      isSimulation:
+          (map['isSimulation'] ?? map['is_simulation'] ?? false) == true,
       amountPaid: ((map['amountPaid'] ?? map['amount_paid']) as num?)?.toInt() ?? 0,
       createdAt: rawCreatedAt is String
           ? DateTime.tryParse(rawCreatedAt) ?? DateTime.now()
           : rawCreatedAt is DateTime
               ? rawCreatedAt
               : DateTime.now(),
+      paidAt: rawPaidAt is String ? DateTime.tryParse(rawPaidAt) : null,
+      expiresAt: rawExpiresAt is String ? DateTime.tryParse(rawExpiresAt) : null,
     );
   }
 }
-

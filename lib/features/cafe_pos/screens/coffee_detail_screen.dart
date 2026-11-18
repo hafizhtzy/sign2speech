@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:speech2sign/core/auth/controllers/auth_controller.dart';
 import 'package:speech2sign/core/constants/app_routes.dart';
 import 'package:speech2sign/core/localization/app_strings.dart';
 import 'package:speech2sign/core/supabase/supabase_result.dart';
@@ -385,8 +386,22 @@ class _CoffeeDetailScreenState extends State<CoffeeDetailScreen> {
     );
   }
 
+  bool get _canMutateProductPhoto {
+    if (!Get.isRegistered<AuthController>()) return true;
+    final auth = Get.find<AuthController>();
+    if (!auth.isAuthenticated) return Get.testMode;
+    return auth.isAdmin;
+  }
+
   Future<void> _handlePickAndUploadPhoto({required bool fromCamera}) async {
     Navigator.of(context).pop();
+    if (!_canMutateProductPhoto) {
+      AppSnackbar.error(
+        title: AppStrings.cafeMenuPhotoChange.tr,
+        message: AppStrings.authAccessDeniedNotice.tr,
+      );
+      return;
+    }
     if (_isUploadingPhoto) return;
 
     setState(() => _isUploadingPhoto = true);
@@ -582,7 +597,9 @@ class _CoffeeDetailScreenState extends State<CoffeeDetailScreen> {
                       // Circular Coffee Image & 3 Curved Composition Points
                       CoffeeCompositionCircle(
                         item: item,
-                        onEditPhoto: _showPhotoSourceSheet,
+                        onEditPhoto: _canMutateProductPhoto
+                            ? _showPhotoSourceSheet
+                            : null,
                         isUploadingPhoto: _isUploadingPhoto,
                       ),
 

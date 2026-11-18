@@ -197,4 +197,79 @@ class SupabaseCafePosService {
       return SupabaseFailure('Failed to sync loyalty stamps', e);
     }
   }
+
+  /// Cashier-authorized RPC to complete a cash payment with server-side stock deduction.
+  Future<SupabaseResult<Map<String, dynamic>>> completeCashOrderRpc({
+    required String orderId,
+    required int amountReceived,
+  }) async {
+    final client = _supabase;
+    if (client == null) {
+      return const SupabaseFailure('SupabaseClient is not initialized');
+    }
+    try {
+      final res = await client.rpc(
+        'rpc_cashier_complete_cash_order',
+        params: <String, dynamic>{
+          'p_order_id': orderId,
+          'p_amount_received': amountReceived,
+        },
+      );
+      return SupabaseSuccess(
+        res is Map ? Map<String, dynamic>.from(res) : <String, dynamic>{},
+      );
+    } catch (e) {
+      return SupabaseFailure('Gagal menyelesaikan pembayaran tunai.', e);
+    }
+  }
+
+  /// Cashier-authorized RPC to advance order workflow status (`preparing`, `readyForPickup`, `completed`, `cancelled`).
+  Future<SupabaseResult<Map<String, dynamic>>> advanceOrderStatusRpc({
+    required String orderId,
+    required OrderStatus newStatus,
+  }) async {
+    final client = _supabase;
+    if (client == null) {
+      return const SupabaseFailure('SupabaseClient is not initialized');
+    }
+    try {
+      final res = await client.rpc(
+        'rpc_cashier_advance_order_status',
+        params: <String, dynamic>{
+          'p_order_id': orderId,
+          'p_new_status': newStatus.name,
+        },
+      );
+      return SupabaseSuccess(
+        res is Map ? Map<String, dynamic>.from(res) : <String, dynamic>{},
+      );
+    } catch (e) {
+      return SupabaseFailure('Gagal memperbarui status pesanan.', e);
+    }
+  }
+
+  /// Allows CASHIER to report low stock to ADMIN without giving cashier direct stock mutation rights.
+  Future<SupabaseResult<void>> reportLowStockToAdmin({
+    required String productId,
+    required int reportedAvailableStock,
+    required String note,
+  }) async {
+    final client = _supabase;
+    final uid = client?.auth.currentUser?.id;
+    if (client == null || uid == null) {
+      return const SupabaseFailure('Sesi kasir belum terautentikasi.');
+    }
+    try {
+      await client.from('low_stock_reports').insert(<String, dynamic>{
+        'product_id': productId,
+        'reported_by': uid,
+        'reported_available_stock': reportedAvailableStock,
+        'note': note.trim(),
+        'status': 'open',
+      });
+      return const SupabaseSuccess(null);
+    } catch (e) {
+      return SupabaseFailure('Gagal mengirim laporan stok ke Admin.', e);
+    }
+  }
 }

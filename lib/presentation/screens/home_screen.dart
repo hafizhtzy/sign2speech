@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+import '../../core/auth/controllers/auth_controller.dart';
 import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_routes.dart';
+import '../../features/customer/screens/customer_checkout_screen.dart';
 import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
@@ -30,8 +32,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final history = Get.find<HistoryController>();
 
     return Obx(() {
-      // Rebuild dynamically when themeMode changes
+      // Rebuild dynamically when themeMode or auth state changes
       settings.themeMode.value;
+      if (Get.isRegistered<AuthController>()) {
+        final auth = Get.find<AuthController>();
+        auth.currentProfile.value;
+        auth.sessionState.value;
+      }
 
       return AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light.copyWith(
@@ -162,85 +169,124 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 20),
 
-                      // ── Alat Pintar Kasir & Layar Pelanggan ──────────────
-                      AppCard(
-                        onTap: () => Get.toNamed(AppRoutes.cafeCashierCounter),
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: AppColors.secondary.withValues(
-                                  alpha: 0.12,
-                                ),
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: AppColors.secondary.withValues(
-                                    alpha: 0.3,
+                      // ── Alat Pintar Kasir (CASHIER) / Admin / Order Menu & Meja (Guest & CUSTOMER) ──
+                      Builder(
+                        builder: (context) {
+                          final auth = Get.isRegistered<AuthController>()
+                              ? Get.find<AuthController>()
+                              : null;
+                          final isCashierRole =
+                              auth != null && auth.isAuthenticated && auth.isCashier;
+                          final isAdminRole =
+                              auth != null && auth.isAuthenticated && auth.isAdmin;
+
+                          final cardTitle = isCashierRole
+                              ? AppStrings.cashierAssistantTitle.tr
+                              : isAdminRole
+                                  ? AppStrings.adminDashboardTitle.tr
+                                  : AppStrings.customerOrderCardTitle.tr;
+                          final cardSubtitle = isCashierRole
+                              ? AppStrings.cashierAssistantSubtitle.tr
+                              : isAdminRole
+                                  ? AppStrings.authRoleAdmin.tr
+                                  : AppStrings.customerOrderCardSubtitle.tr;
+                          final cardIcon = isCashierRole
+                              ? Icons.point_of_sale_rounded
+                              : isAdminRole
+                                  ? Icons.admin_panel_settings_rounded
+                                  : Icons.local_cafe_rounded;
+
+                          return AppCard(
+                            key: const Key('home_order_or_cashier_card'),
+                            onTap: () {
+                              if (isCashierRole) {
+                                Get.toNamed(AppRoutes.cafeCashierCounter);
+                              } else if (isAdminRole) {
+                                Get.toNamed(AppRoutes.adminDashboard);
+                              } else if (auth != null && !auth.isAuthenticated) {
+                                Get.toNamed(AppRoutes.login);
+                              } else {
+                                final hasRoute = Get.routeTree.routes.any(
+                                  (r) => r.name == AppRoutes.customerCheckout,
+                                );
+                                if (hasRoute) {
+                                  Get.toNamed(AppRoutes.customerCheckout);
+                                } else {
+                                  Get.to(
+                                    () => const CustomerCheckoutScreen(),
+                                    routeName: AppRoutes.customerCheckout,
+                                    transition: Transition.rightToLeft,
+                                  );
+                                }
+                              }
+                            },
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.secondary.withValues(
+                                      alpha: 0.12,
+                                    ),
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: AppColors.secondary.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    cardIcon,
+                                    color: AppColors.secondary,
+                                    size: 24,
                                   ),
                                 ),
-                              ),
-                              child: Icon(
-                                Icons.point_of_sale_rounded,
-                                color: AppColors.secondary,
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Expanded(
-                                        child: Text(
-                                          AppStrings.cashierAssistantTitle.tr,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: AppTypography.titleMedium
-                                              .copyWith(
-                                                fontWeight: FontWeight.w800,
-                                                color: AppColors.ink,
-                                              ),
-                                        ),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              cardTitle,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: AppTypography.titleMedium
+                                                  .copyWith(
+                                                    fontWeight: FontWeight.w800,
+                                                    color: AppColors.ink,
+                                                  ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      const SizedBox(width: 8),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.matcha.withValues(
-                                            alpha: 0.12,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        cardSubtitle,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: AppTypography.bodySmall.copyWith(
+                                          color: AppColors.muted,
                                         ),
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    AppStrings.cashierAssistantSubtitle.tr,
-                                    style: AppTypography.bodySmall.copyWith(
-                                      color: AppColors.muted,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                                const SizedBox(width: 8),
+                                Icon(
+                                  Icons.arrow_forward_ios_rounded,
+                                  size: 16,
+                                  color: AppColors.muted,
+                                ),
+                              ],
                             ),
-                            Icon(
-                              Icons.arrow_forward_ios_rounded,
-                              size: 16,
-                              color: AppColors.muted,
-                            ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 22),
 

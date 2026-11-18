@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'core/auth/services/secure_supabase_storage.dart';
 import 'core/constants/app_constants.dart';
 import 'core/constants/app_routes.dart';
 import 'core/localization/app_translations.dart';
@@ -16,6 +17,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Supabase Backend Services (Cloud-to-Local Ready, non-blocking)
+  // Uses encrypted LocalStorage & GotrueAsyncStorage (PKCE) via flutter_secure_storage.
   try {
     final resolvedAnonKey = AppConstants.supabaseAnonKey.isNotEmpty
         ? AppConstants.supabaseAnonKey
@@ -25,6 +27,11 @@ void main() async {
         url: AppConstants.supabaseUrl,
         // ignore: deprecated_member_use
         anonKey: resolvedAnonKey,
+        authOptions: const FlutterAuthClientOptions(
+          authFlowType: AuthFlowType.pkce,
+          localStorage: SecureSupabaseLocalStorage(),
+          pkceAsyncStorage: SecureGotrueAsyncStorage(),
+        ),
       );
     }
   } catch (e) {

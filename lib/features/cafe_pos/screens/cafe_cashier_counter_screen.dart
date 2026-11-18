@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:speech2sign/core/auth/controllers/auth_controller.dart';
 import 'package:speech2sign/core/constants/app_routes.dart';
 import 'package:speech2sign/core/localization/app_strings.dart';
 import 'package:speech2sign/core/localization/app_translations.dart';
@@ -256,15 +257,24 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
     final isLargeScreen = context.isLargeScreen;
 
     return Obx(() {
+      final auth = Get.isRegistered<AuthController>()
+          ? Get.find<AuthController>()
+          : null;
+      final isCustomerRole = auth?.isCustomer ?? false;
+      if (isCustomerRole && controller.isCashierView.value) {
+        controller.isCashierView.value = false;
+      }
+
       final stage = controller.currentStage.value;
       final mode = controller.deviceMode.value;
-      final isDual = mode == CounterDeviceMode.dualTabletLocked;
+      final isDual =
+          isCustomerRole || mode == CounterDeviceMode.dualTabletLocked;
       final isIdle = stage == CafeOrderStage.idle;
       final double bottomHeight = isDual
           ? (isIdle ? 0.0 : 66.0)
           : (isIdle ? 58.0 : 124.0);
       final ticket = controller.currentTicket.value;
-      final isCashier = controller.isCashierView.value;
+      final isCashier = !isCustomerRole && controller.isCashierView.value;
       final isFlipped = controller.isFlipped.value;
 
       return Scaffold(
@@ -324,54 +334,93 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
                   ),
                 ),
               ),
-            // Responsive Adaptive Actions:
-            // On Tablet / Large Screens (>= 600dp), show full controls directly in AppBar
-            if (isLargeScreen) ...[
-              _buildAppBarSignModelToggle(controller),
-              _buildStaffPinButton(),
-              _buildQueueBadgeButton(),
-              _buildResetButton(),
-            ],
-
-            // On Mobile/Compact (< 600dp), show Queue Badge for immediate glanceability
-            if (!isLargeScreen)
-              _buildQueueBadgeButton(),
-
-            // 180° Screen Flip Button (hanya tampil jika opsi 1-tablet)
-            if (!isDual)
-              IconButton(
-                icon: AnimatedRotation(
-                  turns: isFlipped ? 0.5 : 0.0,
-                  duration: const Duration(milliseconds: 300),
-                  child: Icon(
-                    Icons.screen_rotation_rounded,
-                    color: isFlipped ? AppColors.secondary : AppColors.ink,
+            if (isCustomerRole)
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.matcha.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppColors.matcha.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.sync_alt_rounded,
+                        size: 14,
+                        color: AppColors.matcha,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        controller.counterId.value,
+                        style: AppTypography.labelSmall.copyWith(
+                          color: AppColors.matcha,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                tooltip: AppStrings.cafeFlipScreen.tr,
-                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-                onPressed: () {
-                  controller.toggleFlip();
-                  AppSnackbar.info(
-                    title: AppStrings.cafeFlipScreen.tr,
-                    message: controller.isFlipped.value
-                        ? AppStrings.cafeFlipActive.tr
-                        : AppStrings.cafeFlipInactive.tr,
-                    icon: Icons.screen_rotation_rounded,
-                    duration: const Duration(milliseconds: 1500),
-                  );
-                },
-              ),
+              )
+            else ...[
+              // Responsive Adaptive Actions:
+              // On Tablet / Large Screens (>= 600dp), show full controls directly in AppBar
+              if (isLargeScreen) ...[
+                _buildAppBarSignModelToggle(controller),
+                _buildStaffPinButton(),
+                _buildQueueBadgeButton(),
+                _buildResetButton(),
+              ],
 
-            // More Options Menu Button (Titik Tiga ⋮) - Opens CafeCashierControlSheet
-            IconButton(
-              icon: const Icon(Icons.more_vert_rounded),
-              color: AppColors.ink,
-              tooltip: AppStrings.cafeMenuMoreTooltip.tr,
-              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-              onPressed: _showCashierControlSheet,
-            ),
-            const SizedBox(width: 4),
+              // On Mobile/Compact (< 600dp), show Queue Badge for immediate glanceability
+              if (!isLargeScreen) _buildQueueBadgeButton(),
+
+              // 180° Screen Flip Button (hanya tampil jika opsi 1-tablet)
+              if (!isDual)
+                IconButton(
+                  icon: AnimatedRotation(
+                    turns: isFlipped ? 0.5 : 0.0,
+                    duration: const Duration(milliseconds: 300),
+                    child: Icon(
+                      Icons.screen_rotation_rounded,
+                      color: isFlipped ? AppColors.secondary : AppColors.ink,
+                    ),
+                  ),
+                  tooltip: AppStrings.cafeFlipScreen.tr,
+                  constraints: const BoxConstraints(
+                    minWidth: 44,
+                    minHeight: 44,
+                  ),
+                  onPressed: () {
+                    controller.toggleFlip();
+                    AppSnackbar.info(
+                      title: AppStrings.cafeFlipScreen.tr,
+                      message: controller.isFlipped.value
+                          ? AppStrings.cafeFlipActive.tr
+                          : AppStrings.cafeFlipInactive.tr,
+                      icon: Icons.screen_rotation_rounded,
+                      duration: const Duration(milliseconds: 1500),
+                    );
+                  },
+                ),
+
+              // More Options Menu Button (Titik Tiga ⋮) - Opens CafeCashierControlSheet
+              IconButton(
+                icon: const Icon(Icons.more_vert_rounded),
+                color: AppColors.ink,
+                tooltip: AppStrings.cafeMenuMoreTooltip.tr,
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                onPressed: _showCashierControlSheet,
+              ),
+              const SizedBox(width: 4),
+            ],
           ],
           bottom: bottomHeight > 0
               ? PreferredSize(

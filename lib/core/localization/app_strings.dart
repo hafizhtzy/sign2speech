@@ -604,5 +604,88 @@ class AppStrings {
   static const String cafeMenuPhotoUploading = 'cafe_menu_photo_uploading';
   static const String cafeMenuPhotoUploadSuccess = 'cafe_menu_photo_upload_success';
   static const String cafeMenuPhotoUploadFailed = 'cafe_menu_photo_upload_failed';
+
+  // ── Addendum V3: Three-Role Auth & RBAC ────────────────────────────────────
+  static const String authLoginTitle = 'auth_login_title';
+  static const String authLoginSubtitle = 'auth_login_subtitle';
+  static const String authEmailLabel = 'auth_email_label';
+  static const String authEmailHint = 'auth_email_hint';
+  static const String authPasswordLabel = 'auth_password_label';
+  static const String authPasswordHint = 'auth_password_hint';
+  static const String authFullNameLabel = 'auth_full_name_label';
+  static const String authFullNameHint = 'auth_full_name_hint';
+  static const String authPhoneLabel = 'auth_phone_label';
+  static const String authPhoneHint = 'auth_phone_hint';
+  static const String authSignInBtn = 'auth_sign_in_btn';
+  static const String authRegisterCustomerTitle = 'auth_register_customer_title';
+  static const String authRegisterCustomerSubtitle = 'auth_register_customer_subtitle';
+  static const String authRegisterBtn = 'auth_register_btn';
+  static const String authNoAccountPrompt = 'auth_no_account_prompt';
+  static const String authHaveAccountPrompt = 'auth_have_account_prompt';
+  static const String authGoToRegister = 'auth_go_to_register';
+  static const String authGoToLogin = 'auth_go_to_login';
+  static const String authSignOutBtn = 'auth_sign_out_btn';
+  static const String authSignOutConfirmTitle = 'auth_sign_out_confirm_title';
+  static const String authSignOutConfirmDesc = 'auth_sign_out_confirm_desc';
+  static const String authContinueAccessibilityGuest = 'auth_continue_accessibility_guest';
+  static const String authRoleCustomer = 'auth_role_customer';
+  static const String authRoleCashier = 'auth_role_cashier';
+  static const String authRoleAdmin = 'auth_role_admin';
+  static const String authAccountDisabledNotice = 'auth_account_disabled_notice';
+  static const String authAccessDeniedNotice = 'auth_access_denied_notice';
+  static const String authValidationRequired = 'auth_validation_required';
+  static const String authValidationEmail = 'auth_validation_email';
+  static const String authValidationPasswordMin = 'auth_validation_password_min';
+  static const String authStaffProvisioningNote = 'auth_staff_provisioning_note';
+
+  // ── Addendum V3: Customer Self-Order & Checkout ───────────────────────────
+  static const String customerMenuTitle = 'customer_menu_title';
+  static const String customerMenuSubtitle = 'customer_menu_subtitle';
+  static const String customerCartTitle = 'customer_cart_title';
+  static const String customerCheckoutBtn = 'customer_checkout_btn';
+  static const String customerPayQrisBtn = 'customer_pay_qris_btn';
+  static const String customerOrdersTitle = 'customer_orders_title';
+  static const String customerStockAvailable = 'customer_stock_available';
+  static const String customerStockOut = 'customer_stock_out';
+  static const String customerStockUninitialized = 'customer_stock_uninitialized';
+  static const String customerOrderCardTitle = 'customer_order_card_title';
+  static const String customerOrderCardSubtitle = 'customer_order_card_subtitle';
+  static const String customerOrderModeTable = 'customer_order_mode_table';
+  static const String customerOrderModeCounterTablet = 'customer_order_mode_counter_tablet';
+  static const String customerTableNumberLabel = 'customer_table_number_label';
+  static const String customerTableNumberHint = 'customer_table_number_hint';
+  static const String customerTableRequiredWarning = 'customer_table_required_warning';
+  static const String customerCounterPairingTitle = 'customer_counter_pairing_title';
+  static const String customerCounterPairingDesc = 'customer_counter_pairing_desc';
+  static const String customerCounterPairingCodeHint = 'customer_counter_pairing_code_hint';
+  static const String customerCounterPairBtn = 'customer_counter_pair_btn';
+  static const String customerCounterPairedSuccess = 'customer_counter_paired_success';
+  static const String customerCounterPairingRequired = 'customer_counter_pairing_required';
+
+  // ── Addendum V3: Cashier Operational & Stock Report ───────────────────────
+  static const String cashierReportLowStockBtn = 'cashier_report_low_stock_btn';
+  static const String cashierReportLowStockTitle = 'cashier_report_low_stock_title';
+  static const String cashierReportLowStockNoteHint = 'cashier_report_low_stock_note_hint';
+  static const String cashierReportLowStockSuccess = 'cashier_report_low_stock_success';
+  static const String cashierStockReadOnlyNotice = 'cashier_stock_read_only_notice';
+
+  // ── Addendum V3: Admin Dashboard (13 Sections) ────────────────────────────
+  static const String adminDashboardTitle = 'admin_dashboard_title';
+  static const String adminNavOverview = 'admin_nav_overview';
+  static const String adminNavProducts = 'admin_nav_products';
+  static const String adminNavCategories = 'admin_nav_categories';
+  static const String adminNavInventory = 'admin_nav_inventory';
+  static const String adminNavOrders = 'admin_nav_orders';
+  static const String adminNavTransactions = 'admin_nav_transactions';
+  static const String adminNavSalesReports = 'admin_nav_sales_reports';
+  static const String adminNavSignVideos = 'admin_nav_sign_videos';
+  static const String adminNavStaff = 'admin_nav_staff';
+  static const String adminNavAuditLogs = 'admin_nav_audit_logs';
+  static const String adminNavSettings = 'admin_nav_settings';
+  static const String adminNavProfile = 'admin_nav_profile';
+  static const String adminNavLogout = 'admin_nav_logout';
+  static const String adminStockNotInitializedBadge = 'admin_stock_not_initialized_badge';
+  static const String adminPerformStockOpname = 'admin_perform_stock_opname';
+  static const String adminVideoAiSeparationBanner = 'admin_video_ai_separation_banner';
 }
 

@@ -32,6 +32,18 @@ class AppConstants {
   /// Bucket publik untuk menyimpan catalog.json dan video bahasa isyarat (*.mp4).
   static const String signVideosBucket = 'sign-videos';
 
+  /// Private Storage bucket untuk video bahasa isyarat yang dikelola Admin (Addendum V3).
+  static const String signLanguageVideosBucket = 'sign-language-videos';
+
+  /// Zona waktu bisnis resmi laporan keuangan (Addendum V3 Phase 3.1 & 10).
+  static const String businessTimezone = 'Asia/Jakarta';
+
+  // ── Supabase Edge Function Names ──────────────────────────────────────────
+  static const String edgeFnManageCashier = 'admin-manage-cashier';
+  static const String edgeFnCreateQris = 'payment-create-qris';
+  static const String edgeFnPaymentWebhook = 'payment-webhook';
+  static const String edgeFnProcessRefund = 'admin-process-refund';
+
   /// Base URL publik untuk mengakses foto menu kopi di Supabase Storage.
   static const String menuPhotosBaseUrl =
       '$supabaseUrl/storage/v1/object/public/$menuPhotosBucket';

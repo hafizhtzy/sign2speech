@@ -24,6 +24,14 @@ class CoffeeMenuItem {
   final String? storagePath;
   final String? signVideoUrl;
   final String category;
+  final String? categoryId;
+  final String? sku;
+  final int? costPrice;
+  final bool isStockInitialized;
+  final int stockOnHand;
+  final int stockReserved;
+  final int lowStockThreshold;
+  final bool isArchived;
   final bool isAvailable;
   final List<String> tags;
   final OrderTemperature defaultTemperature;
@@ -43,6 +51,14 @@ class CoffeeMenuItem {
     this.storagePath,
     this.signVideoUrl,
     this.category = 'coffee',
+    this.categoryId,
+    this.sku,
+    this.costPrice,
+    this.isStockInitialized = false,
+    this.stockOnHand = 0,
+    this.stockReserved = 0,
+    this.lowStockThreshold = 5,
+    this.isArchived = false,
     this.isAvailable = true,
     this.tags = const [],
     this.defaultTemperature = OrderTemperature.hot,
@@ -72,6 +88,23 @@ class CoffeeMenuItem {
       imageUrl!.trim().isNotEmpty &&
       (imageUrl!.startsWith('http://') || imageUrl!.startsWith('https://'));
 
+  /// Available stock derived from `stock_on_hand - stock_reserved`.
+  /// Returns 0 if stock has not been initialized via Admin Stock Opname yet.
+  int get availableStock =>
+      isStockInitialized ? (stockOnHand - stockReserved).clamp(0, 999999) : 0;
+
+  bool get isOutOfStock => isStockInitialized && availableStock <= 0;
+
+  bool get isLowStock =>
+      isStockInitialized &&
+      availableStock > 0 &&
+      availableStock <= lowStockThreshold;
+
+  /// True only if the product is active, available, has completed initial
+  /// Stock Opname (`isStockInitialized == true`), and has `availableStock > 0`.
+  bool get canBeOrderedWithControlledStock =>
+      !isArchived && isAvailable && isStockInitialized && availableStock > 0;
+
   List<String> get compositionPoints => composition.map((c) => c.label).toList();
 
   CoffeeMenuItem copyWith({
@@ -86,6 +119,15 @@ class CoffeeMenuItem {
     String? storagePath,
     String? signVideoUrl,
     String? category,
+    String? categoryId,
+    String? sku,
+    int? costPrice,
+    bool clearCostPrice = false,
+    bool? isStockInitialized,
+    int? stockOnHand,
+    int? stockReserved,
+    int? lowStockThreshold,
+    bool? isArchived,
     bool? isAvailable,
     List<String>? tags,
     OrderTemperature? defaultTemperature,
@@ -105,6 +147,14 @@ class CoffeeMenuItem {
       storagePath: storagePath ?? this.storagePath,
       signVideoUrl: signVideoUrl ?? this.signVideoUrl,
       category: category ?? this.category,
+      categoryId: categoryId ?? this.categoryId,
+      sku: sku ?? this.sku,
+      costPrice: clearCostPrice ? null : (costPrice ?? this.costPrice),
+      isStockInitialized: isStockInitialized ?? this.isStockInitialized,
+      stockOnHand: stockOnHand ?? this.stockOnHand,
+      stockReserved: stockReserved ?? this.stockReserved,
+      lowStockThreshold: lowStockThreshold ?? this.lowStockThreshold,
+      isArchived: isArchived ?? this.isArchived,
       isAvailable: isAvailable ?? this.isAvailable,
       tags: tags ?? this.tags,
       defaultTemperature: defaultTemperature ?? this.defaultTemperature,
@@ -120,11 +170,19 @@ class CoffeeMenuItem {
       'id': id,
       'name': nameId,
       'category': category,
+      if (categoryId != null) 'category_id': categoryId,
+      if (sku != null && sku!.trim().isNotEmpty) 'sku': sku!.trim(),
       'price': basePrice,
+      'cost_price': costPrice,
       'description': descriptionId,
       'image_url': imageUrl,
       'image_path': storagePath ?? (hasNetworkImage ? null : imagePath),
       'sign_video_url': signVideoUrl,
+      'is_stock_initialized': isStockInitialized,
+      'stock_on_hand': stockOnHand,
+      'stock_reserved': stockReserved,
+      'low_stock_threshold': lowStockThreshold,
+      'is_archived': isArchived,
       'is_available': isAvailable,
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     };
@@ -153,6 +211,23 @@ class CoffeeMenuItem {
             .toInt();
     final rawCategory =
         (map['category'] ?? standardMatch?.category ?? 'coffee').toString();
+    final rawCategoryId =
+        (map['category_id'] ?? map['categoryId'])?.toString();
+    final rawSku = map['sku']?.toString();
+    final rawCostPrice =
+        ((map['cost_price'] ?? map['costPrice']) as num?)?.toInt();
+    final rawStockInit =
+        (map['is_stock_initialized'] ?? map['isStockInitialized'] ?? false) ==
+        true;
+    final rawStockOnHand =
+        ((map['stock_on_hand'] ?? map['stockOnHand'] ?? 0) as num).toInt();
+    final rawStockReserved =
+        ((map['stock_reserved'] ?? map['stockReserved'] ?? 0) as num).toInt();
+    final rawLowThreshold =
+        ((map['low_stock_threshold'] ?? map['lowStockThreshold'] ?? 5) as num)
+            .toInt();
+    final rawArchived =
+        (map['is_archived'] ?? map['isArchived'] ?? false) == true;
     final rawImageUrl = (map['image_url'] ?? map['imageUrl'])?.toString();
     final rawImagePath = (map['image_path'] ?? map['imagePath'])?.toString();
     final rawSignVideoUrl =
@@ -182,6 +257,17 @@ class CoffeeMenuItem {
           ? rawSignVideoUrl
           : null,
       category: rawCategory,
+      categoryId:
+          (rawCategoryId != null && rawCategoryId.isNotEmpty)
+              ? rawCategoryId
+              : null,
+      sku: (rawSku != null && rawSku.isNotEmpty) ? rawSku : null,
+      costPrice: rawCostPrice,
+      isStockInitialized: rawStockInit,
+      stockOnHand: rawStockOnHand,
+      stockReserved: rawStockReserved,
+      lowStockThreshold: rawLowThreshold,
+      isArchived: rawArchived,
       isAvailable: rawAvailable,
       tags: standardMatch?.tags ?? const [],
       defaultTemperature:

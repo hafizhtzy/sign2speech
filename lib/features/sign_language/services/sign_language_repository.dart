@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/constants/app_constants.dart';
 import '../models/sign_language_catalog.dart';
 import '../models/sign_search_result.dart';
 import '../models/sign_video_entry.dart';
@@ -59,8 +61,90 @@ class SignLanguageRepository {
           baseUrl: config.baseUrl,
         );
       }
+      await mergePublishedCloudVideos();
     } catch (e) {
       debugPrint('[SignRepo] Gagal sync katalog: $e');
+    }
+  }
+
+  /// Fetches ONLY `published` videos from `public.sign_language_videos` and resolves
+  /// short-lived Signed URLs from the private `sign-language-videos` bucket.
+  /// Draft and archived videos are never exposed to customer catalog playback.
+  Future<void> mergePublishedCloudVideos() async {
+    SupabaseClient? client;
+    try {
+      client = Supabase.instance.client;
+    } catch (_) {
+      return;
+    }
+
+    try {
+      final rows = await client
+          .from('sign_language_videos')
+          .select()
+          .eq('publication_status', 'published')
+          .order('created_at', ascending: false);
+
+      if (rows.isEmpty) return;
+
+      final merged = List<SignVideoEntry>.from(catalog.entries);
+      for (final row in rows) {
+        final id = (row['id'] ?? '').toString();
+        final gloss = (row['gloss'] ?? row['title'] ?? '').toString().trim();
+        final lang =
+            (row['language_type'] ?? 'BISINDO').toString().toLowerCase();
+        final storageBucket =
+            (row['storage_bucket'] ?? AppConstants.signLanguageVideosBucket)
+                .toString();
+        final storagePath = (row['storage_path'] ?? '').toString();
+        if (gloss.isEmpty || storagePath.isEmpty) continue;
+
+        String resolvedRemoteUrl = '';
+        try {
+          resolvedRemoteUrl = await client.storage
+              .from(storageBucket)
+              .createSignedUrl(storagePath, 3600);
+        } catch (_) {
+          continue;
+        }
+
+        final rawAliases = row['aliases'];
+        final aliases = rawAliases is List
+            ? rawAliases.map((e) => e.toString()).toList()
+            : const <String>[];
+
+        final entry = SignVideoEntry(
+          id: id.isNotEmpty
+              ? id
+              : '${lang}_${SignVideoEntry.formatSlug(gloss)}',
+          label: gloss,
+          aliases: aliases,
+          category: (row['category'] ?? 'umum').toString(),
+          assetPath: '',
+          remoteUrl: resolvedRemoteUrl,
+          relativePath: storagePath,
+          type: 'word',
+          source: SignVideoSource.remote,
+          signSystem: lang,
+        );
+
+        final existingIdx = merged.indexWhere(
+          (e) =>
+              e.signSystem.toLowerCase() == lang &&
+              e.label.toLowerCase() == gloss.toLowerCase(),
+        );
+        if (existingIdx >= 0) {
+          merged[existingIdx] = entry;
+        } else {
+          merged.add(entry);
+        }
+      }
+
+      catalog = SignLanguageCatalog(
+        entries: merged,
+      );
+    } catch (_) {
+      // Offline / table not migrated yet: keep bundled & cached catalog intact
     }
   }
 

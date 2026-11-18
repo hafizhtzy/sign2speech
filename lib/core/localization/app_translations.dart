@@ -675,6 +675,109 @@ class AppTranslations extends Translations {
     AppStrings.cafeMenuPhotoUploading: 'Mengunggah foto menu...',
     AppStrings.cafeMenuPhotoUploadSuccess: 'Foto menu berhasil diperbarui!',
     AppStrings.cafeMenuPhotoUploadFailed: 'Gagal mengunggah foto menu',
+
+    // Addendum V3: Three-Role Auth & RBAC
+    AppStrings.authLoginTitle: 'Masuk ke Sign2Speech',
+    AppStrings.authLoginSubtitle:
+        'Akses sesuai peran Anda: Pelanggan, Kasir, atau Admin Kafe',
+    AppStrings.authEmailLabel: 'Alamat Email',
+    AppStrings.authEmailHint: 'nama@email.com',
+    AppStrings.authPasswordLabel: 'Kata Sandi',
+    AppStrings.authPasswordHint: 'Minimal 6 karakter',
+    AppStrings.authFullNameLabel: 'Nama Lengkap',
+    AppStrings.authFullNameHint: 'Masukkan nama lengkap Anda',
+    AppStrings.authPhoneLabel: 'Nomor Telepon (Opsional)',
+    AppStrings.authPhoneHint: '0812xxxxxxxx',
+    AppStrings.authSignInBtn: 'Masuk Sekarang',
+    AppStrings.authRegisterCustomerTitle: 'Daftar Akun Pelanggan',
+    AppStrings.authRegisterCustomerSubtitle:
+        'Buat akun pelanggan untuk memesan kopi, membayar QRIS, dan berkomunikasi dengan bahasa isyarat',
+    AppStrings.authRegisterBtn: 'Daftar sebagai Pelanggan',
+    AppStrings.authNoAccountPrompt: 'Belum punya akun pelanggan?',
+    AppStrings.authHaveAccountPrompt: 'Sudah punya akun?',
+    AppStrings.authGoToRegister: 'Daftar Akun',
+    AppStrings.authGoToLogin: 'Masuk',
+    AppStrings.authSignOutBtn: 'Keluar Akun',
+    AppStrings.authSignOutConfirmTitle: 'Keluar dari Akun?',
+    AppStrings.authSignOutConfirmDesc:
+        'Sesi Anda akan diakhiri dengan aman dari perangkat ini.',
+    AppStrings.authContinueAccessibilityGuest:
+        'Gunakan Fitur Terjemahan Tanpa Login',
+    AppStrings.authRoleCustomer: 'Pelanggan',
+    AppStrings.authRoleCashier: 'Kasir Kafe',
+    AppStrings.authRoleAdmin: 'Admin Kafe',
+    AppStrings.authAccountDisabledNotice:
+        'Akun Anda telah dinonaktifkan oleh Admin.',
+    AppStrings.authAccessDeniedNotice:
+        'Anda tidak memiliki izin untuk membuka halaman ini.',
+    AppStrings.authValidationRequired: 'Kolom ini wajib diisi',
+    AppStrings.authValidationEmail: 'Masukkan alamat email yang valid',
+    AppStrings.authValidationPasswordMin: 'Kata sandi minimal 6 karakter',
+    AppStrings.authStaffProvisioningNote:
+        'Akun Kasir dan Admin dibuat melalui provisioning resmi oleh Admin Kafe.',
+
+    // Addendum V3: Customer Self-Order & Checkout
+    AppStrings.customerMenuTitle: 'Katalog Menu Kafe',
+    AppStrings.customerMenuSubtitle:
+        'Pilih minuman favorit dan pesan langsung dari perangkat Anda',
+    AppStrings.customerCartTitle: 'Keranjang Pesanan',
+    AppStrings.customerCheckoutBtn: 'Checkout & Buat Pesanan',
+    AppStrings.customerPayQrisBtn: 'Bayar dengan QRIS',
+    AppStrings.customerOrdersTitle: 'Pesanan & Riwayat Saya',
+    AppStrings.customerStockAvailable: 'Stok tersedia: @count',
+    AppStrings.customerStockOut: 'Stok Habis',
+    AppStrings.customerStockUninitialized: 'Stok Belum Diopname',
+    AppStrings.customerOrderCardTitle: 'Order',
+    AppStrings.customerOrderCardSubtitle:
+        'Pesan langsung dari tempat duduk (nomor meja) atau pairing tablet meja kasir',
+    AppStrings.customerOrderModeTable: 'Order dari Tempat Duduk',
+    AppStrings.customerOrderModeCounterTablet: 'Tablet Meja Kasir (Pairing)',
+    AppStrings.customerTableNumberLabel: 'Nomor Meja Tempat Duduk',
+    AppStrings.customerTableNumberHint: 'Contoh: Meja 05, A2, atau Outdoor 03',
+    AppStrings.customerTableRequiredWarning:
+        'Silakan pilih atau isi Nomor Meja tempat duduk Anda terlebih dahulu.',
+    AppStrings.customerCounterPairingTitle:
+        'Order di Depan Kasir (Pairing Tablet Kafe)',
+    AppStrings.customerCounterPairingDesc:
+        'Khusus tablet kafe yang tertempel di meja kasir: masukkan Kode Pairing dari Kasir agar terhubung real-time dengan layar kasir.',
+    AppStrings.customerCounterPairingCodeHint:
+        'Kode Pairing Kasir (contoh: KAFE-01)',
+    AppStrings.customerCounterPairBtn: 'Hubungkan ke Kasir',
+    AppStrings.customerCounterPairedSuccess:
+        'Terhubung ke meja kasir (@code). Membuka layar pembeli...',
+    AppStrings.customerCounterPairingRequired:
+        'Masukkan Kode Pairing dari Kasir terlebih dahulu.',
+
+    // Addendum V3: Cashier Operational & Stock Report
+    AppStrings.cashierReportLowStockBtn: 'Laporkan Stok Menipis',
+    AppStrings.cashierReportLowStockTitle: 'Kirim Laporan Stok ke Admin',
+    AppStrings.cashierReportLowStockNoteHint:
+        'Contoh: Susu oat & biji espresso tinggal sedikit di bar',
+    AppStrings.cashierReportLowStockSuccess:
+        'Laporan stok menipis berhasil dikirim ke Admin.',
+    AppStrings.cashierStockReadOnlyNotice:
+        'Kasir hanya dapat melihat stok dan mengirim laporan stok menipis ke Admin.',
+
+    // Addendum V3: Admin Dashboard (13 Sections)
+    AppStrings.adminDashboardTitle: 'Dashboard Admin Sign2Speech',
+    AppStrings.adminNavOverview: 'Ringkasan',
+    AppStrings.adminNavProducts: 'Produk',
+    AppStrings.adminNavCategories: 'Kategori',
+    AppStrings.adminNavInventory: 'Inventaris & Stok',
+    AppStrings.adminNavOrders: 'Pesanan',
+    AppStrings.adminNavTransactions: 'Transaksi & Pembayaran',
+    AppStrings.adminNavSalesReports: 'Laporan Penjualan',
+    AppStrings.adminNavSignVideos: 'Video Bahasa Isyarat',
+    AppStrings.adminNavStaff: 'Manajemen Kasir',
+    AppStrings.adminNavAuditLogs: 'Log Aktivitas & Audit',
+    AppStrings.adminNavSettings: 'Pengaturan',
+    AppStrings.adminNavProfile: 'Profil Admin',
+    AppStrings.adminNavLogout: 'Keluar',
+    AppStrings.adminStockNotInitializedBadge:
+        'Stok Belum Diinisialisasi (Wajib Stock Opname)',
+    AppStrings.adminPerformStockOpname: 'Lakukan Stock Opname Awal',
+    AppStrings.adminVideoAiSeparationBanner:
+        'Catatan Penting: Mengunggah video ke perpustakaan hanya menambah materi referensi pembelajaran bagi pengguna dan TIDAK otomatis melatih model AI MotionGRU.',
   };
 
   static Map<String, String> get _enUS => {
@@ -1334,5 +1437,109 @@ class AppTranslations extends Translations {
     AppStrings.cafeMenuPhotoUploading: 'Uploading menu photo...',
     AppStrings.cafeMenuPhotoUploadSuccess: 'Menu photo updated successfully!',
     AppStrings.cafeMenuPhotoUploadFailed: 'Failed to upload menu photo',
+
+    // Addendum V3: Three-Role Auth & RBAC
+    AppStrings.authLoginTitle: 'Sign In to Sign2Speech',
+    AppStrings.authLoginSubtitle:
+        'Access according to your role: Customer, Cashier, or Cafe Admin',
+    AppStrings.authEmailLabel: 'Email Address',
+    AppStrings.authEmailHint: 'name@email.com',
+    AppStrings.authPasswordLabel: 'Password',
+    AppStrings.authPasswordHint: 'Minimum 6 characters',
+    AppStrings.authFullNameLabel: 'Full Name',
+    AppStrings.authFullNameHint: 'Enter your full name',
+    AppStrings.authPhoneLabel: 'Phone Number (Optional)',
+    AppStrings.authPhoneHint: '0812xxxxxxxx',
+    AppStrings.authSignInBtn: 'Sign In Now',
+    AppStrings.authRegisterCustomerTitle: 'Create Customer Account',
+    AppStrings.authRegisterCustomerSubtitle:
+        'Create a customer account to order coffee, pay via QRIS, and communicate using sign language',
+    AppStrings.authRegisterBtn: 'Register as Customer',
+    AppStrings.authNoAccountPrompt: 'Do not have a customer account yet?',
+    AppStrings.authHaveAccountPrompt: 'Already have an account?',
+    AppStrings.authGoToRegister: 'Create Account',
+    AppStrings.authGoToLogin: 'Sign In',
+    AppStrings.authSignOutBtn: 'Sign Out',
+    AppStrings.authSignOutConfirmTitle: 'Sign Out of Account?',
+    AppStrings.authSignOutConfirmDesc:
+        'Your session will be ended securely on this device.',
+    AppStrings.authContinueAccessibilityGuest:
+        'Use Translation Features Without Login',
+    AppStrings.authRoleCustomer: 'Customer',
+    AppStrings.authRoleCashier: 'Cafe Cashier',
+    AppStrings.authRoleAdmin: 'Cafe Admin',
+    AppStrings.authAccountDisabledNotice:
+        'Your account has been disabled by the Admin.',
+    AppStrings.authAccessDeniedNotice:
+        'You do not have permission to open this page.',
+    AppStrings.authValidationRequired: 'This field is required',
+    AppStrings.authValidationEmail: 'Enter a valid email address',
+    AppStrings.authValidationPasswordMin:
+        'Password must be at least 6 characters',
+    AppStrings.authStaffProvisioningNote:
+        'Cashier and Admin accounts are provisioned securely by the Cafe Admin.',
+
+    // Addendum V3: Customer Self-Order & Checkout
+    AppStrings.customerMenuTitle: 'Cafe Menu Catalog',
+    AppStrings.customerMenuSubtitle:
+        'Select your favorite drinks and order directly from your device',
+    AppStrings.customerCartTitle: 'Order Cart',
+    AppStrings.customerCheckoutBtn: 'Checkout & Place Order',
+    AppStrings.customerPayQrisBtn: 'Pay with QRIS',
+    AppStrings.customerOrdersTitle: 'My Orders & History',
+    AppStrings.customerStockAvailable: 'Available stock: @count',
+    AppStrings.customerStockOut: 'Out of Stock',
+    AppStrings.customerStockUninitialized: 'Stock Pending Opname',
+    AppStrings.customerOrderCardTitle: 'Order',
+    AppStrings.customerOrderCardSubtitle:
+        'Order directly from your table seat or pair with the cashier counter tablet',
+    AppStrings.customerOrderModeTable: 'Order from Table Seat',
+    AppStrings.customerOrderModeCounterTablet: 'Counter Tablet (Pairing)',
+    AppStrings.customerTableNumberLabel: 'Table Seat Number',
+    AppStrings.customerTableNumberHint: 'e.g., Table 05, A2, or Outdoor 03',
+    AppStrings.customerTableRequiredWarning:
+        'Please select or enter your Table Seat Number first.',
+    AppStrings.customerCounterPairingTitle:
+        'Order in Front of Cashier (Cafe Tablet Pairing)',
+    AppStrings.customerCounterPairingDesc:
+        'For the cafe tablet mounted at the cashier counter: enter the Pairing Code from the Cashier to sync in real time.',
+    AppStrings.customerCounterPairingCodeHint:
+        'Cashier Pairing Code (e.g., KAFE-01)',
+    AppStrings.customerCounterPairBtn: 'Pair with Cashier',
+    AppStrings.customerCounterPairedSuccess:
+        'Paired with cashier counter (@code). Opening customer display...',
+    AppStrings.customerCounterPairingRequired:
+        'Please enter the Pairing Code from the Cashier first.',
+
+    // Addendum V3: Cashier Operational & Stock Report
+    AppStrings.cashierReportLowStockBtn: 'Report Low Stock',
+    AppStrings.cashierReportLowStockTitle: 'Send Low Stock Alert to Admin',
+    AppStrings.cashierReportLowStockNoteHint:
+        'e.g., Oat milk & espresso beans are running low at the bar',
+    AppStrings.cashierReportLowStockSuccess:
+        'Low stock report sent to Admin successfully.',
+    AppStrings.cashierStockReadOnlyNotice:
+        'Cashiers can only view stock levels and send low stock alerts to Admin.',
+
+    // Addendum V3: Admin Dashboard (13 Sections)
+    AppStrings.adminDashboardTitle: 'Sign2Speech Admin Dashboard',
+    AppStrings.adminNavOverview: 'Overview',
+    AppStrings.adminNavProducts: 'Products',
+    AppStrings.adminNavCategories: 'Categories',
+    AppStrings.adminNavInventory: 'Inventory & Stock',
+    AppStrings.adminNavOrders: 'Orders',
+    AppStrings.adminNavTransactions: 'Transactions & Payments',
+    AppStrings.adminNavSalesReports: 'Sales Reports',
+    AppStrings.adminNavSignVideos: 'Sign Language Videos',
+    AppStrings.adminNavStaff: 'Cashier Staff',
+    AppStrings.adminNavAuditLogs: 'Activity & Audit Logs',
+    AppStrings.adminNavSettings: 'Settings',
+    AppStrings.adminNavProfile: 'Admin Profile',
+    AppStrings.adminNavLogout: 'Sign Out',
+    AppStrings.adminStockNotInitializedBadge:
+        'Stock Not Initialized (Stock Opname Required)',
+    AppStrings.adminPerformStockOpname: 'Perform Initial Stock Opname',
+    AppStrings.adminVideoAiSeparationBanner:
+        'Important Note: Uploading a video to the library only adds learning reference material for users and does NOT automatically train the MotionGRU AI model.',
   };
 }

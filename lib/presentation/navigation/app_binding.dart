@@ -2,6 +2,8 @@ import '../../features/sign_language/models/sign_language_catalog.dart';
 
 import 'package:get/get.dart';
 
+import '../../core/auth/controllers/auth_controller.dart';
+import '../../core/auth/services/supabase_auth_service.dart';
 import '../../features/cafe_pos/data/datasources/cafe_menu_storage_service.dart';
 import '../../features/cafe_pos/data/datasources/supabase_cafe_pos_service.dart';
 import '../../features/cafe_pos/data/datasources/supabase_counter_session_service.dart';
@@ -30,6 +32,16 @@ class AppBinding extends Bindings {
   @override
   void dependencies() {
     AppTranslations.ensureLoaded();
+    // 0. Core Three-Role Auth Service & Controller (Addendum V3)
+    final supabaseAuthService = SupabaseAuthService();
+    Get.put<SupabaseAuthService>(supabaseAuthService, permanent: true);
+    if (!Get.isRegistered<AuthController>()) {
+      Get.put<AuthController>(
+        AuthController(authService: supabaseAuthService),
+        permanent: true,
+      );
+    }
+
     // 1. Core Services & Stores
     final config = SignLanguageConfig();
     final cacheService = SignLanguageCacheService();
