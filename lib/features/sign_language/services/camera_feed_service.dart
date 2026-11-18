@@ -195,16 +195,27 @@ class CameraFeedService extends GetxService {
   }
 
   void _onStreamError(dynamic error) {
-    final msg = error is PlatformException
-        ? (error.message ?? error.code)
-        : error.toString();
+    final msg = switch (error) {
+      PlatformException(:final message, :final code) => message ?? code,
+      _ => error.toString(),
+    };
     errorMessage.value = msg;
     debugPrint('[CameraFeedService] Stream error: $msg');
   }
 
+  /// Releases active CameraX session, native MediaPipe Holistic/HandLandmarker detector,
+  /// and cancels the event channel subscription to prevent memory leaks.
+  Future<void> dispose() async {
+    onFrame = null;
+    await stopCamera();
+    try {
+      await _methodChannel.invokeMethod<void>('disposeDetector');
+    } catch (_) {}
+  }
+
   @override
   void onClose() {
-    stopCamera();
+    unawaited(dispose());
     super.onClose();
   }
 }

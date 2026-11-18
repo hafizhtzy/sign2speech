@@ -73,12 +73,12 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
         ),
         child: Container(
           decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            color: AppColors.canvas,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
-                blurRadius: 18,
+                color: Colors.black.withValues(alpha: 0.16),
+                blurRadius: 20,
                 offset: const Offset(0, -4),
               ),
             ],
@@ -88,7 +88,7 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
             bottom: true,
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+              padding: const EdgeInsets.fromLTRB(24, 14, 24, 28),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -96,9 +96,9 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
                   // Drag Handle
                   Center(
                     child: Container(
-                      width: 44,
-                      height: 4.5,
-                      margin: const EdgeInsets.only(bottom: 16),
+                      width: 42,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 18),
                       decoration: BoxDecoration(
                         color: AppColors.border,
                         borderRadius: BorderRadius.circular(10),
@@ -106,47 +106,36 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
                     ),
                   ),
 
-                  // Header Row
+                  // Clean Editorial Header (Zero square icon box / divider wall)
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: AppColors.secondary.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          Icons.tune_rounded,
-                          size: 22,
-                          color: AppColors.secondary,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               AppStrings.cafeControlSheetTitle.tr,
-                              style: AppTypography.titleMedium.copyWith(
+                              style: AppTypography.titleLarge.copyWith(
                                 color: AppColors.ink,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 19,
                               ),
                             ),
+                            const SizedBox(height: 4),
                             Text(
                               AppStrings.cafeControlSheetSubtitle.tr,
                               style: AppTypography.bodySmall.copyWith(
                                 color: AppColors.muted,
-                                fontSize: 11,
+                                fontSize: 12.5,
                               ),
                             ),
                           ],
                         ),
                       ),
+                      const SizedBox(width: 8),
                       IconButton(
-                        icon: const Icon(Icons.close_rounded),
+                        icon: const Icon(Icons.close_rounded, size: 22),
                         color: AppColors.muted,
                         tooltip: 'Tutup',
                         constraints: const BoxConstraints(
@@ -158,34 +147,32 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
                     ],
                   ),
 
-                  const SizedBox(height: 18),
-                  Divider(height: 1, thickness: 1, color: AppColors.border),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
 
                   // ── SECTION 1: Model Bahasa Isyarat ────────────────────────
                   _buildSignModelSection(context),
 
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 28),
 
                   // ── SECTION 1B: Mode Perangkat (1 Tablet vs 2 Tablet) ──────
                   _buildDeviceModeSection(context),
 
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 28),
 
                   // ── SECTION 2: Antrean Pesanan Kafe ────────────────────────
                   _buildQueueSection(context),
 
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
 
                   // ── SECTION 2B: Akses Katalog Menu Kafe ────────────────────
                   _buildMenuCatalogTile(context),
 
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
 
                   // ── SECTION 3: Keamanan & PIN Staf ─────────────────────────
                   _buildStaffSecuritySection(context),
 
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
 
                   // ── SECTION 4: Reset Sesi Transaksi ────────────────────────
                   _buildResetSessionSection(context),
@@ -199,87 +186,73 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
   }
 
   Widget _buildSignModelSection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.bgSurface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          AppStrings.cafeControlSignModelTitle.tr,
+          style: AppTypography.titleSmall.copyWith(
+            color: AppColors.ink,
+            fontWeight: FontWeight.w800,
+            fontSize: 14.5,
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          AppStrings.cafeControlSignModelDesc.tr,
+          style: AppTypography.bodySmall.copyWith(
+            color: AppColors.muted,
+            fontSize: 12,
+          ),
+        ),
+        const SizedBox(height: 14),
+        Obx(() {
+          final active = controller.activeSignModel;
+          return Row(
             children: [
-              Icon(
-                Icons.sign_language_rounded,
-                size: 18,
-                color: AppColors.secondary,
-              ),
-              const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  AppStrings.cafeControlSignModelTitle.tr,
-                  style: AppTypography.titleSmall.copyWith(
-                    color: AppColors.ink,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                  ),
+                child: _buildModelChoiceCard(
+                  model: SignLanguageModel.bisindo,
+                  label: 'BISINDO',
+                  description: AppStrings.cafeControlBisindoDesc.tr,
+                  isSelected: active == SignLanguageModel.bisindo,
+                  onTap: () {
+                    controller.switchSignLanguageModel(
+                      SignLanguageModel.bisindo,
+                    );
+                    AppSnackbar.show(
+                      title: 'Model Bahasa Isyarat',
+                      message: AppStrings.cafeSignModelChanged.trParams({
+                        'model': 'BISINDO',
+                      }),
+                      variant: SnackbarVariant.info,
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildModelChoiceCard(
+                  model: SignLanguageModel.sibi,
+                  label: 'SIBI',
+                  description: AppStrings.cafeControlSibiDesc.tr,
+                  isSelected: active == SignLanguageModel.sibi,
+                  onTap: () {
+                    controller.switchSignLanguageModel(SignLanguageModel.sibi);
+                    AppSnackbar.show(
+                      title: 'Model Bahasa Isyarat',
+                      message: AppStrings.cafeSignModelChanged.trParams({
+                        'model': 'SIBI',
+                      }),
+                      variant: SnackbarVariant.info,
+                    );
+                  },
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            AppStrings.cafeControlSignModelDesc.tr,
-            style: AppTypography.bodySmall.copyWith(
-              color: AppColors.muted,
-              fontSize: 11,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Obx(() {
-            final active = controller.activeSignModel;
-            return Row(
-              children: [
-                Expanded(
-                  child: _buildModelChoiceCard(
-                    model: SignLanguageModel.bisindo,
-                    label: 'BISINDO',
-                    description: AppStrings.cafeControlBisindoDesc.tr,
-                    isSelected: active == SignLanguageModel.bisindo,
-                    onTap: () {
-                      controller.switchSignLanguageModel(SignLanguageModel.bisindo);
-                      AppSnackbar.show(
-                        title: 'Model Bahasa Isyarat',
-                        message: AppStrings.cafeSignModelChanged.trParams({'model': 'BISINDO'}),
-                        variant: SnackbarVariant.info,
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _buildModelChoiceCard(
-                    model: SignLanguageModel.sibi,
-                    label: 'SIBI',
-                    description: AppStrings.cafeControlSibiDesc.tr,
-                    isSelected: active == SignLanguageModel.sibi,
-                    onTap: () {
-                      controller.switchSignLanguageModel(SignLanguageModel.sibi);
-                      AppSnackbar.show(
-                        title: 'Model Bahasa Isyarat',
-                        message: AppStrings.cafeSignModelChanged.trParams({'model': 'SIBI'}),
-                        variant: SnackbarVariant.info,
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
-          }),
-        ],
-      ),
+          );
+        }),
+      ],
     );
   }
 
@@ -290,62 +263,56 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
+    final activeText = AppColors.onPrimary;
     return InkWell(
       onTap: isSelected ? null : onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(20),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.border,
             width: isSelected ? 1.5 : 1.0,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.20),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: .start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: .spaceBetween,
               children: [
                 Text(
                   label,
-                  style: AppTypography.labelMedium.copyWith(
-                    color: isSelected ? Colors.white : AppColors.ink,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
+                  style: AppTypography.titleSmall.copyWith(
+                    color: isSelected ? activeText : AppColors.ink,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
                   ),
                 ),
                 Icon(
                   isSelected
                       ? Icons.check_circle_rounded
                       : Icons.radio_button_unchecked_rounded,
-                  size: 16,
+                  size: 18,
                   color: isSelected ? AppColors.matcha : AppColors.muted,
                 ),
               ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             Text(
               description,
-              maxLines: 2,
+              maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: AppTypography.bodySmall.copyWith(
-                color: isSelected ? Colors.white.withValues(alpha: 0.85) : AppColors.muted,
-                fontSize: 10,
-                height: 1.25,
+                color: isSelected
+                    ? activeText.withValues(alpha: 0.80)
+                    : AppColors.muted,
+                fontSize: 11.5,
+                height: 1.4,
               ),
             ),
           ],
@@ -355,146 +322,133 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
   }
 
   Widget _buildDeviceModeSection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.bgSurface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          AppStrings.cafeDeviceModeTitle.tr,
+          style: AppTypography.titleSmall.copyWith(
+            color: AppColors.ink,
+            fontWeight: FontWeight.w800,
+            fontSize: 14.5,
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          AppStrings.cafeDeviceModeDesc.tr,
+          style: AppTypography.bodySmall.copyWith(
+            color: AppColors.muted,
+            fontSize: 12,
+          ),
+        ),
+        const SizedBox(height: 14),
+        Obx(() {
+          final isDual =
+              controller.deviceMode.value == CounterDeviceMode.dualTabletLocked;
+          final isFlipped = controller.isFlipped.value;
+          final currentRoom = controller.counterId.value;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Icon(
-                Icons.devices_rounded,
-                size: 18,
-                color: AppColors.secondary,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  AppStrings.cafeDeviceModeTitle.tr,
-                  style: AppTypography.titleSmall.copyWith(
-                    color: AppColors.ink,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
+              Row(
+                children: [
+                  // Opsi 1: 1 Tablet
+                  Expanded(
+                    child: _buildDeviceChoiceCard(
+                      icon: Icons.screen_rotation_rounded,
+                      label: AppStrings.cafeMode1Tablet.tr,
+                      description: AppStrings.cafeMode1TabletDesc.tr,
+                      isSelected: !isDual,
+                      onTap: () {
+                        controller.setDeviceMode(
+                          CounterDeviceMode.singleTabletSwitch,
+                        );
+                      },
+                    ),
                   ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            AppStrings.cafeDeviceModeDesc.tr,
-            style: AppTypography.bodySmall.copyWith(
-              color: AppColors.muted,
-              fontSize: 11,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Obx(() {
-            final isDual = controller.deviceMode.value == CounterDeviceMode.dualTabletLocked;
-            final isFlipped = controller.isFlipped.value;
-            final currentRoom = controller.counterId.value;
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    // Opsi 1: 1 Tablet
-                    Expanded(
-                      child: _buildDeviceChoiceCard(
-                        icon: Icons.screen_rotation_rounded,
-                        label: AppStrings.cafeMode1Tablet.tr,
-                        description: AppStrings.cafeMode1TabletDesc.tr,
-                        isSelected: !isDual,
-                        onTap: () {
-                          controller.setDeviceMode(CounterDeviceMode.singleTabletSwitch);
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    // Opsi 2: 2 Tablet
-                    Expanded(
-                      child: _buildDeviceChoiceCard(
-                        icon: Icons.sync_alt_rounded,
-                        label: AppStrings.cafeMode2Tablet.tr,
-                        description: AppStrings.cafeMode2TabletDesc.tr,
-                        isSelected: isDual,
-                        onTap: () {
-                          controller.setDeviceMode(CounterDeviceMode.dualTabletLocked);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-
-                // Sub-panel untuk 1 Tablet (Fitur Flip 180°)
-                if (!isDual) ...[
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.screen_rotation_alt_rounded,
-                          size: 20,
-                          color: isFlipped ? AppColors.secondary : AppColors.muted,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                AppStrings.cafeFlipScreen.tr,
-                                style: AppTypography.labelMedium.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.ink,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              Text(
-                                isFlipped
-                                    ? AppStrings.cafeFlipActive.tr
-                                    : AppStrings.cafeFlipInactive.tr,
-                                style: AppTypography.bodySmall.copyWith(
-                                  fontSize: 10,
-                                  color: AppColors.muted,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        TextButton.icon(
-                          onPressed: () {
-                            controller.toggleFlip();
-                          },
-                          icon: Icon(
-                            Icons.flip_rounded,
-                            size: 16,
-                            color: AppColors.secondary,
-                          ),
-                          label: Text(
-                            isFlipped ? 'Normal' : 'Putar 180°',
-                            style: AppTypography.labelSmall.copyWith(
-                              color: AppColors.secondary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
+                  const SizedBox(width: 12),
+                  // Opsi 2: 2 Tablet
+                  Expanded(
+                    child: _buildDeviceChoiceCard(
+                      icon: Icons.sync_alt_rounded,
+                      label: AppStrings.cafeMode2Tablet.tr,
+                      description: AppStrings.cafeMode2TabletDesc.tr,
+                      isSelected: isDual,
+                      onTap: () {
+                        controller.setDeviceMode(
+                          CounterDeviceMode.dualTabletLocked,
+                        );
+                      },
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 14),
+
+              // Sub-panel untuk 1 Tablet (Fitur Flip 180°)
+              if (!isDual) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.border, width: 1.0),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.screen_rotation_alt_rounded,
+                        size: 20,
+                        color: isFlipped
+                            ? AppColors.secondary
+                            : AppColors.muted,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              AppStrings.cafeFlipScreen.tr,
+                              style: AppTypography.labelMedium.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.ink,
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              isFlipped
+                                  ? AppStrings.cafeFlipActive.tr
+                                  : AppStrings.cafeFlipInactive.tr,
+                              style: AppTypography.bodySmall.copyWith(
+                                fontSize: 11.5,
+                                color: AppColors.muted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          controller.toggleFlip();
+                        },
+                        child: Text(
+                          isFlipped ? 'Normal' : 'Putar 180°',
+                          style: AppTypography.labelMedium.copyWith(
+                            color: AppColors.secondary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
 
                 // Sub-panel untuk 2 Tablet (Sinkronisasi Ruang via Supabase Realtime)
                 // Dipisahkan secara cerdas berdasarkan autentikasi PIN Staf:
@@ -843,7 +797,6 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
             );
           }),
         ],
-      ),
     );
   }
 
@@ -856,66 +809,59 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
   }) {
     return InkWell(
       onTap: isSelected ? null : onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(20),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.border,
             width: isSelected ? 1.5 : 1.0,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.20),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: .start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: .spaceBetween,
               children: [
                 Icon(
                   icon,
-                  size: 16,
-                  color: isSelected ? Colors.white : AppColors.secondary,
+                  size: 20,
+                  color: isSelected ? AppColors.onPrimary : AppColors.secondary,
                 ),
                 Icon(
                   isSelected
                       ? Icons.check_circle_rounded
                       : Icons.radio_button_unchecked_rounded,
-                  size: 16,
+                  size: 18,
                   color: isSelected ? AppColors.matcha : AppColors.muted,
                 ),
               ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 10),
             Text(
               label,
               style: AppTypography.labelMedium.copyWith(
-                color: isSelected ? Colors.white : AppColors.ink,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
+                color: isSelected ? AppColors.onPrimary : AppColors.ink,
+                fontWeight: FontWeight.w800,
+                fontSize: 13.5,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Text(
               description,
-              maxLines: 2,
+              maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: AppTypography.bodySmall.copyWith(
-                color: isSelected ? Colors.white.withValues(alpha: 0.85) : AppColors.muted,
-                fontSize: 10,
-                height: 1.25,
+                color: isSelected
+                    ? AppColors.onPrimary.withValues(alpha: 0.80)
+                    : AppColors.muted,
+                fontSize: 11.5,
+                height: 1.4,
               ),
             ),
           ],
@@ -927,193 +873,137 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
   Widget _buildQueueSection(BuildContext context) {
     return Obx(() {
       final queueCount = controller.activeOrdersQueue.length;
-      return Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.bgSurface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: queueCount > 0
-                    ? AppColors.matcha.withValues(alpha: 0.15)
-                    : AppColors.paleMist,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: queueCount > 0 ? AppColors.matcha : AppColors.border,
-                ),
-              ),
-              child: Icon(
-                Icons.receipt_long_rounded,
-                size: 20,
-                color: queueCount > 0 ? AppColors.matcha : AppColors.primary,
-              ),
+      return Material(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: () {
+            Navigator.of(context).pop();
+            CafeOrderQueueScreen.showAsDialog(
+              context,
+              controller: controller,
+            );
+          },
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.border),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    AppStrings.cafeControlQueueTitle.tr,
-                    style: AppTypography.titleSmall.copyWith(
-                      color: AppColors.ink,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                  Text(
-                    AppStrings.cafeControlQueueDesc.trParams({'count': '$queueCount'}),
-                    style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.muted,
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            InkWell(
-              onTap: () {
-                Navigator.of(context).pop();
-                CafeOrderQueueScreen.showAsDialog(
-                  context,
-                  controller: controller,
-                );
-              },
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.border),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.receipt_long_rounded,
+                  size: 22,
+                  color: queueCount > 0 ? AppColors.matcha : AppColors.secondary,
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      AppStrings.cafeControlQueueOpen.tr,
-                      style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 11,
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: .start,
+                    children: [
+                      Text(
+                        AppStrings.cafeControlQueueTitle.tr,
+                        style: AppTypography.titleSmall.copyWith(
+                          color: AppColors.ink,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 11,
-                      color: AppColors.primary,
-                    ),
-                  ],
+                      const SizedBox(height: 2),
+                      Text(
+                        AppStrings.cafeControlQueueDesc.trParams({
+                          'count': '$queueCount',
+                        }),
+                        style: AppTypography.bodySmall.copyWith(
+                          color: AppColors.muted,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 20,
+                  color: AppColors.muted,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       );
     });
   }
 
   Widget _buildMenuCatalogTile(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.bgSurface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: AppColors.secondary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: AppColors.secondary.withValues(alpha: 0.3),
-              ),
-            ),
-            child: Icon(
-              Icons.menu_book_rounded,
-              size: 20,
-              color: AppColors.secondary,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  AppStrings.cafeModeMenuCatalog.tr,
-                  style: AppTypography.titleSmall.copyWith(
-                    color: AppColors.ink,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                  ),
-                ),
-                Text(
-                  'Lihat menu kopi, teh, & camilan kafe',
-                  style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.muted,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              Navigator.of(context).pop();
-              CafeMenuCatalogSheet.show(
-                context: context,
-                catalog: controller.menuCatalog,
-                onSelectItem: (CoffeeMenuItem item) {
-                  controller.addRecommendedItemToTicket(item);
-                  controller.onTranscriptReceived(
-                    'pesan ${item.nameId}',
-                    triggerSign: true,
-                  );
-                },
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).pop();
+          CafeMenuCatalogSheet.show(
+            context: context,
+            catalog: controller.menuCatalog,
+            onSelectItem: (CoffeeMenuItem item) {
+              controller.addRecommendedItemToTicket(item);
+              controller.onTranscriptReceived(
+                'pesan ${item.nameId}',
+                triggerSign: true,
               );
             },
-            borderRadius: BorderRadius.circular(10),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Buka',
-                    style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.secondary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 11,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    size: 11,
-                    color: AppColors.secondary,
-                  ),
-                ],
-              ),
-            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.border),
           ),
-        ],
+          child: Row(
+            children: [
+              Icon(
+                Icons.menu_book_rounded,
+                size: 22,
+                color: AppColors.secondary,
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: .start,
+                  children: [
+                    Text(
+                      AppStrings.cafeModeMenuCatalog.tr,
+                      style: AppTypography.titleSmall.copyWith(
+                        color: AppColors.ink,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Lihat menu kopi, teh, & camilan kafe',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.muted,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 20,
+                color: AppColors.muted,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1122,33 +1012,20 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
     return Obx(() {
       final isAuthenticated = controller.staffPinAuthenticated.value;
       return Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         decoration: BoxDecoration(
-          color: AppColors.bgSurface,
-          borderRadius: BorderRadius.circular(16),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(color: AppColors.border),
         ),
         child: Row(
           children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: isAuthenticated
-                    ? AppColors.matcha.withValues(alpha: 0.15)
-                    : AppColors.amber.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: isAuthenticated ? AppColors.matcha : AppColors.amber,
-                ),
-              ),
-              child: Icon(
-                isAuthenticated ? Icons.lock_open_rounded : Icons.lock_rounded,
-                size: 20,
-                color: isAuthenticated ? AppColors.matcha : AppColors.amber,
-              ),
+            Icon(
+              isAuthenticated ? Icons.lock_open_rounded : Icons.lock_rounded,
+              size: 22,
+              color: isAuthenticated ? AppColors.matcha : AppColors.amber,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1157,25 +1034,31 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
                     AppStrings.cafeControlStaffTitle.tr,
                     style: AppTypography.titleSmall.copyWith(
                       color: AppColors.ink,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
                     ),
                   ),
+                  const SizedBox(height: 2),
                   Text(
                     isAuthenticated
                         ? AppStrings.cafeControlStaffLoggedIn.tr
                         : AppStrings.cafeControlStaffLocked.tr,
                     style: AppTypography.bodySmall.copyWith(
-                      color: isAuthenticated ? AppColors.matcha : AppColors.muted,
-                      fontWeight: isAuthenticated ? FontWeight.w600 : FontWeight.normal,
-                      fontSize: 11,
+                      color: isAuthenticated
+                          ? AppColors.matcha
+                          : AppColors.muted,
+                      fontWeight: isAuthenticated
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                      fontSize: 12,
                     ),
                   ),
                 ],
               ),
             ),
-            InkWell(
-              onTap: () async {
+            const SizedBox(width: 8),
+            TextButton(
+              onPressed: () async {
                 if (isAuthenticated) {
                   controller.logoutStaff();
                 } else {
@@ -1188,22 +1071,13 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
                   );
                 }
               },
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: isAuthenticated ? AppColors.paleMist : AppColors.secondary,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  isAuthenticated
-                      ? AppStrings.cafeControlStaffLogout.tr
-                      : AppStrings.cafeControlStaffLogin.tr,
-                  style: AppTypography.labelSmall.copyWith(
-                    color: isAuthenticated ? AppColors.ink : Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 11,
-                  ),
+              child: Text(
+                isAuthenticated
+                    ? AppStrings.cafeControlStaffLogout.tr
+                    : AppStrings.cafeControlStaffLogin.tr,
+                style: AppTypography.labelMedium.copyWith(
+                  color: isAuthenticated ? AppColors.muted : AppColors.secondary,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
@@ -1215,28 +1089,20 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
 
   Widget _buildResetSessionSection(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.border),
       ),
       child: Row(
         children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: AppColors.amber.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              Icons.restart_alt_rounded,
-              size: 20,
-              color: AppColors.amber,
-            ),
+          Icon(
+            Icons.restart_alt_rounded,
+            size: 22,
+            color: AppColors.amber,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1245,39 +1111,31 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
                   AppStrings.cafeControlResetTitle.tr,
                   style: AppTypography.titleSmall.copyWith(
                     color: AppColors.ink,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
                   ),
                 ),
+                const SizedBox(height: 2),
                 Text(
                   AppStrings.cafeControlResetDesc.tr,
                   style: AppTypography.bodySmall.copyWith(
                     color: AppColors.muted,
-                    fontSize: 11,
+                    fontSize: 12,
                   ),
                 ),
               ],
             ),
           ),
-          InkWell(
-            onTap: () {
+          const SizedBox(width: 8),
+          TextButton(
+            onPressed: () {
               _showConfirmResetDialog(context);
             },
-            borderRadius: BorderRadius.circular(10),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.amber.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.amber.withValues(alpha: 0.5)),
-              ),
-              child: Text(
-                'Reset Meja',
-                style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.amber,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 11,
-                ),
+            child: Text(
+              'Reset Meja',
+              style: AppTypography.labelMedium.copyWith(
+                color: AppColors.amber,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -1291,7 +1149,11 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(color: AppColors.border, width: 1.2),
+        ),
         title: Text(
           AppStrings.cafeControlResetTitle.tr,
           style: AppTypography.titleMedium.copyWith(
@@ -1311,13 +1173,15 @@ class _CafeCashierControlSheetState extends State<CafeCashierControlSheet> {
             onPressed: () => Navigator.of(ctx).pop(),
             child: Text(
               AppStrings.cafeControlResetCancel.tr,
-              style: TextStyle(color: AppColors.muted),
+              style: AppTypography.labelLarge.copyWith(color: AppColors.muted),
             ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.amber,
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.isDark
+                  ? AppColors.darkCanvas
+                  : AppColors.textOnDark,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),

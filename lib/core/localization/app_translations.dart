@@ -90,11 +90,31 @@ class AppTranslations extends Translations {
     AppStrings.onboardingMockupSpeech: 'Total Rp 32.000',
     AppStrings.onboardingMockupTts: 'Suara Lisan Kasir (id-ID)',
     AppStrings.onboardingMockupFlip: 'Layar Balik Hadap Lawan 180°',
-    AppStrings.chooseRoleTitle: 'Pilih Peran Anda',
-    AppStrings.chooseRoleSubtitle: 'Pilih peran yang paling sesuai untuk mempersonalisasi pengalaman Anda.',
+    AppStrings.chooseRoleTitle: 'Pilih Peran',
+    AppStrings.chooseRoleSubtitle: 'Pilih peran agar kami dapat menyesuaikan alur kenyamanan layar untuk Anda.',
     AppStrings.chooseLangTitle: 'Pilih Bahasa Isyarat',
     AppStrings.chooseLangSubtitle:
-        'Pilih sistem isyarat utama yang ingin Anda gunakan.',
+        'Sistem Isyarat Pilihan',
+    AppStrings.roleDeafTitle: 'Teman Tuli',
+    AppStrings.roleDeafBadge: 'BARISTA / PELANGGAN TULI',
+    AppStrings.roleDeafDesc:
+        'Menggunakan Bahasa Isyarat (BISINDO / SIBI) untuk berbicara, mendengar via teks dan visual.',
+    AppStrings.roleHearingTitle: 'Teman Dengar',
+    AppStrings.roleHearingBadge: 'PELANGGAN / TEMAN DENGAR',
+    AppStrings.roleHearingDesc:
+        'Berbicara menggunakan suara lisan, mendengarkan respon suara dari bahasa isyarat lawan bicara.',
+    AppStrings.signBisindoBadge: 'ALAMI',
+    AppStrings.signBisindoFullName: 'Bahasa Isyarat Indonesia',
+    AppStrings.signBisindoDesc:
+        'Isyarat alami dua tangan yang lazim digunakan komunitas Tuli Indonesia sehari-hari.',
+    AppStrings.signSibiBadge: 'FORMAL',
+    AppStrings.signSibiFullName: 'Sistem Isyarat Bahasa Indonesia',
+    AppStrings.signSibiDesc:
+        'Sistem isyarat formal berbasis tata bahasa baku Indonesia dan alfabet jari.',
+    AppStrings.startUsingApp: 'Mulai Menggunakan Aplikasi',
+    AppStrings.onboardingRoleHeading: 'Bagaimana Anda Berkomunikasi?',
+    AppStrings.onboardingLangNote:
+        'Anda dapat mengganti pilihan ini kapan saja melalui menu Pengaturan.',
 
     // Home Screen
     AppStrings.homeGreeting: 'Mau Pesan Apa Hari Ini?',
@@ -730,12 +750,32 @@ class AppTranslations extends Translations {
     AppStrings.onboardingMockupSpeech: 'Total \$2.50',
     AppStrings.onboardingMockupTts: 'Cashier Spoken Voice',
     AppStrings.onboardingMockupFlip: '180° Facing Customer Display',
-    AppStrings.chooseRoleTitle: 'Choose Your Role',
+    AppStrings.chooseRoleTitle: 'Choose Role',
     AppStrings.chooseRoleSubtitle:
-        'Choose the role that best fits to personalize your experience.',
+        'Choose your role so we can tailor the screen communication flow for you.',
     AppStrings.chooseLangTitle: 'Choose Sign Language',
     AppStrings.chooseLangSubtitle:
-        'Select the primary sign system you wish to use.',
+        'Preferred Sign System',
+    AppStrings.roleDeafTitle: 'Deaf Friend',
+    AppStrings.roleDeafBadge: 'DEAF BARISTA / CUSTOMER',
+    AppStrings.roleDeafDesc:
+        'Communicate with Sign Language (BISINDO / SIBI) and receive responses via live text & visuals.',
+    AppStrings.roleHearingTitle: 'Hearing Friend',
+    AppStrings.roleHearingBadge: 'HEARING CUSTOMER / STAFF',
+    AppStrings.roleHearingDesc:
+        'Speak naturally with voice and hear spoken audio responses from sign language gestures.',
+    AppStrings.signBisindoBadge: 'NATURAL',
+    AppStrings.signBisindoFullName: 'Indonesian Sign Language',
+    AppStrings.signBisindoDesc:
+        'Natural two-handed sign language widely used by the Indonesian Deaf community daily.',
+    AppStrings.signSibiBadge: 'FORMAL',
+    AppStrings.signSibiFullName: 'Indonesian Sign System',
+    AppStrings.signSibiDesc:
+        'Formal sign system based on standard Indonesian grammar and fingerspelling.',
+    AppStrings.startUsingApp: 'Start Using App',
+    AppStrings.onboardingRoleHeading: 'How Do You Communicate?',
+    AppStrings.onboardingLangNote:
+        'You can change this preference anytime through Settings.',
 
     // Home Screen
     AppStrings.homeGreeting: 'What Would You Like to Order Today?',

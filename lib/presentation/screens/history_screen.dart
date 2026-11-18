@@ -32,8 +32,15 @@ class HistoryScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           AppStrings.historyTitle.tr,
-          style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w700),
+          style: AppTypography.titleLarge.copyWith(
+            fontWeight: FontWeight.w800,
+            color: AppColors.ink,
+          ),
         ),
+        backgroundColor: AppColors.canvas,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_sweep_rounded),
@@ -41,11 +48,24 @@ class HistoryScreen extends StatelessWidget {
             onPressed: () {
               if (history.items.isEmpty) return;
               Get.defaultDialog(
+                backgroundColor: AppColors.surface,
+                radius: 20,
                 title: AppStrings.historyConfirmClear.tr,
+                titleStyle: AppTypography.titleMedium.copyWith(
+                  color: AppColors.ink,
+                  fontWeight: FontWeight.w800,
+                ),
                 middleText: AppStrings.historyConfirmDesc.tr,
+                middleTextStyle: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.muted,
+                  height: 1.4,
+                ),
                 textConfirm: AppStrings.delete.tr,
                 textCancel: AppStrings.cancel.tr,
-                confirmTextColor: AppColors.surface,
+                cancelTextColor: AppColors.ink,
+                confirmTextColor: AppColors.isDark
+                    ? AppColors.darkCanvas
+                    : AppColors.textOnDark,
                 buttonColor: AppColors.error,
                 onConfirm: () {
                   history.clearAll();
@@ -84,12 +104,21 @@ class HistoryScreen extends StatelessWidget {
                   final list = history.filteredItems;
 
                   if (list.isEmpty) {
-                    return EmptyStateView(
-                      title: AppStrings.historyEmptyTitle.tr,
-                      subtitle: AppStrings.historyEmptyDesc.tr,
-                      icon: Icons.history_toggle_off_rounded,
-                      actionLabel: AppStrings.historyStartTranslation.tr,
-                      onAction: () => Get.toNamed(AppRoutes.mainShell),
+                    // Offset for floating bottom nav bar on compact screens so
+                    // the empty state sits dead-center in the visible page area.
+                    final bottomClearance = context.isLargeScreen
+                        ? MediaQuery.paddingOf(context).bottom + 24.0
+                        : MediaQuery.paddingOf(context).bottom + 114.0;
+                    return Padding(
+                      padding: EdgeInsets.only(bottom: bottomClearance),
+                      child: EmptyStateView(
+                        title: AppStrings.historyEmptyTitle.tr,
+                        subtitle: AppStrings.historyEmptyDesc.tr,
+                        icon: Icons.history_toggle_off_rounded,
+                        actionLabel: AppStrings.historyStartTranslation.tr,
+                        onAction: () =>
+                            _handleStartTranslation(context, history),
+                      ),
                     );
                   }
 
@@ -377,6 +406,162 @@ class HistoryScreen extends StatelessWidget {
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
               color: isSelected ? AppColors.onPrimary : AppColors.muted,
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _handleStartTranslation(
+    BuildContext context,
+    HistoryController history,
+  ) {
+    switch (history.selectedFilterIndex.value) {
+      case 1:
+        Get.toNamed(AppRoutes.signToSpeechCamera);
+      case 2:
+        Get.toNamed(AppRoutes.speechToSignMic);
+      default:
+        _showTranslationModeSheet(context);
+    }
+  }
+
+  void _showTranslationModeSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => SafeArea(
+        child: Center(
+          heightFactor: 1.0,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: ResponsiveBreakpoints.maxFormWidth,
+            ),
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: AppColors.border, width: 1.2),
+              ),
+              child: Column(
+                mainAxisSize: .min,
+                crossAxisAlignment: .stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 38,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.border,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    AppStrings.homeMainModes.tr,
+                    textAlign: .center,
+                    style: AppTypography.titleMedium.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTranslationModeOption(
+                    icon: Icons.videocam_rounded,
+                    accentColor: AppColors.primary,
+                    title: 'Sign to Speech',
+                    subtitle: AppStrings.homeSignToSpeechDesc.tr,
+                    onTap: () {
+                      Navigator.of(ctx).pop();
+                      Get.toNamed(AppRoutes.signToSpeechCamera);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  _buildTranslationModeOption(
+                    icon: Icons.mic_rounded,
+                    accentColor: AppColors.secondary,
+                    title: 'Speech to Sign',
+                    subtitle: AppStrings.homeSpeechToSignDesc.tr,
+                    onTap: () {
+                      Navigator.of(ctx).pop();
+                      Get.toNamed(AppRoutes.speechToSignMic);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTranslationModeOption({
+    required IconData icon,
+    required Color accentColor,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: AppColors.bgSurface,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: accentColor, size: 22),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: .start,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTypography.titleSmall.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.muted,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.muted,
+                size: 20,
+              ),
+            ],
           ),
         ),
       ),

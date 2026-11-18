@@ -13,11 +13,7 @@ import 'cashier_quick_deck.dart';
 
 /// Active tab on Cashier Order & Communication Deck.
 /// Order requested: Tab 1: Bahasa Isyarat (Default/Left), Tab 2: 1-Tap (Middle), Tab 3: Mic (Right).
-enum CashierDeckTab {
-  signLanguage,
-  quickDeck,
-  mic,
-}
+enum CashierDeckTab { signLanguage, quickDeck, mic }
 
 /// Unified 3-Tab Interaction Deck for Cashier Counter ("Stage 1: Pesan & AI").
 ///
@@ -189,16 +185,17 @@ class _CashierOrderDeckCardState extends State<CashierOrderDeckCard>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColors.isDark;
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border, width: 1.2),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.border, width: 1.0),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.05),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: isDark ? 0.28 : 0.04),
+            blurRadius: 16,
             offset: const Offset(0, 4),
           ),
         ],
@@ -206,104 +203,61 @@ class _CashierOrderDeckCardState extends State<CashierOrderDeckCard>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ── Card Header ──────────────────────────────────────────────────
+          // ── Clean Editorial Header (Zero Active-Mode Pills / Icon Boxes) ─
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.secondary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(
-                  _getHeaderIcon(),
-                  size: 24,
-                  color: AppColors.secondary,
-                ),
-              ),
-              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       AppStrings.cafeCashierDeckTitle.tr,
-                      style: AppTypography.titleSmall.copyWith(
+                      style: AppTypography.titleMedium.copyWith(
                         color: AppColors.ink,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 17,
                       ),
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 4),
                     Text(
                       AppStrings.cafeCashierDeckSubtitle.tr,
                       style: AppTypography.bodySmall.copyWith(
                         color: AppColors.muted,
-                        fontSize: 12,
-                        height: 1.3,
+                        fontSize: 13,
+                        height: 1.4,
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-
-          // ── Sub-Header Row: Dynamic Mode Badge & Menu Catalog Action ──────
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildActiveModeBadge(),
-              if (widget.onOpenMenuCatalog != null)
-                Flexible(
-                  child: Material(
-                    color: AppColors.secondary.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(10),
-                    child: InkWell(
-                      onTap: widget.onOpenMenuCatalog,
-                      borderRadius: BorderRadius.circular(10),
-                      child: Container(
-                        constraints: const BoxConstraints(minHeight: 36),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: AppColors.secondary.withValues(alpha: 0.35),
-                            width: 1.1,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.menu_book_rounded,
-                              size: 15,
-                              color: AppColors.secondary,
-                            ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                AppStrings.cafeModeMenuCatalog.tr,
-                                style: AppTypography.labelSmall.copyWith(
-                                  color: AppColors.secondary,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 11,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+              if (widget.onOpenMenuCatalog != null) ...[
+                const SizedBox(width: 8),
+                TextButton.icon(
+                  onPressed: widget.onOpenMenuCatalog,
+                  icon: Icon(
+                    Icons.menu_book_rounded,
+                    size: 16,
+                    color: AppColors.secondary,
+                  ),
+                  label: Text(
+                    AppStrings.cafeModeMenuCatalog.tr,
+                    style: AppTypography.labelSmall.copyWith(
+                      color: AppColors.secondary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
                     ),
                   ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    minimumSize: const Size(48, 40),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                 ),
+              ],
             ],
           ),
 
@@ -316,155 +270,120 @@ class _CashierOrderDeckCardState extends State<CashierOrderDeckCard>
             child: _buildActiveTabContent(),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 22),
 
-          // ── Editable Order Transcript Field ──────────────────────────────
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Hasil Pesanan (Dapat Diedit):',
-                      style: AppTypography.labelMedium.copyWith(
-                        color: AppColors.ink,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+          // ── Clean Editable Transcript Input (Speech-to-Sign Style) ───────
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.paleMist,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.borderSoft, width: 1.0),
+            ),
+            child: Focus(
+              onFocusChange: (hasFocus) {
+                setState(() {
+                  _isUserEditing = hasFocus;
+                });
+              },
+              child: TextField(
+                controller: _textController,
+                maxLines: 2,
+                minLines: 1,
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.ink,
+                  fontWeight: FontWeight.w600,
+                ),
+                decoration: InputDecoration(
+                  hintText: AppStrings.cafeCustomerVoiceEditHint.tr,
+                  hintStyle: AppTypography.bodySmall.copyWith(
+                    color: AppColors.muted,
+                    fontSize: 13.5,
                   ),
-                  ValueListenableBuilder<TextEditingValue>(
+                  prefixIcon: Icon(
+                    Icons.edit_note_rounded,
+                    color: AppColors.secondary,
+                    size: 22,
+                  ),
+                  suffixIcon: ValueListenableBuilder<TextEditingValue>(
                     valueListenable: _textController,
                     builder: (context, val, _) {
                       if (val.text.isEmpty) return const SizedBox.shrink();
-                      return InkWell(
-                        onTap: () {
+                      return IconButton(
+                        tooltip: AppStrings.cafeClearInputTooltip.tr,
+                        icon: Icon(
+                          Icons.close_rounded,
+                          size: 18,
+                          color: AppColors.muted,
+                        ),
+                        onPressed: () {
                           _textController.clear();
                           widget.controller.liveTranscript.value = '';
                           widget.controller.activeParsedSlot.value = null;
                           widget.controller.clearLiveOrderSentence();
                         },
-                        borderRadius: BorderRadius.circular(8),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.clear_rounded,
-                                  size: 14, color: AppColors.muted),
-                              const SizedBox(width: 3),
-                              Text(
-                                AppStrings.cafeClearInputTooltip.tr,
-                                style: AppTypography.labelSmall.copyWith(
-                                  color: AppColors.muted,
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                       );
                     },
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.bgSurface,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.border, width: 1.2),
-                ),
-                child: Focus(
-                  onFocusChange: (hasFocus) {
-                    setState(() {
-                      _isUserEditing = hasFocus;
-                    });
-                  },
-                  child: TextField(
-                    controller: _textController,
-                    maxLines: 2,
-                    minLines: 1,
-                    style: AppTypography.bodyMedium.copyWith(
-                      color: AppColors.ink,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: AppStrings.cafeCustomerVoiceEditHint.tr,
-                      hintStyle: AppTypography.bodySmall.copyWith(
-                        color: AppColors.muted,
-                        fontSize: 13,
-                      ),
-                      prefixIcon: Icon(
-                        Icons.edit_note_rounded,
-                        color: AppColors.secondary,
-                        size: 22,
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
-                    ),
-                    onChanged: (val) {
-                      widget.controller
-                          .onTranscriptReceived(val, triggerSign: true);
-                    },
-                    onSubmitted: (val) {
-                      _submitOrder();
-                    },
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
                   ),
                 ),
+                onChanged: (val) {
+                  widget.controller.onTranscriptReceived(
+                    val,
+                    triggerSign: true,
+                  );
+                },
+                onSubmitted: (val) {
+                  _submitOrder();
+                },
               ),
-            ],
+            ),
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 20),
 
-          // ── Quick Preference Chips ───────────────────────────────────────
+          // ── Quick Preference Chips (Clean Speech-to-Sign Pill Style) ─────
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 AppStrings.cafeCustomerQuickTagsTitle.tr,
-                style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.secondary,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 11,
+                style: AppTypography.labelMedium.copyWith(
+                  color: AppColors.muted,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12.5,
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 10),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
                 child: Row(
                   children: _quickPreferences.map((pref) {
-                    return Container(
-                      margin: const EdgeInsets.only(right: 6),
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
                       child: ActionChip(
                         label: Text(
                           '+ $pref',
                           style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.primary,
+                            color: AppColors.ink,
                             fontWeight: FontWeight.w600,
-                            fontSize: 11,
+                            fontSize: 12,
                           ),
                         ),
-                        backgroundColor: AppColors.paleMist,
+                        backgroundColor: AppColors.surface,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          side: BorderSide(
-                            color: AppColors.border,
-                            width: 1.0,
-                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          side: BorderSide(color: AppColors.border, width: 1.0),
                         ),
                         onPressed: () => _appendPreference(pref),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 0),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                       ),
                     );
                   }).toList(),
@@ -473,92 +392,29 @@ class _CashierOrderDeckCardState extends State<CashierOrderDeckCard>
             ],
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
 
-          // ── Confirm / Send Order Button ──────────────────────────────────
+          // ── Primary Stadium CTA (Speech-to-Sign Reference Style) ─────────
           SizedBox(
             width: double.infinity,
-            height: 48,
+            height: 52,
             child: ElevatedButton.icon(
               onPressed: _submitOrder,
               icon: const Icon(Icons.send_rounded, size: 18),
               label: Text(
                 AppStrings.cafeCashierSubmitOrder.tr,
                 style: AppTypography.labelLarge.copyWith(
-                  color: AppColors.surface,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.3,
+                  color: AppColors.onPrimary,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.2,
                 ),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.surface,
+                foregroundColor: AppColors.onPrimary,
                 elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
+                shape: const StadiumBorder(),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  IconData _getHeaderIcon() {
-    switch (_activeTab) {
-      case CashierDeckTab.signLanguage:
-        return Icons.camera_alt_rounded;
-      case CashierDeckTab.quickDeck:
-        return Icons.touch_app_rounded;
-      case CashierDeckTab.mic:
-        return Icons.mic_rounded;
-    }
-  }
-
-  Widget _buildActiveModeBadge() {
-    String label;
-    IconData icon;
-    Color color;
-
-    switch (_activeTab) {
-      case CashierDeckTab.signLanguage:
-        label = 'Kamera AI Isyarat';
-        icon = Icons.sign_language_rounded;
-        color = AppColors.matcha;
-        break;
-      case CashierDeckTab.quickDeck:
-        label = '1-Tap Cepat';
-        icon = Icons.touch_app_rounded;
-        color = AppColors.secondary;
-        break;
-      case CashierDeckTab.mic:
-        label = 'Mikrofon Suara';
-        icon = Icons.mic_rounded;
-        color = AppColors.amber;
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: color.withValues(alpha: 0.5),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: AppTypography.labelSmall.copyWith(
-              color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 11,
             ),
           ),
         ],
@@ -569,12 +425,12 @@ class _CashierOrderDeckCardState extends State<CashierOrderDeckCard>
   /// 3-Tab Segmented Switcher: [Bahasa Isyarat | 1-Tap | Mic]
   Widget _build3TabSwitcher() {
     return Container(
-      margin: const EdgeInsets.only(top: 14, bottom: 16),
+      margin: const EdgeInsets.only(top: 20, bottom: 20),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: AppColors.paleMist,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border, width: 1.2),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.borderSoft, width: 1.0),
       ),
       child: Row(
         children: [
@@ -619,23 +475,14 @@ class _CashierOrderDeckCardState extends State<CashierOrderDeckCard>
       color: Colors.transparent,
       child: InkWell(
         onTap: () => _switchTab(tab),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(20),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOutCubic,
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
           decoration: BoxDecoration(
             color: isSelected ? AppColors.primary : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.22),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
+            borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -643,9 +490,9 @@ class _CashierOrderDeckCardState extends State<CashierOrderDeckCard>
               Icon(
                 icon,
                 size: 15,
-                color: isSelected ? Colors.white : AppColors.muted,
+                color: isSelected ? AppColors.onPrimary : AppColors.muted,
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 5),
               Flexible(
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
@@ -653,9 +500,11 @@ class _CashierOrderDeckCardState extends State<CashierOrderDeckCard>
                     label,
                     maxLines: 1,
                     style: AppTypography.labelMedium.copyWith(
-                      color: isSelected ? Colors.white : AppColors.ink,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                      fontSize: 11.5,
+                      color: isSelected ? AppColors.onPrimary : AppColors.ink,
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w600,
+                      fontSize: 12,
                     ),
                   ),
                 ),
@@ -681,7 +530,8 @@ class _CashierOrderDeckCardState extends State<CashierOrderDeckCard>
   /// Tab 1 (Default): Bahasa Isyarat - Camera Detection Viewport & Gesture HUD
   Widget _buildCameraSignDetectionSection() {
     return Obx(() {
-      final isCameraOpen = widget.controller.activeCameraFeature.value ==
+      final isCameraOpen =
+          widget.controller.activeCameraFeature.value ==
           CafeCameraActiveFeature.liveOrder;
 
       return Column(
@@ -696,113 +546,84 @@ class _CashierOrderDeckCardState extends State<CashierOrderDeckCard>
                 : _buildClosedCameraPlaceholder(),
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 14),
 
-          // 2. Action Buttons (Buka/Tutup Kamera, Hapus Kata & Reset Isyarat)
+          // 2. Clean Action Buttons (Avoid duplicating "Buka Kamera" when closed)
+          if (isCameraOpen) ...[
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: OutlinedButton.icon(
+                key: const ValueKey('btn_toggle_camera'),
+                onPressed: widget.controller.closeCamera,
+                icon: const Icon(Icons.videocam_off_rounded, size: 17),
+                label: Text(
+                  AppStrings.cafeCloseLiveCamera.tr,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.labelMedium.copyWith(
+                    color: AppColors.secondary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.secondary,
+                  side: BorderSide(color: AppColors.secondary, width: 1.2),
+                  shape: const StadiumBorder(),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
           Row(
             children: [
-              // Tombol Buka / Tutup Kamera
-              Expanded(
-                child: isCameraOpen
-                    ? OutlinedButton.icon(
-                        key: const ValueKey('btn_toggle_camera'),
-                        onPressed: widget.controller.closeCamera,
-                        icon: const Icon(Icons.videocam_off_rounded, size: 15),
-                        label: Text(
-                          AppStrings.cafeCloseLiveCamera.tr,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.secondary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.secondary,
-                          side: BorderSide(color: AppColors.secondary, width: 1.2),
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      )
-                    : ElevatedButton.icon(
-                        key: const ValueKey('btn_toggle_camera'),
-                        onPressed: () {
-                          widget.controller
-                              .openCameraFor(CafeCameraActiveFeature.liveOrder);
-                        },
-                        icon: const Icon(Icons.videocam_rounded, size: 15),
-                        label: Text(
-                          AppStrings.cafeOpenLiveCamera.tr,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTypography.labelSmall.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          elevation: 1,
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-              ),
-              const SizedBox(width: 6),
               // Tombol Hapus Kata
               Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: widget.controller.deleteLastSignWord,
-                  icon: const Icon(Icons.backspace_outlined, size: 14),
-                  label: Text(
-                    AppStrings.cafeCustomerDeleteLastWord.tr,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 10.5,
+                child: SizedBox(
+                  height: 42,
+                  child: OutlinedButton.icon(
+                    onPressed: widget.controller.deleteLastSignWord,
+                    icon: const Icon(Icons.backspace_outlined, size: 15),
+                    label: Text(
+                      AppStrings.cafeCustomerDeleteLastWord.tr,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.labelSmall.copyWith(
+                        color: AppColors.ink,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    side: BorderSide(color: AppColors.border, width: 1.2),
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.ink,
+                      side: BorderSide(color: AppColors.border, width: 1.0),
+                      shape: const StadiumBorder(),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 10),
               // Tombol Reset Isyarat
               Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: widget.controller.clearLiveOrderSentence,
-                  icon: const Icon(Icons.restart_alt_rounded, size: 15),
-                  label: Text(
-                    AppStrings.cafeCustomerClearSentence.tr,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.muted,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 10.5,
+                child: SizedBox(
+                  height: 42,
+                  child: OutlinedButton.icon(
+                    onPressed: widget.controller.clearLiveOrderSentence,
+                    icon: const Icon(Icons.restart_alt_rounded, size: 16),
+                    label: Text(
+                      AppStrings.cafeCustomerClearSentence.tr,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.labelSmall.copyWith(
+                        color: AppColors.muted,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.muted,
-                    side: BorderSide(color: AppColors.border, width: 1.2),
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.muted,
+                      side: BorderSide(color: AppColors.border, width: 1.0),
+                      shape: const StadiumBorder(),
                     ),
                   ),
                 ),
@@ -810,52 +631,48 @@ class _CashierOrderDeckCardState extends State<CashierOrderDeckCard>
             ],
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 18),
 
-          // 3. Quick Sign Simulator Chips
+          // 3. Quick Sign Simulator Chips (Clean Speech-to-Sign Pill Style)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 AppStrings.cafeCustomerQuickSignChips.tr,
-                style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.secondary,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 11,
+                style: AppTypography.labelMedium.copyWith(
+                  color: AppColors.muted,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12.5,
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 10),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
                 child: Row(
                   children: _quickSignWords.map((sign) {
-                    return Container(
-                      margin: const EdgeInsets.only(right: 6),
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
                       child: ActionChip(
-                        avatar: Icon(
-                          Icons.sign_language_rounded,
-                          size: 13,
-                          color: AppColors.secondary,
-                        ),
                         label: Text(
                           sign,
                           style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
+                            color: AppColors.ink,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
                           ),
                         ),
-                        backgroundColor: AppColors.paleMist,
+                        backgroundColor: AppColors.surface,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(20),
                           side: BorderSide(color: AppColors.border, width: 1.0),
                         ),
                         onPressed: () =>
                             widget.controller.addSignWordToLiveOrder(sign),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 0),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                       ),
                     );
                   }).toList(),
@@ -868,88 +685,81 @@ class _CashierOrderDeckCardState extends State<CashierOrderDeckCard>
     });
   }
 
-  /// Tampilan Kamera Standby / Tertutup (Default)
+  /// Tampilan Kamera Standby / Tertutup (Default — Serene Speech-to-Sign Style)
   Widget _buildClosedCameraPlaceholder() {
     return Container(
       key: const ValueKey('closed_camera_placeholder'),
-      height: 240,
+      constraints: const BoxConstraints(minHeight: 224),
       width: double.infinity,
       decoration: BoxDecoration(
         color: AppColors.bgSurface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderSoft, width: 1.0),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 54,
-            height: 54,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
-              color: AppColors.paleMist,
+              color: AppColors.surface,
               shape: BoxShape.circle,
-              border: Border.all(
-                color: AppColors.secondary.withValues(alpha: 0.35),
-                width: 1.5,
-              ),
+              border: Border.all(color: AppColors.border, width: 1.0),
             ),
             child: Icon(
-              Icons.videocam_off_rounded,
-              size: 26,
+              Icons.videocam_rounded,
+              size: 28,
               color: AppColors.secondary,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 14),
           Text(
             AppStrings.cafeCashierCameraClosedTitle.tr,
-            style: AppTypography.titleMedium.copyWith(
+            style: AppTypography.titleSmall.copyWith(
               color: AppColors.ink,
-              fontWeight: FontWeight.bold,
-              fontSize: 14.5,
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
             AppStrings.cafeCashierCameraClosedDesc.tr,
             style: AppTypography.bodySmall.copyWith(
               color: AppColors.muted,
-              fontSize: 11,
-              height: 1.35,
+              fontSize: 12.5,
+              height: 1.4,
             ),
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 14),
-          ElevatedButton.icon(
-            onPressed: () {
-              widget.controller.openCameraFor(CafeCameraActiveFeature.liveOrder);
-            },
-            icon: const Icon(Icons.videocam_rounded, size: 17),
-            label: Text(
-              AppStrings.cafeOpenLiveCamera.tr,
-              style: AppTypography.labelMedium.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
+          const SizedBox(height: 18),
+          SizedBox(
+            height: 46,
+            child: ElevatedButton.icon(
+              key: const ValueKey('btn_toggle_camera'),
+              onPressed: () {
+                widget.controller.openCameraFor(
+                  CafeCameraActiveFeature.liveOrder,
+                );
+              },
+              icon: const Icon(Icons.videocam_rounded, size: 18),
+              label: Text(
+                AppStrings.cafeOpenLiveCamera.tr,
+                style: AppTypography.labelMedium.copyWith(
+                  color: AppColors.onPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              elevation: 2,
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.onPrimary,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                shape: const StadiumBorder(),
               ),
             ),
           ),
@@ -968,7 +778,9 @@ class _CashierOrderDeckCardState extends State<CashierOrderDeckCard>
       title: AppStrings.cafeCashierCameraActiveTitle.tr,
       subtitle: AppStrings.cafeCashierCameraSubtitle.tr,
       modelBadge: widget.controller.activeSignModel.displayName,
-      onClose: widget.controller.closeCamera, // Tombol tutup kamera (X) di pojok kanan atas
+      onClose: widget
+          .controller
+          .closeCamera, // Tombol tutup kamera (X) di pojok kanan atas
       onSwitchCamera: widget.controller.switchCameraLens,
       cameraService: widget.controller.cameraFeedService,
       centerOverlay: signCtrl != null
@@ -987,7 +799,9 @@ class _CashierOrderDeckCardState extends State<CashierOrderDeckCard>
 
               return Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 7),
+                  horizontal: 12,
+                  vertical: 7,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(12),
@@ -1022,12 +836,13 @@ class _CashierOrderDeckCardState extends State<CashierOrderDeckCard>
           ? Obx(() {
               final state = signCtrl.state.value;
               final isSigning = state == BisindoLiveState.signing;
-              final isClassifying =
-                  state == BisindoLiveState.classifying;
+              final isClassifying = state == BisindoLiveState.classifying;
 
               return Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 5),
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.88),
                   borderRadius: BorderRadius.circular(10),
@@ -1035,8 +850,8 @@ class _CashierOrderDeckCardState extends State<CashierOrderDeckCard>
                     color: isSigning
                         ? AppColors.amber
                         : isClassifying
-                            ? AppColors.secondary
-                            : AppColors.matcha,
+                        ? AppColors.secondary
+                        : AppColors.matcha,
                     width: 1.2,
                   ),
                 ),
@@ -1052,8 +867,8 @@ class _CashierOrderDeckCardState extends State<CashierOrderDeckCard>
                         color: isSigning
                             ? AppColors.amber
                             : isClassifying
-                                ? AppColors.secondary
-                                : AppColors.matcha,
+                            ? AppColors.secondary
+                            : AppColors.matcha,
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -1062,8 +877,8 @@ class _CashierOrderDeckCardState extends State<CashierOrderDeckCard>
                         isSigning
                             ? 'Membaca gerakan tangan...'
                             : isClassifying
-                                ? 'Memproses klasifikasi isyarat...'
-                                : AppStrings.cafeCustomerCameraReady.tr,
+                            ? 'Memproses klasifikasi isyarat...'
+                            : AppStrings.cafeCustomerCameraReady.tr,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTypography.labelSmall.copyWith(
@@ -1085,33 +900,34 @@ class _CashierOrderDeckCardState extends State<CashierOrderDeckCard>
   Widget _buildQuickDeckSection() {
     return Container(
       key: const ValueKey('cashier_quick_deck_section'),
-      child: Obx(() => CashierQuickDeck(
-        activeIndex: widget.controller.activeQuickDeckIndex.value,
-        onExecute: widget.controller.executeQuickDeck,
-        isEmbedded: true,
-      )),
+      child: Obx(
+        () => CashierQuickDeck(
+          activeIndex: widget.controller.activeQuickDeckIndex.value,
+          onExecute: widget.controller.executeQuickDeck,
+          isEmbedded: true,
+        ),
+      ),
     );
   }
 
-  /// Tab 3: Suara / Microphone Action Hero
+  /// Tab 3: Suara / Microphone Action Hero (Clean Speech-to-Sign Reference Style)
   Widget _buildVoiceMicrophoneHero() {
     return Obx(() {
       final isListening = widget.controller.isListening.value;
-      return Container(
+      return Padding(
         key: const ValueKey('cashier_voice_mode_hero'),
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-        decoration: BoxDecoration(
-          color: isListening
-              ? AppColors.amber.withValues(alpha: 0.08)
-              : AppColors.bgSurface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isListening ? AppColors.amber : AppColors.border,
-            width: isListening ? 1.5 : 1.0,
-          ),
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
         child: Column(
           children: [
+            Text(
+              AppStrings.cafeCashierMicHint.tr,
+              textAlign: TextAlign.center,
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.muted,
+                fontSize: 12.5,
+              ),
+            ),
+            const SizedBox(height: 18),
             GestureDetector(
               onTap: widget.controller.toggleListening,
               child: AnimatedBuilder(
@@ -1120,21 +936,21 @@ class _CashierOrderDeckCardState extends State<CashierOrderDeckCard>
                   return Transform.scale(
                     scale: isListening ? _pulseAnimation.value : 1.0,
                     child: Container(
-                      width: 68,
-                      height: 68,
+                      width: 78,
+                      height: 78,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: isListening
-                            ? AppColors.amber
+                            ? AppColors.secondary
                             : AppColors.primary,
                         boxShadow: [
                           BoxShadow(
                             color: (isListening
-                                    ? AppColors.amber
-                                    : AppColors.primary)
-                                .withValues(alpha: 0.28),
-                            blurRadius: isListening ? 16 : 8,
-                            spreadRadius: isListening ? 4 : 1,
+                                    ? AppColors.secondary
+                                    : Colors.black)
+                                .withValues(alpha: isListening ? 0.30 : 0.14),
+                            blurRadius: isListening ? 20 : 12,
+                            spreadRadius: isListening ? 4 : 0,
                           ),
                         ],
                       ),
@@ -1142,32 +958,23 @@ class _CashierOrderDeckCardState extends State<CashierOrderDeckCard>
                         isListening
                             ? Icons.mic_rounded
                             : Icons.mic_none_rounded,
-                        size: 34,
-                        color: Colors.white,
+                        size: 36,
+                        color: AppColors.onPrimary,
                       ),
                     ),
                   );
                 },
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
             Text(
               isListening
                   ? AppStrings.cafeCashierMicListening.tr
                   : AppStrings.cafeCashierMicTap.tr,
               textAlign: TextAlign.center,
               style: AppTypography.labelMedium.copyWith(
-                color: isListening ? AppColors.amber : AppColors.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              AppStrings.cafeCashierMicHint.tr,
-              textAlign: TextAlign.center,
-              style: AppTypography.labelSmall.copyWith(
-                color: AppColors.muted,
-                fontSize: 11,
+                color: isListening ? AppColors.secondary : AppColors.muted,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],

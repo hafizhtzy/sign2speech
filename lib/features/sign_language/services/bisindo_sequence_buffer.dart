@@ -215,7 +215,7 @@ class BisindoSequenceBuffer {
     return tensor;
   }
 
-  /// Offloads 706-D tensor generation to a background Isolate.
+  /// Offloads 706-D flat tensor generation to a background Isolate.
   Future<Float32List> buildModelTensorAsync() {
     final framesCopy = List<Float32List>.from(_capturedBaseFeatures);
     return Isolate.run(() {
@@ -224,6 +224,18 @@ class BisindoSequenceBuffer {
         buffer.addBaseFeature(f);
       }
       return buffer.buildModelTensor();
+    });
+  }
+
+  /// Offloads nested [1, 48, 706] model input tensor generation to a background Isolate.
+  Future<List<List<List<double>>>> prepareModelInputAsync() {
+    final framesCopy = List<Float32List>.from(_capturedBaseFeatures);
+    return Isolate.run(() {
+      final buffer = BisindoSequenceBuffer();
+      for (final f in framesCopy) {
+        buffer.addBaseFeature(f);
+      }
+      return buffer.prepareModelInput();
     });
   }
 }

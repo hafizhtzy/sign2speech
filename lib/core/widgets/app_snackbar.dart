@@ -30,82 +30,83 @@ class AppSnackbar {
   }) {
     final isDark = AppColors.isDark;
 
-    Color bgColor;
-    Color borderColor;
-    Color textColor;
-    Color subtextColor;
-    Color iconColor;
-    IconData defaultIcon;
-
-    switch (variant) {
-      case SnackbarVariant.success:
-        defaultIcon = Icons.check_circle_rounded;
-        if (isDark) {
-          bgColor = const Color(0xFF142418);
-          borderColor = const Color(0xFF43734D);
-          textColor = const Color(0xFFFFFFFF);
-          subtextColor = const Color(0xFFA5D6A7);
-          iconColor = const Color(0xFF81C784);
-        } else {
-          bgColor = const Color(0xFF233628);
-          borderColor = const Color(0xFF4A6B53);
-          textColor = const Color(0xFFFFFFFF);
-          subtextColor = const Color(0xFFD2E8D7);
-          iconColor = const Color(0xFF88D89C);
-        }
-        break;
-
-      case SnackbarVariant.warning:
-        defaultIcon = Icons.warning_amber_rounded;
-        if (isDark) {
-          bgColor = const Color(0xFF26190B);
-          borderColor = const Color(0xFFD97724);
-          textColor = const Color(0xFFFFFFFF);
-          subtextColor = const Color(0xFFFFCC80);
-          iconColor = const Color(0xFFFFB74D);
-        } else {
-          bgColor = const Color(0xFF382310);
-          borderColor = const Color(0xFFD97724);
-          textColor = const Color(0xFFFFFFFF);
-          subtextColor = const Color(0xFFFFE0B2);
-          iconColor = const Color(0xFFFFB74D);
-        }
-        break;
-
-      case SnackbarVariant.error:
-        defaultIcon = Icons.error_outline_rounded;
-        if (isDark) {
-          bgColor = const Color(0xFF2A0F0F);
-          borderColor = const Color(0xFFCF6679);
-          textColor = const Color(0xFFFFFFFF);
-          subtextColor = const Color(0xFFFFCDD2);
-          iconColor = const Color(0xFFEF9A9A);
-        } else {
-          bgColor = const Color(0xFF3A1212);
-          borderColor = const Color(0xFFBA1A1A);
-          textColor = const Color(0xFFFFFFFF);
-          subtextColor = const Color(0xFFFFCDD2);
-          iconColor = const Color(0xFFFF8A80);
-        }
-        break;
-
-      case SnackbarVariant.info:
-        defaultIcon = Icons.info_outline_rounded;
-        if (isDark) {
-          bgColor = AppColors.darkBgSurface;
-          borderColor = AppColors.darkBorderSoft;
-          textColor = AppColors.darkInk;
-          subtextColor = AppColors.darkMuted;
-          iconColor = const Color(0xFFD49B78);
-        } else {
-          bgColor = AppColors.lightPrimary;
-          borderColor = AppColors.lightSecondary.withValues(alpha: 0.35);
-          textColor = const Color(0xFFFDFBF7);
-          subtextColor = const Color(0xFFE6DCD2);
-          iconColor = const Color(0xFFD49B78);
-        }
-        break;
-    }
+    final (
+      Color bgColor,
+      Color borderColor,
+      Color textColor,
+      Color subtextColor,
+      Color iconColor,
+      IconData defaultIcon,
+    ) = switch (variant) {
+      SnackbarVariant.success => isDark
+          ? (
+              const Color(0xFF132618),
+              const Color(0xFF4E8A5C),
+              const Color(0xFFFFFFFF),
+              const Color(0xFFDCF5E0),
+              const Color(0xFF81C784),
+              Icons.check_circle_rounded,
+            )
+          : (
+              const Color(0xFF233628),
+              const Color(0xFF4A6B53),
+              const Color(0xFFFFFFFF),
+              const Color(0xFFE6F4E9),
+              const Color(0xFF88D89C),
+              Icons.check_circle_rounded,
+            ),
+      SnackbarVariant.warning => isDark
+          ? (
+              const Color(0xFF2A1A0A),
+              const Color(0xFFE88B35),
+              const Color(0xFFFFFFFF),
+              const Color(0xFFFFE8C2),
+              const Color(0xFFFFB74D),
+              Icons.warning_amber_rounded,
+            )
+          : (
+              const Color(0xFF382310),
+              const Color(0xFFD97724),
+              const Color(0xFFFFFFFF),
+              const Color(0xFFFFE8C8),
+              const Color(0xFFFFB74D),
+              Icons.warning_amber_rounded,
+            ),
+      SnackbarVariant.error => isDark
+          ? (
+              const Color(0xFF2E1014),
+              const Color(0xFFE06C7E),
+              const Color(0xFFFFFFFF),
+              const Color(0xFFFFE0E3),
+              const Color(0xFFFF8A9A),
+              Icons.error_outline_rounded,
+            )
+          : (
+              const Color(0xFF3A1212),
+              const Color(0xFFBA1A1A),
+              const Color(0xFFFFFFFF),
+              const Color(0xFFFFE0E3),
+              const Color(0xFFFF8A80),
+              Icons.error_outline_rounded,
+            ),
+      SnackbarVariant.info => isDark
+          ? (
+              const Color(0xFF222222),
+              const Color(0xFF3E3E3E),
+              const Color(0xFFFFFFFF),
+              const Color(0xFFE5E5E5),
+              AppColors.darkSecondary,
+              Icons.info_outline_rounded,
+            )
+          : (
+              AppColors.lightPrimary,
+              AppColors.lightSecondary.withValues(alpha: 0.35),
+              const Color(0xFFFDFBF7),
+              const Color(0xFFEFE6DC),
+              AppColors.darkSecondary,
+              Icons.info_outline_rounded,
+            ),
+    };
 
     final chosenIcon = icon ?? defaultIcon;
 
@@ -115,6 +116,7 @@ class AppSnackbar {
       snackPosition: position,
       duration: duration,
       backgroundColor: bgColor,
+      colorText: textColor,
       borderColor: borderColor,
       borderWidth: 1.2,
       borderRadius: 14,
@@ -124,8 +126,8 @@ class AppSnackbar {
       forwardAnimationCurve: Curves.easeOutCubic,
       boxShadows: [
         BoxShadow(
-          color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.2),
-          blurRadius: 16,
+          color: Colors.black.withValues(alpha: isDark ? 0.38 : 0.18),
+          blurRadius: 14,
           offset: const Offset(0, 4),
         ),
       ],

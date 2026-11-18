@@ -29,16 +29,14 @@ enum WindowSizeClass {
 
 /// Extension on [BuildContext] for clean and performant responsive queries.
 extension ResponsiveContext on BuildContext {
-  /// Window Size Class derived from available window width.
+  /// Window Size Class derived from available window width using Dart 3 relational patterns.
   WindowSizeClass get windowSizeClass {
     final width = MediaQuery.sizeOf(this).width;
-    if (width < ResponsiveBreakpoints.compactMaxWidth) {
-      return WindowSizeClass.compact;
-    } else if (width < ResponsiveBreakpoints.mediumMaxWidth) {
-      return WindowSizeClass.medium;
-    } else {
-      return WindowSizeClass.expanded;
-    }
+    return switch (width) {
+      < ResponsiveBreakpoints.compactMaxWidth => WindowSizeClass.compact,
+      < ResponsiveBreakpoints.mediumMaxWidth => WindowSizeClass.medium,
+      _ => WindowSizeClass.expanded,
+    };
   }
 
   /// Whether current app window is phone / compact form factor (< 600dp).
@@ -73,14 +71,12 @@ class AdaptiveLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth >= ResponsiveBreakpoints.mediumMaxWidth) {
-          return (expanded ?? medium ?? compact)(context);
-        } else if (constraints.maxWidth >=
-            ResponsiveBreakpoints.compactMaxWidth) {
-          return (medium ?? compact)(context);
-        } else {
-          return compact(context);
-        }
+        final builder = switch (constraints.maxWidth) {
+          >= ResponsiveBreakpoints.mediumMaxWidth => expanded ?? medium ?? compact,
+          >= ResponsiveBreakpoints.compactMaxWidth => medium ?? compact,
+          _ => compact,
+        };
+        return builder(context);
       },
     );
   }

@@ -4,9 +4,8 @@ import 'package:speech2sign/core/localization/app_strings.dart';
 import 'package:speech2sign/core/theme/app_colors.dart';
 import 'package:speech2sign/core/theme/app_typography.dart';
 import 'package:speech2sign/features/sign_language/controllers/text_to_sign_controller.dart';
-import 'package:speech2sign/features/sign_language/models/sign_language_model.dart';
 import 'package:speech2sign/features/sign_language/models/sign_video_entry.dart';
-import 'package:speech2sign/features/sign_language/widgets/sign_video_player.dart';
+import 'package:speech2sign/features/sign_language/widgets/immersive_sign_video_card.dart';
 
 import '../controllers/cafe_cashier_controller.dart';
 
@@ -70,150 +69,80 @@ class _CafeCashierSignVideoCardState extends State<CafeCashierSignVideoCard> {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border, width: 1.2),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.border, width: 1.0),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(alpha: AppColors.isDark ? 0.28 : 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ── Header Bar ───────────────────────────────────────────────────
+          // ── Clean Editorial Header (Zero Clutter Pills or Icon Boxes) ───
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.fromLTRB(22, 18, 12, 18),
+            child: Row(
+              crossAxisAlignment: .center,
               children: [
-                // Tier 1: Ikon, Judul & Subjudul, Tombol Lipat (Chevron)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(
-                        Icons.sign_language_rounded,
-                        size: 22,
-                        color: AppColors.secondary,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            AppStrings.cafeCashierSignVideoTitle.tr,
-                            style: AppTypography.titleSmall.copyWith(
-                              color: AppColors.ink,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            AppStrings.cafeCashierSignVideoSubtitle.tr,
-                            style: AppTypography.bodySmall.copyWith(
-                              color: AppColors.muted,
-                              fontSize: 11,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    IconButton(
-                      icon: Icon(
-                        _isCollapsed
-                            ? Icons.keyboard_arrow_down_rounded
-                            : Icons.keyboard_arrow_up_rounded,
-                        size: 22,
-                        color: AppColors.muted,
-                      ),
-                      tooltip: _isCollapsed ? 'Perluas' : 'Ciutkan',
-                      onPressed: () {
-                        setState(() {
-                          _isCollapsed = !_isCollapsed;
-                        });
-                      },
-                      constraints: const BoxConstraints(
-                        minWidth: 44,
-                        minHeight: 44,
-                      ),
-                      padding: EdgeInsets.zero,
-                    ),
-                  ],
-                ),
-
-                // Tier 2: Sub-Header Status Badges & Model Switcher
-                const SizedBox(height: 10),
-                Obx(() {
-                  final entry = tts.currentEntry.value;
-                  return Row(
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: .start,
                     children: [
-                      if (entry != null) ...[
-                        _buildSourceBadge(entry),
-                        const SizedBox(width: 8),
-                      ],
-                      _buildModelSwitchBadge(),
-                      const Spacer(),
-                      // Micro-Indicator: Live Audio Sync
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                      Text(
+                        AppStrings.cafeCashierSignVideoTitle.tr,
+                        style: AppTypography.titleSmall.copyWith(
+                          color: AppColors.ink,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15.5,
                         ),
-                        decoration: BoxDecoration(
-                          color: AppColors.paleMist,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.border),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        AppStrings.cafeCashierSignVideoSubtitle.tr,
+                        style: AppTypography.bodySmall.copyWith(
+                          color: AppColors.muted,
+                          fontSize: 12.5,
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 6,
-                              height: 6,
-                              decoration: BoxDecoration(
-                                color: AppColors.matcha,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              'Live Audio Sync',
-                              style: AppTypography.labelSmall.copyWith(
-                                color: AppColors.muted,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
-                  );
-                }),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: Icon(
+                    _isCollapsed
+                        ? Icons.keyboard_arrow_down_rounded
+                        : Icons.keyboard_arrow_up_rounded,
+                    size: 22,
+                    color: AppColors.muted,
+                  ),
+                  tooltip: _isCollapsed ? 'Perluas' : 'Ciutkan',
+                  onPressed: () {
+                    setState(() {
+                      _isCollapsed = !_isCollapsed;
+                    });
+                  },
+                  constraints: const BoxConstraints(
+                    minWidth: 48,
+                    minHeight: 48,
+                  ),
+                  padding: EdgeInsets.zero,
+                ),
               ],
             ),
           ),
 
           // ── Video Content & Word Playlist (Visible when expanded) ────────
           if (!_isCollapsed) ...[
-            Divider(height: 1, thickness: 1, color: AppColors.border),
+            Divider(height: 1, thickness: 1, color: AppColors.borderSoft),
             Obx(() {
               final playlist = tts.playlist;
               final currentSource = tts.currentVideoSource.value;
@@ -229,7 +158,7 @@ class _CafeCashierSignVideoCardState extends State<CafeCashierSignVideoCard> {
               }
 
               return Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -238,20 +167,23 @@ class _CafeCashierSignVideoCardState extends State<CafeCashierSignVideoCard> {
                         currentEntry.source == SignVideoSource.remote)
                       _buildRemoteDownloadBar(currentEntry, tts),
 
-                    // Embedded Video Player
-                    SignVideoPlayer(
+                    // Immersive Full-Bleed Portrait Player (Hasil Speech-to-Sign Style)
+                    ImmersiveSignVideoCard(
                       playlist: tts.playlist,
                       activeWordIndex: tts.activeWordIndex.value,
                       videoSource: tts.currentVideoSource.value,
+                      spokenPhrase: _cashierCtrl.liveTranscript.value.isNotEmpty
+                          ? _cashierCtrl.liveTranscript.value
+                          : tts.recognizedWords.value,
+                      signLanguageLabel: tts.selectedLanguage.value,
+                      cardHeight: 330,
                       isLoading: tts.isLoadingVideo.value,
                       isDownloading: tts.isDownloading.value,
                       downloadProgress: tts.downloadProgress.value,
                       playbackSpeed: tts.playbackSpeed.value,
                       isLooping: tts.isLooping.value,
-                      onWordSelected: (index) =>
-                          tts.selectWordIndex(index),
-                      onSpeedChanged: (speed) =>
-                          tts.setPlaybackSpeed(speed),
+                      onWordSelected: (index) => tts.selectWordIndex(index),
+                      onVideoCompleted: () => tts.onVideoFinished(),
                       onToggleLoop: () => tts.toggleLooping(),
                       errorMessage: tts.errorMessage.value,
                       onDownload: (currentEntry != null &&
@@ -259,176 +191,12 @@ class _CafeCashierSignVideoCardState extends State<CafeCashierSignVideoCard> {
                           ? () => tts.downloadAndPlay(currentEntry)
                           : null,
                     ),
-
-                    const SizedBox(height: 10),
-
-                    // Word Sequence Chips
-                    if (playlist.length > 1) ...[
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.playlist_play_rounded,
-                            size: 14,
-                            color: AppColors.secondary,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            AppStrings.cafeCashierSignWordChips.tr,
-                            style: AppTypography.labelSmall.copyWith(
-                              color: AppColors.secondary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        child: Row(
-                          children: playlist.asMap().entries.map((item) {
-                            final idx = item.key;
-                            final entry = item.value;
-                            final isPlaying =
-                                idx == tts.activeWordIndex.value;
-                            return Container(
-                              margin: const EdgeInsets.only(right: 6),
-                              child: InkWell(
-                                onTap: () => tts.selectWordIndex(idx),
-                                borderRadius: BorderRadius.circular(8),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isPlaying
-                                        ? AppColors.primary
-                                        : AppColors.paleMist,
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: isPlaying
-                                          ? AppColors.primary
-                                          : AppColors.border,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      if (isPlaying) ...[
-                                        const Icon(
-                                          Icons.play_arrow_rounded,
-                                          size: 14,
-                                          color: Colors.white,
-                                        ),
-                                        const SizedBox(width: 3),
-                                      ],
-                                      Text(
-                                        entry.label,
-                                        style: AppTypography.labelSmall
-                                            .copyWith(
-                                          color: isPlaying
-                                              ? Colors.white
-                                              : AppColors.ink,
-                                          fontWeight: isPlaying
-                                              ? FontWeight.bold
-                                              : FontWeight.w600,
-                                          fontSize: 11,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               );
             }),
           ],
         ],
-      ),
-    );
-  }
-
-  Widget _buildSourceBadge(SignVideoEntry entry) {
-    final isAsset = entry.source == SignVideoSource.asset;
-    final isCached = entry.source == SignVideoSource.localCached;
-    final isOffline = isAsset || isCached;
-
-    final color = isOffline ? AppColors.matcha : AppColors.amber;
-    final label = isAsset
-        ? AppStrings.cafeCashierSignOfflineBadge.tr
-        : (isCached
-            ? AppStrings.cafeCashierSignCachedBadge.tr
-            : AppStrings.cafeCashierSignOnlineBadge.tr);
-    final icon = isAsset
-        ? Icons.offline_pin_rounded
-        : (isCached ? Icons.save_rounded : Icons.cloud_outlined);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: color),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: AppTypography.labelSmall.copyWith(
-              color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 11,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildModelSwitchBadge() {
-    final activeModel = _cashierCtrl.activeSignModel;
-    final isSibi = activeModel == SignLanguageModel.sibi;
-    return InkWell(
-      onTap: () {
-        final next = isSibi
-            ? SignLanguageModel.bisindo
-            : SignLanguageModel.sibi;
-        _cashierCtrl.switchSignLanguageModel(next);
-      },
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: AppColors.paleMist,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              activeModel.displayName,
-              style: AppTypography.labelSmall.copyWith(
-                color: AppColors.ink,
-                fontWeight: FontWeight.bold,
-                fontSize: 11,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Icon(Icons.swap_horiz_rounded, size: 13, color: AppColors.secondary),
-          ],
-        ),
       ),
     );
   }
@@ -568,68 +336,66 @@ class _CafeCashierSignVideoCardState extends State<CafeCashierSignVideoCard> {
 
   Widget _buildStandbyState() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
       child: Column(
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
               color: AppColors.bgSurface,
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.border),
             ),
             child: Icon(
-              Icons.record_voice_over_outlined,
-              size: 22,
+              Icons.sign_language_rounded,
+              size: 24,
               color: AppColors.secondary,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 14),
           Text(
             AppStrings.cafeCashierSignStandby.tr,
             style: AppTypography.titleSmall.copyWith(
               color: AppColors.ink,
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              fontSize: 14.5,
             ),
           ),
-          const SizedBox(height: 3),
+          const SizedBox(height: 4),
           Text(
             AppStrings.cafeCashierSignStandbyDesc.tr,
             textAlign: TextAlign.center,
             style: AppTypography.bodySmall.copyWith(
               color: AppColors.muted,
-              fontSize: 11,
-              height: 1.3,
+              fontSize: 12.5,
+              height: 1.4,
             ),
           ),
-          const SizedBox(height: 12),
-          // Demo Test Word Chips
+          const SizedBox(height: 18),
+          // Clean sample chips matching Speech to Sign style
           Wrap(
-            spacing: 6,
-            runSpacing: 4,
+            spacing: 8,
+            runSpacing: 8,
             alignment: WrapAlignment.center,
             children: _sampleTestWords.map((word) {
               return ActionChip(
                 label: Text(
                   'Coba: $word',
                   style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.primary,
+                    color: AppColors.ink,
                     fontWeight: FontWeight.w600,
-                    fontSize: 10,
+                    fontSize: 12,
                   ),
                 ),
-                backgroundColor: AppColors.paleMist,
+                backgroundColor: AppColors.surface,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(20),
                   side: BorderSide(color: AppColors.border),
                 ),
                 onPressed: () {
                   _cashierCtrl.onTranscriptReceived(word, triggerSign: true);
                 },
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               );
             }).toList(),
           ),

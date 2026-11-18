@@ -34,16 +34,23 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // 1. Initial State: Shows All entries, language pills 'Semua', 'BISINDO', 'SIBI'
-      expect(find.textContaining('Semua ('), findsOneWidget);
-      expect(find.textContaining('BISINDO ('), findsOneWidget);
-      expect(find.textContaining('SIBI ('), findsOneWidget);
+      // 1. Initial State: Shows All entries, clean language pills without explicit vocab counts
+      final semuaTab = find.text('Semua').first;
+      final bisindoTab = find.text('BISINDO').first;
+      final sibiTab = find.text('SIBI').first;
+      expect(semuaTab, findsOneWidget);
+      expect(bisindoTab, findsOneWidget);
+      expect(sibiTab, findsOneWidget);
+      expect(find.textContaining('Semua ('), findsNothing);
+      expect(find.textContaining('BISINDO ('), findsNothing);
+      expect(find.textContaining('SIBI ('), findsNothing);
+      expect(find.textContaining('isyarat)'), findsNothing);
 
       // Initial view should contain top visible items
       expect(find.text('Halo'), findsOneWidget);
 
       // 2. Tap SIBI filter pill
-      await tester.tap(find.textContaining('SIBI ('));
+      await tester.tap(sibiTab);
       await tester.pumpAndSettle();
 
       // Should show SIBI items (Aku, Bantu), but hide BISINDO-only items like 'Halo'
@@ -52,7 +59,7 @@ void main() {
       expect(find.text('Halo'), findsNothing);
 
       // 3. Tap BISINDO filter pill
-      await tester.tap(find.textContaining('BISINDO ('));
+      await tester.tap(bisindoTab);
       await tester.pumpAndSettle();
 
       // Should show BISINDO items (Halo), but hide SIBI items like 'Aku'
@@ -61,7 +68,7 @@ void main() {
 
       // 4. Test Category Filter Pill: Tap ChoiceChip 'Harian'
       // Return to 'Semua' language
-      await tester.tap(find.textContaining('Semua ('));
+      await tester.tap(semuaTab);
       await tester.pumpAndSettle();
 
       await tester.tap(find.widgetWithText(ChoiceChip, 'Harian'));
@@ -89,9 +96,9 @@ void main() {
       await tester.drag(find.byType(CustomScrollView), const Offset(0, -600));
       await tester.pumpAndSettle();
 
-      // Check pagination info on page 1
+      // Check pagination info on page 1 (no explicit vocab count shown)
       expect(find.text('Halaman 1 dari 8'), findsOneWidget);
-      expect(find.text('Menampilkan 1-12 dari 90 kosakata'), findsOneWidget);
+      expect(find.textContaining('kosakata'), findsNothing);
 
       // Tap Page 2 chip
       final page2Finder = find.widgetWithText(InkWell, '2');
@@ -104,7 +111,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Halaman 2 dari 8'), findsOneWidget);
-      expect(find.text('Menampilkan 13-24 dari 90 kosakata'), findsOneWidget);
+      expect(find.textContaining('kosakata'), findsNothing);
     },
   );
 }

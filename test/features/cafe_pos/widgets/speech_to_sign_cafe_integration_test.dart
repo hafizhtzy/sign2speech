@@ -99,9 +99,9 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
-      // Check header
+      // Check header (clean UI without redundant status pill)
       expect(find.text('Pesan Kopi Lewat Suara'), findsOneWidget);
-      expect(find.text('Kasir Siap'), findsOneWidget);
+      expect(find.text('Kasir Siap'), findsNothing);
 
       // Check microphone button and hints
       expect(find.byIcon(Icons.mic_none_rounded), findsWidgets);
@@ -206,7 +206,9 @@ void main() {
       await tester.pump();
 
       // Tap Send
-      await tester.tap(find.text('Kirim Pesanan ke Kasir'));
+      final sendBtn = find.text('Kirim Pesanan ke Kasir');
+      await tester.ensureVisible(sendBtn);
+      await tester.tap(sendBtn);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
@@ -438,8 +440,9 @@ void main() {
       expect(textToSignController.playlist, isNotEmpty);
       expect(textToSignController.playlist.first.label, equals('Kopi'));
 
-      // Check that source badge renders (e.g. Offline Aset)
-      expect(find.text('Offline (Aset)'), findsOneWidget);
+      // Redundant header pills removed; offline badge lives cleanly inside player
+      expect(find.text('Offline (Aset)'), findsNothing);
+      expect(find.text('Video Offline'), findsOneWidget);
     });
 
     testWidgets('allows collapsing and expanding the card',

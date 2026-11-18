@@ -90,6 +90,21 @@ class AppStrings {
   static const String chooseRoleSubtitle = 'choose_role_subtitle';
   static const String chooseLangTitle = 'choose_lang_title';
   static const String chooseLangSubtitle = 'choose_lang_subtitle';
+  static const String roleDeafTitle = 'role_deaf_title';
+  static const String roleDeafBadge = 'role_deaf_badge';
+  static const String roleDeafDesc = 'role_deaf_desc';
+  static const String roleHearingTitle = 'role_hearing_title';
+  static const String roleHearingBadge = 'role_hearing_badge';
+  static const String roleHearingDesc = 'role_hearing_desc';
+  static const String signBisindoBadge = 'sign_bisindo_badge';
+  static const String signBisindoFullName = 'sign_bisindo_full_name';
+  static const String signBisindoDesc = 'sign_bisindo_desc';
+  static const String signSibiBadge = 'sign_sibi_badge';
+  static const String signSibiFullName = 'sign_sibi_full_name';
+  static const String signSibiDesc = 'sign_sibi_desc';
+  static const String startUsingApp = 'start_using_app';
+  static const String onboardingRoleHeading = 'onboarding_role_heading';
+  static const String onboardingLangNote = 'onboarding_lang_note';
 
   // Home Screen
   static const String homeGreeting = 'home_greeting';

@@ -1,9 +1,8 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:speech2sign/core/theme/app_colors.dart';
+import 'package:speech2sign/core/widgets/app_snackbar.dart';
 import 'package:speech2sign/features/settings/controllers/settings_controller.dart';
 import 'package:speech2sign/features/sign_language/controllers/sign_language_controller.dart';
 import 'package:speech2sign/features/sign_language/controllers/text_to_sign_controller.dart';
@@ -561,14 +560,9 @@ class CafeCashierController extends GetxController {
 
   void _showStageSnackbar(String title, String message) {
     if (Get.context != null) {
-      Get.snackbar(
-        title,
-        message,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.primary,
-        colorText: AppColors.surface,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 12,
+      AppSnackbar.warning(
+        title: title,
+        message: message,
         duration: const Duration(seconds: 3),
       );
     }
@@ -1665,16 +1659,14 @@ class CafeCashierController extends GetxController {
   Stream<List<CafeOrderTicket>>? streamCloudActiveOrders() =>
       _supabaseCafePosService?.streamActiveOrders();
 
-  /// Fetches recent orders directly from Supabase without consuming local storage
+  /// Fetches recent orders directly from Supabase without consuming local storage using Dart 3 switch expression.
   Future<List<CafeOrderTicket>> fetchCloudOrders({int limit = 50}) async {
     if (_supabaseCafePosService == null) return [];
     final res = await _supabaseCafePosService.fetchRecentOrders(limit: limit);
-    switch (res) {
-      case SupabaseSuccess(:final data):
-        return data;
-      case SupabaseFailure():
-        return [];
-    }
+    return switch (res) {
+      SupabaseSuccess(:final data) => data,
+      SupabaseFailure() => [],
+    };
   }
 
   Future<void> translateBillToSignAndSpeech() async {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:speech2sign/core/theme/app_colors.dart';
+import 'package:speech2sign/core/theme/app_theme.dart';
 import 'package:speech2sign/core/widgets/app_snackbar.dart';
 
 void main() {
@@ -129,6 +130,17 @@ void main() {
       // Drain timer
       await tester.pump(const Duration(seconds: 2));
       await tester.pumpAndSettle();
+    });
+
+    test('AppTheme.darkTheme always bakes high-contrast darkInk text colors even when initialized in light mode', () {
+      AppColors.isDarkModeOverride = false;
+      final darkTheme = AppTheme.darkTheme;
+
+      expect(darkTheme.textTheme.titleMedium?.color, AppColors.darkInk);
+      expect(darkTheme.textTheme.bodyLarge?.color, AppColors.darkInk);
+      expect(darkTheme.textTheme.bodyMedium?.color, AppColors.darkMuted);
+      expect(darkTheme.dialogTheme.backgroundColor, AppColors.darkSurface);
+      expect(darkTheme.dialogTheme.titleTextStyle?.color, AppColors.darkInk);
     });
   });
 }

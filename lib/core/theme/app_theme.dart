@@ -31,7 +31,22 @@ class AppTheme {
         outline: AppColors.lightBorder,
         outlineVariant: AppColors.lightBorderSoft,
       ),
-      textTheme: AppTypography.createTextTheme(),
+      textTheme: AppTypography.createTextTheme(isDark: false),
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.lightSurface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: AppColors.lightBorder, width: 1),
+        ),
+        titleTextStyle: AppTypography.titleMedium.copyWith(
+          color: AppColors.lightInk,
+          fontWeight: FontWeight.w800,
+        ),
+        contentTextStyle: AppTypography.bodyMedium.copyWith(
+          color: AppColors.lightMuted,
+        ),
+      ),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.lightCanvas,
         elevation: 0,
@@ -164,7 +179,22 @@ class AppTheme {
         outline: AppColors.darkBorder,
         outlineVariant: AppColors.darkBorderSoft,
       ),
-      textTheme: AppTypography.createTextTheme(),
+      textTheme: AppTypography.createTextTheme(isDark: true),
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.darkSurface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: AppColors.darkBorderSoft, width: 1.2),
+        ),
+        titleTextStyle: AppTypography.titleMedium.copyWith(
+          color: AppColors.darkInk,
+          fontWeight: FontWeight.w800,
+        ),
+        contentTextStyle: AppTypography.bodyMedium.copyWith(
+          color: AppColors.darkMuted,
+        ),
+      ),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.darkCanvas,
         elevation: 0,

@@ -1,6 +1,6 @@
 # Panduan & Aturan Agent: Proyek Flutter Sign2Speech
 
-Dokumen ini adalah aturan resmi tingkat proyek (*Project Rule*) untuk Google Antigravity dan agen AI dalam pengembangan aplikasi **Sign2Speech**. Aturan ini wajib dipatuhi oleh seluruh agen dan subagen selama mengerjakan proyek.
+Dokumen ini adalah aturan resmi tingkat proyek (*Project Rule & Modern Architecture Constitution*) untuk Google Antigravity dan agen AI dalam pengembangan aplikasi **Sign2Speech** (`speech2sign`). Aturan ini wajib dipatuhi oleh seluruh agen dan subagen selama mengerjakan proyek.
 
 ---
 
@@ -14,7 +14,7 @@ Dokumen ini adalah aturan resmi tingkat proyek (*Project Rule*) untuk Google Ant
    - **Tugas UI/UX, Widget, Layar Baru, Tema, atau Responsif:** WAJIB baca [.agents/rules/ui_development_rules.md](file:///c:/fadli/project/sign2speech/.agents/rules/ui_development_rules.md) serta `SKILL.md` terkait (`ui-ux-pro-max`, `flutter-build-responsive-layout`, `flutter-responsive`, `ui-states`) sebelum mengedit widget!
    - **Tugas Debugging Bug / Error / Layar Putih / Overflow:** WAJIB baca `SKILL.md` dari `systematic-debugging` dan `flutter-fix-layout-issues` / `dart-fix-runtime-errors` sebelum mencoba memperbaiki kode!
    - **Tugas Arsitektur, Controller GetX, & State Management:** WAJIB baca `SKILL.md` dari `flutter-apply-architecture-best-practices` dan `agency-software-architect`!
-   - **Tugas Voice AI (STT/TTS) & Kamera/TFLite:** WAJIB baca `SKILL.md` dari `voice-ai-engine-development`, `android-dev`, atau `performance-profiling`!
+   - **Tugas Voice AI (STT/TTS) & Kamera/TFLite/MediaPipe:** WAJIB baca `SKILL.md` dari `voice-ai-engine-development`, `android-dev`, `performance-profiling`, dan `dart-setup-ffi-assets`!
    - **Tugas Testing & Audit Kode/Keamanan:** WAJIB baca `SKILL.md` dari `test-driven-development`, `agency-code-reviewer`, `security-predeploy-gate`, dan `verification-before-completion`!
 2. **Jika Belum Menemukan Skill yang Pas:**
    - **DILARANG langsung ngoding!** Cari terlebih dahulu di katalog `.agents/skills/` atau baca `skill-advisor` dan `using-superpowers` sampai menemukan skill yang tepat.
@@ -22,7 +22,64 @@ Dokumen ini adalah aturan resmi tingkat proyek (*Project Rule*) untuk Google Ant
 
 ---
 
-## 1. Acuan Visual & Design System
+## 1. Standar Arsitektur Modern Dart & Flutter (Modern SDK Standards)
+
+### A. Wajib Sintaks Dart Modern Terbaru
+1. **Dot Shorthands & Type Inference:**
+   - Gunakan dot shorthands untuk enum, alignment, dan konstruktor kontekstual seperti `.center`, `.none`, `.zero`, `.symmetric(...)` jika tipe target sudah inferable oleh kompilator Dart.
+2. **Pattern Matching & Switch Expressions:**
+   - Seluruh conditional matching yang kompleks, inspeksi tipe, destructuring record/map/list, dan status respons API wajib menggunakan **Dart 3 switch expressions** dan pattern matching exhaustiveness:
+   ```dart
+   final message = switch (result) {
+     SupabaseSuccess(:final data) => 'Berhasil: ${data.length} item',
+     SupabaseFailure(:final error) => 'Gagal: $error',
+   };
+   ```
+3. **Data Classes & Sealed Classes:**
+   - Gunakan `sealed class` untuk representasi state (State Modeling) dan model domain polimorfik.
+4. **Hindari Legacy Boilerplate:**
+   - Terapkan primary constructors, pattern assignment `final (x, y) = getCoordinates();`, dan inline if/collection-for secara deklaratif.
+
+### B. Kompatibilitas Penuh WebAssembly (Wasm)
+Jika project dikompilasi atau mendukung target Web:
+1. **Dilarang Keras Menggunakan Legacy Web Libraries:**
+   - **DILARANG KERAS** mengimpor `dart:html`, `dart:js`, atau `package:js`.
+2. **Wajib Gunakan Modern Web Interop:**
+   - Wajib menggunakan `package:web` dan `dart:js_interop` untuk seluruh interaksi DOM, Web APIs, audio context, dan window bindings.
+3. **Standar Build Web:**
+   - Build web wajib kompatibel dengan kompilasi Wasm (`flutter build web --wasm`) dan **WAJIB menyertakan flag `--web-content-hash`** untuk cache busting aset statis:
+   ```bash
+   flutter build web --wasm --web-content-hash
+   ```
+
+### C. Kamera & Visi Komputer (`flutter-mediapipe` / Native Vision Pipeline)
+1. **Pondasi Arsitektur MediaPipe:**
+   - Gunakan `flutter-mediapipe` (`mediapipe_vision` dan `mediapipe_core`) yang diintegrasikan dengan **Dart Build Hooks** (`hook/build.dart` & `hook/link.dart`) untuk kompilasi C/C++ native assets.
+2. **Lifecycle & Anti-Memory Leak (Mandatory `.dispose()`):**
+   - **WAJIB memanggil `.dispose()`** pada setiap instance detector/recognizer MediaPipe (`HandLandmarker`, `HolisticLandmarker`, `PoseLandmarker`) di dalam `onClose()` controller GetX atau lifecycle cleanup widget.
+3. **Offloading Komputasi Frame:**
+   - Komputasi landmark MediaPipe dan inferensi model MotionGRU/TFLite wajib dijalankan di background `Isolate` / compute worker agar *main thread UI* tetap stabil pada frame budget 60-120 FPS.
+
+### D. Alur Pemrosesan AI Cerdas (`genkit`)
+Jika aplikasi menambahkan fitur AI generatif tingkat lanjut, perbaikan tata bahasa isyarat-ke-teks, atau translasi cerdas berbasis konteks kafe:
+1. **Definisi Flow Terstruktur:**
+   - Wajib menggunakan **Firebase Genkit** (`genkit`) dengan pola deklaratif `ai.defineFlow(...)`.
+2. **Skema & Type Safety:**
+   - Setiap input dan output AI flow wajib didefinisikan menggunakan `@Schema()` / typed schema (TypeProvider) guna menjamin sanitasi output model dan mencegah *malformed JSON responses*.
+3. **Observabilitas & Tracing:**
+   - Manfaatkan Genkit telemetry and evaluation untuk memantau performa, latency, dan token cost.
+
+### E. Gerbang Kualitas Statis Analyzer (Zero-Error & Zero-Deprecation Gate)
+1. **Wajib `dart analyze`:**
+   - Setiap selesai mengedit, menambah kode, atau melakukan refactoring, agen **WAJIB menjalankan `dart analyze`**.
+2. **Standar Kelulusan:**
+   - Kode harus menghasilkan **0 error** dan **0 deprecation warning**.
+3. **Penanganan Deprecated Member:**
+   - Jangan biarkan kode menggunakan API yang telah usang (*deprecated*). Segera ganti dengan API pengganti resmi.
+
+---
+
+## 2. Acuan Visual & Design System
 
 1. **Sumber Kebenaran Visual (Single Source of Truth):**
    - **Palet Warna "Cafe Warm Oat Milk / Espresso" ([AppColors](file:///c:/fadli/project/sign2speech/lib/core/theme/app_colors.dart)):**
@@ -55,7 +112,7 @@ Dokumen ini adalah aturan resmi tingkat proyek (*Project Rule*) untuk Google Ant
 
 ---
 
-## 2. Arsitektur Kode & State Management
+## 3. Arsitektur Kode & State Management
 
 1. **State Management & DI:**
    - Proyek ini secara resmi menggunakan **Flutter + GetX** (`GetxController`, `Bindings`, `GetView`/`GetWidget`).
@@ -64,12 +121,16 @@ Dokumen ini adalah aturan resmi tingkat proyek (*Project Rule*) untuk Google Ant
    - **Presentation Layer (`ui/` atau `presentation/`):** View dan GetxController. Tidak boleh ada dependensi `BuildContext` di luar widget tree atau di dalam domain/data layer.
    - **Domain Layer (`domain/`):** Entitas murni dan interface repository tanpa dependensi framework UI.
    - **Data Layer (`data/`):** Implementasi repository, data source (MediaPipe native event channel, TFLite Flutter, FIFO TTS queue, STT, tiered video cache).
-3. **Versi Dependensi:**
-   - Gunakan selalu dokumentasi yang sesuai dengan versi dependensi riil di [pubspec.yaml](file:///c:/speech2sign/pubspec.yaml) dan [pubspec.lock](file:///c:/speech2sign/pubspec.lock) (Flutter 3.47.x, Dart 3.13.x).
+3. **Versi Dependensi & Dependency Lock:**
+   - Gunakan selalu dokumentasi yang sesuai dengan versi dependensi riil di [pubspec.yaml](file:///c:/speech2sign/pubspec.yaml) dan [pubspec.lock](file:///c:/speech2sign/pubspec.lock) (Flutter 3.50.x, Dart 3.14.x).
+   - Dilarang menambah package baru tanpa izin eksplisit pengguna.
+4. **Batas 500 Baris Kode (500-LOC Confirmation Gate):**
+   - File controller, view, dan service wajib modular ($\le 300 - 450$ baris).
+   - Jika file akan melampaui $\pm 500$ baris, agen **WAJIB meminta konfirmasi terlebih dahulu** kepada pengguna sebelum memecah file.
 
 ---
 
-## 3. Pembagian Peran & Pemanggilan Skill
+## 4. Pembagian Peran & Pemanggilan Skill
 
 Muat persona agent atau skill secara spesifik sesuai tugas (*progressive disclosure*), jangan memuat seluruh katalog sekaligus:
 
@@ -77,6 +138,7 @@ Muat persona agent atau skill secara spesifik sesuai tugas (*progressive disclos
 | :--- | :--- | :--- | :--- |
 | **Arsitektur Sistem** | `agency-software-architect` | `flutter-apply-architecture-best-practices` | Kawal pemisahan Presentation, Domain, Data. Domain murni bebas GetX/UI; Controller bebas BuildContext. |
 | **Implementasi Flutter & Mobile** | `agency-mobile-app-builder` | `flutter-expert`, `mobile-developer`, `flutter-build-responsive-layout`, `flutter-fix-layout-issues` | Implementasi widget GetX, layout responsif, touch target >= 48 dp, dan bridging CameraX EventChannel. |
+| **Modern Dart & FFI/Hooks** | `agency-software-architect` | `dart-use-pattern-matching`, `dart-setup-ffi-assets`, `dart-use-ffigen` | Terapkan pattern matching Dart 3, switch expressions, dan Native Assets hooks. |
 | **Integrasi Voice AI (STT/TTS)** | `agency-voice-ai-integration-engineer` | `voice-ai-engine-development` | Kelola STT `id-ID`, antrean serial FIFO TTS, buffer ejaan alfabet 1500ms. Dilarang switch ke cloud/Whisper tanpa izin. |
 | **Desain UI/UX & Visual** | `agency-ui-designer`, `agency-ux-architect` | `ui-ux-pro-max`, `design-system` | Acuan mutlak `DESIGN.md` (Cafe Warm Oat Milk / Espresso), font Plus Jakarta Sans, dan aset `assets/komponen_img/`. |
 | **Aksesibilitas Universal** | `agency-accessibility-auditor` | `screen-reader-testing`, `accessibility-compliance-accessibility-audit` | Evaluasi kontras WCAG, touch target minimum 48 dp, dan uji screen reader. |
@@ -88,7 +150,7 @@ Muat persona agent atau skill secara spesifik sesuai tugas (*progressive disclos
 
 ---
 
-## 4. Integritas Kontrak Model MotionGRU & Machine Learning
+## 5. Integritas Kontrak Model MotionGRU & Machine Learning
 
 1. **Verifikasi Kontrak:**
    - Kontrak MotionGRU (ekstraksi 353 fitur spasial + 353 delta velocity = 706-D, 543 koordinat MediaPipe Holistic, Float16 tensor shape, urutan fitur, label BISINDO/SIBI, dan preprocessing) **wajib diverifikasi langsung dari berkas model dan kode training asli**.
@@ -100,7 +162,7 @@ Muat persona agent atau skill secara spesifik sesuai tugas (*progressive disclos
 
 ---
 
-## 5. Standar Wajib Pengembangan & Keamanan Supabase (Best Practices)
+## 6. Standar Wajib Pengembangan & Keamanan Supabase (Best Practices)
 
 Setiap agen yang membuat atau memodifikasi fitur yang bersangkutan dengan Supabase **wajib mengikuti aturan baku ini**:
 

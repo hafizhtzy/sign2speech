@@ -8,6 +8,7 @@ import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_card.dart';
+import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/responsive_layout.dart';
 import '../../core/widgets/status_badge.dart';
 import '../../features/history/controllers/history_controller.dart';
@@ -931,9 +932,11 @@ class _HomeScreenState extends State<HomeScreen> {
             border: Border.all(color: AppColors.border, width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.14),
-                blurRadius: 24,
-                offset: const Offset(0, 10),
+                color: Colors.black.withValues(
+                  alpha: AppColors.isDark ? 0.45 : 0.14,
+                ),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
@@ -1006,14 +1009,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     }
                     Get.back();
-                    Get.snackbar(
-                      'Model Isyarat Diperbarui',
-                      'Model aktif sekarang: BISINDO',
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: AppColors.primary,
-                      colorText: Colors.white,
-                      margin: const EdgeInsets.all(16),
-                      borderRadius: 12,
+                    AppSnackbar.success(
+                      title: 'Model Isyarat Diperbarui',
+                      message: 'Model aktif sekarang: BISINDO',
                       duration: const Duration(seconds: 2),
                     );
                   },
@@ -1040,14 +1038,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     }
                     Get.back();
-                    Get.snackbar(
-                      'Model Isyarat Diperbarui',
-                      'Model aktif sekarang: SIBI',
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: AppColors.primary,
-                      colorText: Colors.white,
-                      margin: const EdgeInsets.all(16),
-                      borderRadius: 12,
+                    AppSnackbar.success(
+                      title: 'Model Isyarat Diperbarui',
+                      message: 'Model aktif sekarang: SIBI',
                       duration: const Duration(seconds: 2),
                     );
                   },
@@ -1123,10 +1116,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 child: isSelected
-                    ? const Center(
+                    ? Center(
                         child: Icon(
                           Icons.check_rounded,
-                          color: Colors.white,
+                          color: AppColors.onPrimary,
                           size: 16,
                         ),
                       )

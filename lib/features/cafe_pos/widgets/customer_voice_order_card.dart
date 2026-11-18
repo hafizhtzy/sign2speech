@@ -175,16 +175,17 @@ class _CustomerVoiceOrderCardState extends State<CustomerVoiceOrderCard>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColors.isDark;
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border, width: 1.2),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.border, width: 1.0),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.05),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: isDark ? 0.28 : 0.04),
+            blurRadius: 16,
             offset: const Offset(0, 4),
           ),
         ],
@@ -192,139 +193,61 @@ class _CustomerVoiceOrderCardState extends State<CustomerVoiceOrderCard>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ── Card Header ──────────────────────────────────────────────────
+          // ── Clean Editorial Header (Speech-to-Sign Reference Style) ──────
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.secondary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(
-                  _inputMode == CustomerOrderInputMode.cameraSign
-                      ? Icons.camera_alt_rounded
-                      : Icons.mic_rounded,
-                  size: 24,
-                  color: AppColors.secondary,
-                ),
-              ),
-              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       AppStrings.cafeCustomerVoiceOrderTitle.tr,
-                      style: AppTypography.titleSmall.copyWith(
+                      style: AppTypography.titleMedium.copyWith(
                         color: AppColors.ink,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 17,
                       ),
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 4),
                     Text(
                       AppStrings.cafeCustomerVoiceOrderSubtitle.tr,
                       style: AppTypography.bodySmall.copyWith(
                         color: AppColors.muted,
-                        fontSize: 12,
-                        height: 1.3,
+                        fontSize: 13,
+                        height: 1.4,
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-
-          // ── Sub-Header Row: Live Sign Badge & Menu Catalog Action ────────
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Live Sign Translation Badge
-              Tooltip(
-                message: AppStrings.cafeCustomerVoiceSignBadge.tr,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: AppColors.matcha.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: AppColors.matcha.withValues(alpha: 0.5),
+              if (widget.onOpenMenuCatalog != null) ...[
+                const SizedBox(width: 8),
+                TextButton.icon(
+                  onPressed: widget.onOpenMenuCatalog,
+                  icon: Icon(
+                    Icons.menu_book_rounded,
+                    size: 16,
+                    color: AppColors.secondary,
+                  ),
+                  label: Text(
+                    AppStrings.cafeModeMenuCatalog.tr,
+                    style: AppTypography.labelSmall.copyWith(
+                      color: AppColors.secondary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
                     ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.sign_language_rounded,
-                        size: 14,
-                        color: AppColors.matcha,
-                      ),
-                      const SizedBox(width: 5),
-                      Text(
-                        'Kasir Siap',
-                        style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.matcha,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              if (widget.onOpenMenuCatalog != null)
-                Flexible(
-                  child: Material(
-                    color: AppColors.secondary.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(10),
-                    child: InkWell(
-                      onTap: widget.onOpenMenuCatalog,
-                      borderRadius: BorderRadius.circular(10),
-                      child: Container(
-                        constraints: const BoxConstraints(minHeight: 36),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: AppColors.secondary.withValues(alpha: 0.35),
-                            width: 1.1,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.menu_book_rounded,
-                              size: 15,
-                              color: AppColors.secondary,
-                            ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                AppStrings.cafeModeMenuCatalog.tr,
-                                style: AppTypography.labelSmall.copyWith(
-                                  color: AppColors.secondary,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 11,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
                     ),
+                    minimumSize: const Size(48, 40),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ),
+              ],
             ],
           ),
 
@@ -339,146 +262,111 @@ class _CustomerVoiceOrderCardState extends State<CustomerVoiceOrderCard>
                 : _buildCameraSignDetectionSection(),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 22),
 
-          // ── Editable Transcript Field ────────────────────────────────────
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Hasil Pesanan (Dapat Diedit):',
-                      style: AppTypography.labelMedium.copyWith(
-                        color: AppColors.ink,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+          // ── Clean Editable Transcript Input (Speech-to-Sign Style) ───────
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.paleMist,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.borderSoft, width: 1.0),
+            ),
+            child: Focus(
+              onFocusChange: (hasFocus) {
+                setState(() {
+                  _isUserEditing = hasFocus;
+                });
+              },
+              child: TextField(
+                controller: _textController,
+                maxLines: 2,
+                minLines: 1,
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.ink,
+                  fontWeight: FontWeight.w600,
+                ),
+                decoration: InputDecoration(
+                  hintText: AppStrings.cafeCustomerVoiceEditHint.tr,
+                  hintStyle: AppTypography.bodySmall.copyWith(
+                    color: AppColors.muted,
+                    fontSize: 13.5,
                   ),
-                  ValueListenableBuilder<TextEditingValue>(
+                  prefixIcon: Icon(
+                    Icons.edit_note_rounded,
+                    color: AppColors.secondary,
+                    size: 22,
+                  ),
+                  suffixIcon: ValueListenableBuilder<TextEditingValue>(
                     valueListenable: _textController,
                     builder: (context, val, _) {
                       if (val.text.isEmpty) return const SizedBox.shrink();
-                      return InkWell(
-                        onTap: () {
+                      return IconButton(
+                        tooltip: AppStrings.cafeClearInputTooltip.tr,
+                        icon: Icon(
+                          Icons.close_rounded,
+                          size: 18,
+                          color: AppColors.muted,
+                        ),
+                        onPressed: () {
                           _textController.clear();
                           widget.controller.liveTranscript.value = '';
                           widget.controller.activeParsedSlot.value = null;
                           widget.controller.clearLiveOrderSentence();
                         },
-                        borderRadius: BorderRadius.circular(8),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.clear_rounded,
-                                  size: 14, color: AppColors.muted),
-                              const SizedBox(width: 3),
-                              Text(
-                                AppStrings.cafeClearInputTooltip.tr,
-                                style: AppTypography.labelSmall.copyWith(
-                                  color: AppColors.muted,
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                       );
                     },
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.bgSurface,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.border, width: 1.2),
-                ),
-                child: Focus(
-                  onFocusChange: (hasFocus) {
-                    setState(() {
-                      _isUserEditing = hasFocus;
-                    });
-                  },
-                  child: TextField(
-                    controller: _textController,
-                    maxLines: 2,
-                    minLines: 1,
-                    style: AppTypography.bodyMedium.copyWith(
-                      color: AppColors.ink,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: AppStrings.cafeCustomerVoiceEditHint.tr,
-                      hintStyle: AppTypography.bodySmall.copyWith(
-                        color: AppColors.muted,
-                        fontSize: 13,
-                      ),
-                      prefixIcon: Icon(
-                        Icons.edit_note_rounded,
-                        color: AppColors.secondary,
-                        size: 22,
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
-                    ),
-                    onChanged: (val) {
-                      widget.controller
-                          .onTranscriptReceived(val, triggerSign: true);
-                    },
-                    onSubmitted: (val) {
-                      _submitOrder();
-                    },
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
                   ),
                 ),
+                onChanged: (val) {
+                  widget.controller
+                      .onTranscriptReceived(val, triggerSign: true);
+                },
+                onSubmitted: (val) {
+                  _submitOrder();
+                },
               ),
-            ],
+            ),
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 20),
 
-          // ── Quick Preference Chips ───────────────────────────────────────
+          // ── Quick Preference Chips (Clean Speech-to-Sign Pill Style) ─────
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 AppStrings.cafeCustomerQuickTagsTitle.tr,
-                style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.secondary,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 11,
+                style: AppTypography.labelMedium.copyWith(
+                  color: AppColors.muted,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12.5,
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 10),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
                 child: Row(
                   children: _quickPreferences.map((pref) {
-                    return Container(
-                      margin: const EdgeInsets.only(right: 6),
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
                       child: ActionChip(
                         label: Text(
                           '+ $pref',
                           style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.primary,
+                            color: AppColors.ink,
                             fontWeight: FontWeight.w600,
-                            fontSize: 11,
+                            fontSize: 12,
                           ),
                         ),
-                        backgroundColor: AppColors.paleMist,
+                        backgroundColor: AppColors.surface,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(20),
                           side: BorderSide(
                             color: AppColors.border,
                             width: 1.0,
@@ -486,8 +374,9 @@ class _CustomerVoiceOrderCardState extends State<CustomerVoiceOrderCard>
                         ),
                         onPressed: () => _appendPreference(pref),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 0),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                       ),
                     );
                   }).toList(),
@@ -496,30 +385,28 @@ class _CustomerVoiceOrderCardState extends State<CustomerVoiceOrderCard>
             ],
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
 
-          // ── Send Order to Cashier Button ─────────────────────────────────
+          // ── Primary Stadium CTA (Speech-to-Sign Reference Style) ─────────
           SizedBox(
             width: double.infinity,
-            height: 48,
+            height: 52,
             child: ElevatedButton.icon(
               onPressed: _submitOrder,
               icon: const Icon(Icons.send_rounded, size: 18),
               label: Text(
                 AppStrings.cafeCustomerVoiceSend.tr,
                 style: AppTypography.labelLarge.copyWith(
-                  color: AppColors.surface,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.3,
+                  color: AppColors.onPrimary,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.2,
                 ),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.surface,
+                foregroundColor: AppColors.onPrimary,
                 elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
+                shape: const StadiumBorder(),
               ),
             ),
           ),
@@ -531,12 +418,12 @@ class _CustomerVoiceOrderCardState extends State<CustomerVoiceOrderCard>
   /// Segmented pill switch between Suara (Mic) and Bahasa Isyarat (Kamera).
   Widget _buildModeSwitcher() {
     return Container(
-      margin: const EdgeInsets.only(top: 14, bottom: 16),
+      margin: const EdgeInsets.only(top: 20, bottom: 20),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: AppColors.paleMist,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border, width: 1.2),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.borderSoft, width: 1.0),
       ),
       child: Row(
         children: [
@@ -572,23 +459,14 @@ class _CustomerVoiceOrderCardState extends State<CustomerVoiceOrderCard>
       color: Colors.transparent,
       child: InkWell(
         onTap: () => _switchInputMode(mode),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(20),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOutCubic,
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
           decoration: BoxDecoration(
             color: isSelected ? AppColors.primary : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.22),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
+            borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -596,7 +474,7 @@ class _CustomerVoiceOrderCardState extends State<CustomerVoiceOrderCard>
               Icon(
                 icon,
                 size: 16,
-                color: isSelected ? Colors.white : AppColors.muted,
+                color: isSelected ? AppColors.onPrimary : AppColors.muted,
               ),
               const SizedBox(width: 6),
               Flexible(
@@ -605,8 +483,8 @@ class _CustomerVoiceOrderCardState extends State<CustomerVoiceOrderCard>
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTypography.labelMedium.copyWith(
-                    color: isSelected ? Colors.white : AppColors.ink,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                    color: isSelected ? AppColors.onPrimary : AppColors.ink,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                     fontSize: 12.5,
                   ),
                 ),
@@ -618,25 +496,24 @@ class _CustomerVoiceOrderCardState extends State<CustomerVoiceOrderCard>
     );
   }
 
-  /// Mode 1: Suara / Microphone Action Hero
+  /// Mode 1: Suara / Microphone Action Hero (Clean Speech-to-Sign Reference Style)
   Widget _buildVoiceMicrophoneHero() {
     return Obx(() {
       final isListening = widget.controller.isListening.value;
-      return Container(
+      return Padding(
         key: const ValueKey('customer_voice_mode_hero'),
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-        decoration: BoxDecoration(
-          color: isListening
-              ? AppColors.amber.withValues(alpha: 0.08)
-              : AppColors.bgSurface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isListening ? AppColors.amber : AppColors.border,
-            width: isListening ? 1.5 : 1.0,
-          ),
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
         child: Column(
           children: [
+            Text(
+              AppStrings.cafeCustomerVoiceHint.tr,
+              textAlign: TextAlign.center,
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.muted,
+                fontSize: 12.5,
+              ),
+            ),
+            const SizedBox(height: 18),
             GestureDetector(
               onTap: widget.controller.toggleListening,
               child: AnimatedBuilder(
@@ -645,21 +522,21 @@ class _CustomerVoiceOrderCardState extends State<CustomerVoiceOrderCard>
                   return Transform.scale(
                     scale: isListening ? _pulseAnimation.value : 1.0,
                     child: Container(
-                      width: 68,
-                      height: 68,
+                      width: 78,
+                      height: 78,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: isListening
-                            ? AppColors.amber
+                            ? AppColors.secondary
                             : AppColors.primary,
                         boxShadow: [
                           BoxShadow(
                             color: (isListening
-                                    ? AppColors.amber
-                                    : AppColors.primary)
-                                .withValues(alpha: 0.28),
-                            blurRadius: isListening ? 16 : 8,
-                            spreadRadius: isListening ? 4 : 1,
+                                    ? AppColors.secondary
+                                    : Colors.black)
+                                .withValues(alpha: isListening ? 0.30 : 0.14),
+                            blurRadius: isListening ? 20 : 12,
+                            spreadRadius: isListening ? 4 : 0,
                           ),
                         ],
                       ),
@@ -667,32 +544,23 @@ class _CustomerVoiceOrderCardState extends State<CustomerVoiceOrderCard>
                         isListening
                             ? Icons.mic_rounded
                             : Icons.mic_none_rounded,
-                        size: 34,
-                        color: Colors.white,
+                        size: 36,
+                        color: AppColors.onPrimary,
                       ),
                     ),
                   );
                 },
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
             Text(
               isListening
                   ? AppStrings.cafeCustomerVoiceListening.tr
                   : AppStrings.cafeCustomerVoiceMicTap.tr,
               textAlign: TextAlign.center,
               style: AppTypography.labelMedium.copyWith(
-                color: isListening ? AppColors.amber : AppColors.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              AppStrings.cafeCustomerVoiceHint.tr,
-              textAlign: TextAlign.center,
-              style: AppTypography.labelSmall.copyWith(
-                color: AppColors.muted,
-                fontSize: 11,
+                color: isListening ? AppColors.secondary : AppColors.muted,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -826,58 +694,56 @@ class _CustomerVoiceOrderCardState extends State<CustomerVoiceOrderCard>
               : null,
         ),
 
-        const SizedBox(height: 10),
+        const SizedBox(height: 14),
 
         // 2. Action Buttons (Hapus Kata Terakhir & Reset Isyarat)
         Row(
           children: [
             Expanded(
-              child: OutlinedButton.icon(
-                onPressed: widget.controller.deleteLastSignWord,
-                icon: const Icon(Icons.backspace_outlined, size: 15),
-                label: Text(
-                  AppStrings.cafeCustomerDeleteLastWord.tr,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 11,
+              child: SizedBox(
+                height: 42,
+                child: OutlinedButton.icon(
+                  onPressed: widget.controller.deleteLastSignWord,
+                  icon: const Icon(Icons.backspace_outlined, size: 15),
+                  label: Text(
+                    AppStrings.cafeCustomerDeleteLastWord.tr,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.labelSmall.copyWith(
+                      color: AppColors.ink,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
                   ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                  side: BorderSide(color: AppColors.border, width: 1.2),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.ink,
+                    side: BorderSide(color: AppColors.border, width: 1.0),
+                    shape: const StadiumBorder(),
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             Expanded(
-              child: OutlinedButton.icon(
-                onPressed: widget.controller.clearLiveOrderSentence,
-                icon: const Icon(Icons.restart_alt_rounded, size: 16),
-                label: Text(
-                  AppStrings.cafeCustomerClearSentence.tr,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.muted,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 11,
+              child: SizedBox(
+                height: 42,
+                child: OutlinedButton.icon(
+                  onPressed: widget.controller.clearLiveOrderSentence,
+                  icon: const Icon(Icons.restart_alt_rounded, size: 16),
+                  label: Text(
+                    AppStrings.cafeCustomerClearSentence.tr,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.labelSmall.copyWith(
+                      color: AppColors.muted,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
                   ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.muted,
-                  side: BorderSide(color: AppColors.border, width: 1.2),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.muted,
+                    side: BorderSide(color: AppColors.border, width: 1.0),
+                    shape: const StadiumBorder(),
                   ),
                 ),
               ),
@@ -885,52 +751,48 @@ class _CustomerVoiceOrderCardState extends State<CustomerVoiceOrderCard>
           ],
         ),
 
-        const SizedBox(height: 10),
+        const SizedBox(height: 18),
 
-        // 3. Quick Sign Simulator Chips
+        // 3. Quick Sign Simulator Chips (Clean Speech-to-Sign Pill Style)
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               AppStrings.cafeCustomerQuickSignChips.tr,
-              style: AppTypography.labelSmall.copyWith(
-                color: AppColors.secondary,
-                fontWeight: FontWeight.w700,
-                fontSize: 11,
+              style: AppTypography.labelMedium.copyWith(
+                color: AppColors.muted,
+                fontWeight: FontWeight.w600,
+                fontSize: 12.5,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 10),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
               child: Row(
                 children: _quickSignWords.map((sign) {
-                  return Container(
-                    margin: const EdgeInsets.only(right: 6),
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
                     child: ActionChip(
-                      avatar: Icon(
-                        Icons.sign_language_rounded,
-                        size: 13,
-                        color: AppColors.secondary,
-                      ),
                       label: Text(
                         sign,
                         style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
+                          color: AppColors.ink,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
                         ),
                       ),
-                      backgroundColor: AppColors.paleMist,
+                      backgroundColor: AppColors.surface,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(20),
                         side: BorderSide(color: AppColors.border, width: 1.0),
                       ),
                       onPressed: () =>
                           widget.controller.addSignWordToLiveOrder(sign),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 0),
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                     ),
                   );
                 }).toList(),

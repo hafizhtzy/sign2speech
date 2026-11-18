@@ -317,7 +317,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
             Expanded(
               child: _buildModelOptionTab(
                 model: SignLanguageModel.sibi,
-                label: 'SIBI (72)',
+                label: 'SIBI',
                 icon: Icons.sort_by_alpha_rounded,
                 isSelected: current == SignLanguageModel.sibi,
                 onTap: () {
@@ -334,7 +334,7 @@ class _SignToSpeechCameraScreenState extends State<SignToSpeechCameraScreen> {
             Expanded(
               child: _buildModelOptionTab(
                 model: SignLanguageModel.bisindo,
-                label: 'BISINDO (49)',
+                label: 'BISINDO',
                 icon: Icons.handshake_rounded,
                 isSelected: current == SignLanguageModel.bisindo,
                 onTap: () {

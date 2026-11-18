@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_routes.dart';
+import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
-import '../../core/widgets/app_button.dart';
 import '../../core/widgets/responsive_layout.dart';
 import '../../features/settings/controllers/settings_controller.dart';
+import '../widgets/onboarding_selection_cards.dart';
 
+/// Standalone route for Choose Role using the unified Onboarding layout:
+/// vertically centered 3D popout cards + sticky bottom Stadium Pill CTA.
 class ChooseRoleScreen extends StatefulWidget {
   const ChooseRoleScreen({super.key});
 
@@ -22,212 +25,105 @@ class _ChooseRoleScreenState extends State<ChooseRoleScreen> {
   @override
   void initState() {
     super.initState();
-    final settings = Get.find<SettingsController>();
-    _selected = settings.selectedRole.value;
+    if (Get.isRegistered<SettingsController>()) {
+      _selected = Get.find<SettingsController>().selectedRole.value;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final foregroundColor = isDark
+        ? AppColors.darkCanvas
+        : AppColors.textOnDark;
+
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
+        backgroundColor: AppColors.canvas,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         title: Text(
-          'Pilih Peran',
-          style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w700),
+          AppStrings.chooseRoleTitle.tr,
+          style: AppTypography.titleLarge.copyWith(
+            fontWeight: FontWeight.w700,
+            color: AppColors.ink,
+          ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 18,
+            color: AppColors.ink,
+          ),
           onPressed: () => Get.back(),
         ),
       ),
       body: SafeArea(
         child: ResponsiveContentWrapper(
           maxWidth: ResponsiveBreakpoints.maxFormWidth,
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.all(24),
-            child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: Column(
             children: [
-              Text(
-                'Bagaimana Anda Berkomunikasi?',
-                style: AppTypography.headlineMedium.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.ink,
+              // Vertically centered 3D Popout Role Cards
+              Expanded(
+                child: OnboardingRoleStepContent(
+                  selectedRole: _selected,
+                  onSelectRole: (role) {
+                    setState(() => _selected = role);
+                    if (Get.isRegistered<SettingsController>()) {
+                      Get.find<SettingsController>().setRole(role);
+                    }
+                  },
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Pilih peran agar kami dapat menyesuaikan alur kenyamanan layar untuk Anda.',
-                style: AppTypography.bodyMedium.copyWith(
-                  color: AppColors.muted,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 24),
 
-              // Role 1: Teman Tuli
-              _buildRoleCard(
-                title: 'Teman Tuli',
-                cafeBadge: 'Barista / Pelanggan Tuli',
-                cafeBadgeTextColor: AppColors.secondary,
-                subtitle:
-                    'Menggunakan Bahasa Isyarat (BISINDO / SIBI) untuk berbicara, mendengar via teks dan visual.',
-                imagePath: AppAssets.roleTemanTuli,
-                roleKey: 'Teman Tuli',
-              ),
+              // Sticky Bottom Full-Width Stadium Pill CTA (Matches Onboarding)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Center(
-                  child: Text(
-                    'atau',
-                    style: AppTypography.labelLarge.copyWith(
-                      color: AppColors.muted,
-                      fontWeight: FontWeight.w600,
+                padding: const EdgeInsets.fromLTRB(24, 6, 24, 18),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      if (Get.isRegistered<SettingsController>()) {
+                        Get.find<SettingsController>().setRole(_selected);
+                      }
+                      Get.toNamed(AppRoutes.chooseLanguage);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isDark
+                          ? AppColors.darkPrimary
+                          : AppColors.primary,
+                      foregroundColor: foregroundColor,
+                      elevation: 0,
+                      shadowColor: Colors.transparent,
+                      shape: const StadiumBorder(),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: .center,
+                      children: [
+                        Text(
+                          AppStrings.next.tr,
+                          style: AppTypography.labelLarge.copyWith(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                            color: foregroundColor,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 18,
+                          color: foregroundColor,
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-
-              // Role 2: Teman Dengar
-              _buildRoleCard(
-                title: 'Teman Dengar',
-                cafeBadge: 'Pelanggan / Teman Dengar',
-                cafeBadgeTextColor: AppColors.muted,
-                subtitle:
-                    'Berbicara menggunakan suara lisan, mendengarkan respon suara dari bahasa isyarat lawan bicara.',
-                imagePath: AppAssets.roleTemanDengar,
-                roleKey: 'Teman Dengar',
-              ),
-              const SizedBox(height: 32),
-
-              // Action CTA
-              AppPrimaryButton(
-                label: 'Lanjut',
-                icon: Icons.arrow_forward_rounded,
-                onPressed: () {
-                  final settings = Get.find<SettingsController>();
-                  settings.setRole(_selected);
-                  Get.toNamed(AppRoutes.chooseLanguage);
-                },
               ),
             ],
           ),
-        ),
-      ),
-      ),
-    );
-  }
-
-  Widget _buildRoleCard({
-    required String title,
-    required String cafeBadge,
-    required Color cafeBadgeTextColor,
-    required String subtitle,
-    required String imagePath,
-    required String roleKey,
-  }) {
-    final isSelected = _selected == roleKey;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selected = roleKey;
-        });
-        final settings = Get.find<SettingsController>();
-        settings.setRole(roleKey);
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.border,
-            width: isSelected ? 2.0 : 1.0,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: isSelected
-                  ? AppColors.primary.withValues(alpha: 0.10)
-                  : AppColors.primary.withValues(alpha: 0.04),
-              blurRadius: isSelected ? 14 : 6,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 6),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.bgSurface,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.border, width: 0.8),
-                    ),
-                    child: Text(
-                      cafeBadge,
-                      style: AppTypography.labelSmall.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: cafeBadgeTextColor,
-                      ),
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTypography.titleLarge.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.ink,
-                          ),
-                        ),
-                      ),
-                      if (isSelected) ...[
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.check_circle,
-                          color: AppColors.secondary,
-                          size: 20,
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    subtitle,
-                    style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.muted,
-                      height: 1.35,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.asset(
-                imagePath,
-                height: 90,
-                width: 75,
-                fit: BoxFit.contain,
-              ),
-            ),
-          ],
         ),
       ),
     );

@@ -84,81 +84,103 @@ class CafeOrderTicketCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          isPaid ? AppStrings.cafeOfficialReceipt.tr : AppStrings.cafeTicketTitle.tr,
-                          style: AppTypography.titleMedium.copyWith(
-                            color: isPaid ? AppColors.matcha : AppColors.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        if (isPaid) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.matcha,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
                             child: Text(
-                              'LUNAS',
-                              style: AppTypography.labelSmall.copyWith(
-                                color: AppColors.surface,
+                              isPaid
+                                  ? AppStrings.cafeOfficialReceipt.tr
+                                  : AppStrings.cafeTicketTitle.tr,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.titleMedium.copyWith(
+                                color: isPaid
+                                    ? AppColors.matcha
+                                    : AppColors.primary,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                          if (isPaid) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.matcha,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                'LUNAS',
+                                style: AppTypography.labelSmall.copyWith(
+                                  color: AppColors.surface,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      Text(
+                        '${ticket.orderId} • ${ticket.queueNumber}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.bodySmall.copyWith(
+                          color: AppColors.muted,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (ticket.customerName.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: AppColors.secondary,
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.person_pin_circle_outlined,
+                            size: 16,
+                            color: AppColors.secondary,
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              ticket.customerName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.labelMedium.copyWith(
+                                color: AppColors.secondary,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
                         ],
-                      ],
-                    ),
-                    Text(
-                      '${ticket.orderId} • ${ticket.queueNumber}',
-                      style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.muted,
-                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ],
-                ),
-                const Spacer(),
-                if (ticket.customerName.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.secondary.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.secondary, width: 1),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.person_pin_circle_outlined,
-                          size: 16,
-                          color: AppColors.secondary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          ticket.customerName,
-                          style: AppTypography.labelMedium.copyWith(
-                            color: AppColors.secondary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
+                ],
               ],
             ),
           ),
@@ -928,8 +950,10 @@ class CafeOrderTicketCard extends StatelessWidget {
       builder: (ctx) {
         return AlertDialog(
           backgroundColor: AppColors.surface,
+          surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: AppColors.border, width: 1.2),
           ),
           title: Row(
             children: [

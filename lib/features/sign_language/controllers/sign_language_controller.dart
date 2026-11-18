@@ -43,6 +43,9 @@ class SignLanguageController extends GetxController {
   /// Minimum top1-top2 probability gap for auto-committing in continuous mode.
   final double minContinuousMargin;
 
+  late final void Function(LandmarkFrame) _frameListener;
+  Worker? _languageSyncWorker;
+
   SignLanguageController({
     BisindoClassifierService? classifierService,
     BisindoSegmenter? segmenter,
@@ -57,9 +60,10 @@ class SignLanguageController extends GetxController {
             (Get.isRegistered<CameraFeedService>()
                 ? Get.find<CameraFeedService>()
                 : CameraFeedService()) {
-    this.cameraFeedService.onFrame = (frame) {
+    _frameListener = (frame) {
       onIncomingLandmarkFrame(frame);
     };
+    this.cameraFeedService.onFrame = _frameListener;
   }
 
   static const Duration kManualCaptureDuration = Duration(milliseconds: 2800);
@@ -137,32 +141,24 @@ class SignLanguageController extends GetxController {
 
   String get stateStatusText {
     final modelName = currentModel.value.displayName;
-    switch (state.value) {
-      case BisindoLiveState.initializing:
-        return 'Menyiapkan modul $modelName...';
-      case BisindoLiveState.stopped:
-        return 'Tekan MULAI untuk mendeteksi $modelName';
-      case BisindoLiveState.listening:
-        return 'Siap — lakukan isyarat $modelName';
-      case BisindoLiveState.signing:
-        return 'Membaca gerakan...';
-      case BisindoLiveState.classifying:
-        return 'Memproses gerakan...';
-      case BisindoLiveState.recognized:
-        return 'Terdeteksi: ${detectedLabel.value.toUpperCase()}';
-      case BisindoLiveState.rejected:
-        return guidanceMessage.value.isNotEmpty
-            ? guidanceMessage.value
-            : 'Gerakan belum dikenali. Silakan ulangi.';
-      case BisindoLiveState.manualCountdown:
-        return 'Bersiap dalam ${countdownSeconds.value}...';
-      case BisindoLiveState.manualCapturing:
-        return 'Lakukan satu gerakan $modelName';
-      case BisindoLiveState.error:
-        return guidanceMessage.value.isNotEmpty
-            ? guidanceMessage.value
-            : 'Modul $modelName bermasalah. Silakan coba lagi.';
-    }
+    return switch (state.value) {
+      BisindoLiveState.initializing => 'Menyiapkan modul $modelName...',
+      BisindoLiveState.stopped => 'Tekan MULAI untuk mendeteksi $modelName',
+      BisindoLiveState.listening => 'Siap — lakukan isyarat $modelName',
+      BisindoLiveState.signing => 'Membaca gerakan...',
+      BisindoLiveState.classifying => 'Memproses gerakan...',
+      BisindoLiveState.recognized =>
+        'Terdeteksi: ${detectedLabel.value.toUpperCase()}',
+      BisindoLiveState.rejected => guidanceMessage.value.isNotEmpty
+          ? guidanceMessage.value
+          : 'Gerakan belum dikenali. Silakan ulangi.',
+      BisindoLiveState.manualCountdown =>
+        'Bersiap dalam ${countdownSeconds.value}...',
+      BisindoLiveState.manualCapturing => 'Lakukan satu gerakan $modelName',
+      BisindoLiveState.error => guidanceMessage.value.isNotEmpty
+          ? guidanceMessage.value
+          : 'Modul $modelName bermasalah. Silakan coba lagi.',
+    };
   }
 
   @override
@@ -181,7 +177,9 @@ class SignLanguageController extends GetxController {
         currentModel.value = SignLanguageModel.bisindo;
       }
 
-      ever(settings.selectedSignLanguage, (lang) {
+      _languageSyncWorker?.dispose();
+      _languageSyncWorker = ever(settings.selectedSignLanguage, (lang) {
+        if (_isDisposed) return;
         final target = lang.toUpperCase() == 'SIBI'
             ? SignLanguageModel.sibi
             : SignLanguageModel.bisindo;
@@ -869,11 +867,23 @@ class SignLanguageController extends GetxController {
   @override
   void onClose() {
     _isDisposed = true;
+    _languageSyncWorker?.dispose();
+    _languageSyncWorker = null;
     _cancelManualTimers();
     _transientTimer?.cancel();
+    _transientTimer = null;
     _manualFrames.clear();
+    sequenceBuffer.clear();
     segmenter.reset();
     _pendingSegment = null;
+    if (cameraFeedService.onFrame == _frameListener) {
+      cameraFeedService.onFrame = null;
+    }
+    if (isContinuousRunning.value || isCameraActive.value) {
+      isContinuousRunning.value = false;
+      isCameraActive.value = false;
+      unawaited(cameraFeedService.stopCamera());
+    }
     unawaited(classifierService.dispose());
     super.onClose();
   }

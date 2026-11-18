@@ -38,7 +38,7 @@ class CoffeeMenuItem {
     required this.descriptionId,
     required this.descriptionEn,
     required this.basePrice,
-    this.imagePath = 'assets/komponen_img/Gambar ChatGPT 13 Okt 2026, 19.01.58-1.png',
+    this.imagePath = 'assets/komponen_img/onboarding_hero_char.png',
     this.imageUrl,
     this.storagePath,
     this.signVideoUrl,
@@ -170,7 +170,7 @@ class CoffeeMenuItem {
               .toString(),
       basePrice: rawPrice,
       imagePath: standardMatch?.imagePath ??
-          'assets/komponen_img/Gambar ChatGPT 13 Okt 2026, 19.01.58-1.png',
+          'assets/komponen_img/onboarding_hero_char.png',
       imageUrl:
           (rawImageUrl != null && rawImageUrl.isNotEmpty) ? rawImageUrl : null,
       storagePath: (rawImagePath != null &&

@@ -38,81 +38,46 @@ class CoffeeRecommendationCard extends StatelessWidget {
     if (recommendation == null) return const SizedBox.shrink();
 
     final rec = recommendation!;
+    final isDark = AppColors.isDark;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border, width: 1.2),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: AppColors.border, width: 1.0),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.05),
-            blurRadius: 12,
+            color: Colors.black.withValues(alpha: isDark ? 0.28 : 0.04),
+            blurRadius: 16,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.matcha.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.psychology_outlined,
-                  size: 20,
-                  color: AppColors.matcha,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppStrings.cafeAiSommelierTitle.tr,
-                      style: AppTypography.titleSmall.copyWith(
-                        color: AppColors.ink,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      AppStrings.cafeAiSommelierSubtitle.tr,
-                      style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.muted,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.paleMist,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  formatRupiah(rec.item.basePrice),
-                  style: AppTypography.labelMedium.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
+          // Clean Editorial Header (No icon circle or boxed price pill)
+          Text(
+            AppStrings.cafeAiSommelierTitle.tr,
+            style: AppTypography.titleMedium.copyWith(
+              color: AppColors.ink,
+              fontWeight: FontWeight.w800,
+              fontSize: 17,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            AppStrings.cafeAiSommelierSubtitle.tr,
+            style: AppTypography.bodySmall.copyWith(
+              color: AppColors.muted,
+              fontSize: 12.5,
+            ),
           ),
 
-          const SizedBox(height: 10),
-
-          // Preference Filter Chips
+          // Airy Preference Filter Pills
           if (onTagSelected != null) ...[
+            const SizedBox(height: 18),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
@@ -120,23 +85,33 @@ class CoffeeRecommendationCard extends StatelessWidget {
                 children: _preferenceTags.map((tag) {
                   final isSelected = selectedTag == tag;
                   return Padding(
-                    padding: const EdgeInsets.only(right: 6),
+                    padding: const EdgeInsets.only(right: 8),
                     child: FilterChip(
                       selected: isSelected,
                       showCheckmark: false,
                       label: Text(tag),
+                      labelPadding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       labelStyle: AppTypography.labelSmall.copyWith(
-                        color:
-                            isSelected ? AppColors.surface : AppColors.primary,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.w600,
+                        color: isSelected
+                            ? AppColors.onPrimary
+                            : AppColors.ink,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w600,
+                        fontSize: 12,
                       ),
                       selectedColor: AppColors.primary,
-                      backgroundColor: AppColors.paleMist,
-                      side: BorderSide(
-                        color: isSelected
-                            ? AppColors.primary
-                            : AppColors.border,
+                      backgroundColor: AppColors.surface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: BorderSide(
+                          color: isSelected
+                              ? AppColors.primary
+                              : AppColors.border,
+                        ),
                       ),
                       onSelected: (_) => onTagSelected!(tag),
                     ),
@@ -144,122 +119,102 @@ class CoffeeRecommendationCard extends StatelessWidget {
                 }).toList(),
               ),
             ),
-            const SizedBox(height: 12),
           ],
 
-          // Drink Name & Badges
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 18),
+            child: Divider(height: 1, color: AppColors.borderSoft),
+          ),
+
+          // Drink Name & Price aligned cleanly on 1 editorial row
           Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
             children: [
               Expanded(
                 child: Text(
                   rec.item.nameId,
-                  style: AppTypography.titleMedium.copyWith(
-                    color: AppColors.secondary,
-                    fontWeight: FontWeight.bold,
+                  style: AppTypography.titleLarge.copyWith(
+                    color: AppColors.ink,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 19,
                   ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                formatRupiah(rec.item.basePrice),
+                style: AppTypography.titleMedium.copyWith(
+                  color: AppColors.secondary,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ],
           ),
 
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
 
-          // Reason text
+          // Calm recommendation copy (decorative hashtag pills removed)
           Text(
             rec.reasonId,
-            style: AppTypography.bodySmall.copyWith(
-              color: AppColors.ink,
-              height: 1.4,
+            style: AppTypography.bodyMedium.copyWith(
+              color: AppColors.muted,
+              height: 1.45,
+              fontSize: 13.5,
             ),
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 22),
 
-          // Matched tokens
-          Wrap(
-            spacing: 6,
-            runSpacing: 4,
-            children: rec.matchedTokens
-                .map((token) => Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.paleMist,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: AppColors.border, width: 0.8),
-                      ),
-                      child: Text(
-                        '#$token',
-                        style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.muted,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ))
-                .toList(),
-          ),
-
-          const SizedBox(height: 14),
-
-          // Action Buttons: 1-Tap "Pesan Minuman Ini" + "Lihat Detail"
-          Row(
-            children: [
-              if (onAddDirectly != null) ...[
-                Expanded(
-                  flex: 3,
-                  child: SizedBox(
-                    height: 48,
-                    child: ElevatedButton.icon(
-                      onPressed: () => onAddDirectly!(rec.item),
-                      icon: const Icon(Icons.add_shopping_cart, size: 18),
-                      label: Text(
-                        AppStrings.cafeQuickOrderAction.tr,
-                        style: AppTypography.labelLarge.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.surface,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.surface,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                    ),
+          // Full-Width Non-Truncating Stadium Action Buttons
+          if (onAddDirectly != null) ...[
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                onPressed: () => onAddDirectly!(rec.item),
+                icon: const Icon(Icons.add_shopping_cart_rounded, size: 18),
+                label: Text(
+                  AppStrings.cafeQuickOrderAction.tr,
+                  style: AppTypography.labelLarge.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.onPrimary,
                   ),
                 ),
-                const SizedBox(width: 8),
-              ],
-              Expanded(
-                flex: onAddDirectly != null ? 2 : 1,
-                child: SizedBox(
-                  height: 48,
-                  child: OutlinedButton.icon(
-                    onPressed: onSelect,
-                    icon: const Icon(Icons.info_outline, size: 18),
-                    label: Text(
-                      AppStrings.cafeAiChooseCustomize.tr,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.labelLarge.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.secondary,
-                      ),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: AppColors.secondary, width: 1.5),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.onPrimary,
+                  shape: const StadiumBorder(),
+                  elevation: 0,
                 ),
               ),
-            ],
+            ),
+            const SizedBox(height: 10),
+          ],
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: OutlinedButton.icon(
+              onPressed: onSelect,
+              icon: Icon(
+                Icons.tune_rounded,
+                size: 18,
+                color: AppColors.ink,
+              ),
+              label: Text(
+                AppStrings.cafeAiChooseCustomize.tr,
+                style: AppTypography.labelLarge.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                backgroundColor: AppColors.surface,
+                foregroundColor: AppColors.ink,
+                side: BorderSide(color: AppColors.border, width: 1.2),
+                shape: const StadiumBorder(),
+              ),
+            ),
           ),
         ],
       ),

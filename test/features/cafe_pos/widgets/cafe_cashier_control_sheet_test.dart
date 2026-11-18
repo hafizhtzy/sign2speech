@@ -46,11 +46,15 @@ void main() {
     expect(find.text('Putar 180°'), findsOneWidget);
 
     // Tap Putar 180° button inside control sheet
+    await tester.ensureVisible(find.text('Putar 180°'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Putar 180°'));
     await tester.pump();
     expect(controller.isFlipped.value, isTrue);
 
     // Tap 2-Tablet mode
+    await tester.ensureVisible(find.text(AppStrings.cafeMode2Tablet.tr));
+    await tester.pumpAndSettle();
     await tester.tap(find.text(AppStrings.cafeMode2Tablet.tr));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));

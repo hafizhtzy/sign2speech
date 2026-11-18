@@ -260,7 +260,9 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
       final mode = controller.deviceMode.value;
       final isDual = mode == CounterDeviceMode.dualTabletLocked;
       final isIdle = stage == CafeOrderStage.idle;
-      final double bottomHeight = isDual ? (isIdle ? 0.0 : 56.0) : (isIdle ? 56.0 : 112.0);
+      final double bottomHeight = isDual
+          ? (isIdle ? 0.0 : 66.0)
+          : (isIdle ? 58.0 : 124.0);
       final ticket = controller.currentTicket.value;
       final isCashier = controller.isCashierView.value;
       final isFlipped = controller.isFlipped.value;
@@ -268,11 +270,12 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
       return Scaffold(
         backgroundColor: AppColors.canvas,
         appBar: AppBar(
-          backgroundColor: AppColors.surface,
+          backgroundColor: AppColors.canvas,
+          surfaceTintColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded),
-            color: AppColors.primary,
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 19),
+            color: AppColors.ink,
             tooltip: AppStrings.cafeBackTooltip.tr,
             onPressed: () => Get.back(),
           ),
@@ -290,46 +293,19 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
                       overflow: TextOverflow.ellipsis,
                       style: AppTypography.titleMedium.copyWith(
                         color: AppColors.ink,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
                       ),
                     ),
                   ),
-                  if (isDual) ...[
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: controller.staffPinAuthenticated.value
-                            ? AppColors.matcha.withValues(alpha: 0.15)
-                            : AppColors.secondary.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        controller.staffPinAuthenticated.value
-                            ? AppStrings.cafeDualHostBadge.tr
-                            : AppStrings.cafeDualCustomerBadge.tr,
-                        style: AppTypography.labelSmall.copyWith(
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w800,
-                          color: controller.staffPinAuthenticated.value
-                              ? AppColors.matcha
-                              : AppColors.secondary,
-                        ),
-                      ),
-                    ),
-                  ],
                 ],
               ),
               Text(
                 AppStrings.cafeQueueNumberPrefix.trParams({'queue': ticket.queueNumber}),
                 style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.secondary,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 11,
+                  color: AppColors.muted,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11.5,
                 ),
               ),
             ],
@@ -411,21 +387,18 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
                       // Cashier / Customer tab toggle (only in singleTabletSwitch mode)
                       if (!isDual)
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            border: Border(
-                              bottom:
-                                  BorderSide(color: AppColors.border, width: 1),
-                            ),
-                          ),
+                          padding: const EdgeInsets.fromLTRB(24, 4, 24, 10),
+                          color: AppColors.canvas,
                           child: Container(
-                            height: 40,
+                            height: 44,
+                            padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
                               color: AppColors.paleMist,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.border),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: AppColors.borderSoft,
+                                width: 1.0,
+                              ),
                             ),
                             child: Row(
                               children: [
@@ -434,7 +407,8 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
                                     label: AppStrings.cafeDualViewCashier.tr,
                                     icon: Icons.point_of_sale_rounded,
                                     isSelected: isCashier,
-                                    onTap: () => controller.isCashierView.value = true,
+                                    onTap: () =>
+                                        controller.isCashierView.value = true,
                                   ),
                                 ),
                                 Expanded(
@@ -469,7 +443,7 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
               }
               return SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
                 child: ResponsiveContentWrapper(
                   maxWidth: ResponsiveBreakpoints.maxDashboardWidth,
                   child: isLargeScreen
@@ -699,21 +673,18 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
 
     if (label.isEmpty) return null;
 
+    final Color buttonFg = color == AppColors.primary
+        ? AppColors.onPrimary
+        : (AppColors.isDark ? AppColors.darkCanvas : AppColors.textOnDark);
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.canvas,
         border: Border(
-          top: BorderSide(color: AppColors.border, width: 1.0),
+          top: BorderSide(color: AppColors.borderSoft, width: 1.0),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.05),
-            offset: const Offset(0, -2),
-            blurRadius: 8,
-          ),
-        ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 14),
       child: SafeArea(
         top: false,
         child: ResponsiveContentWrapper(
@@ -721,25 +692,23 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
           heightFactor: 1.0,
           child: SizedBox(
             width: double.infinity,
-            height: 48,
+            height: 52,
             child: ElevatedButton.icon(
               key: const Key('cafe_stage_advance_button'),
               onPressed: controller.advanceStage,
               style: ElevatedButton.styleFrom(
                 backgroundColor: color,
-                foregroundColor: AppColors.surface,
+                foregroundColor: buttonFg,
                 elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
+                shape: const StadiumBorder(),
               ),
               icon: Icon(icon, size: 20),
               label: Text(
                 label,
                 style: AppTypography.labelLarge.copyWith(
-                  color: AppColors.surface,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.3,
+                  color: buttonFg,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.2,
                 ),
               ),
             ),
@@ -792,7 +761,7 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
-                height: 56,
+                height: 54,
                 child: ElevatedButton.icon(
                   onPressed: () =>
                       controller.goToStage(CafeOrderStage.ordering),
@@ -800,47 +769,18 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
                   label: Text(
                     'Mulai Terima Pesanan',
                     style: AppTypography.titleSmall.copyWith(
-                      color: AppColors.surface,
-                      fontWeight: FontWeight.bold,
+                      color: AppColors.onPrimary,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.secondary,
-                    foregroundColor: AppColors.surface,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 2,
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.onPrimary,
+                    shape: const StadiumBorder(),
+                    elevation: 0,
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
-              Obx(() => Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppColors.bgSurface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.devices_rounded,
-                            size: 16, color: AppColors.muted),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            '${controller.deviceMode.value.labelId} • Counter #${controller.counterId.value}',
-                            style: AppTypography.labelSmall.copyWith(
-                              color: AppColors.muted,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )),
             ],
           ),
         ),
@@ -916,16 +856,7 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.2),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
+          borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -934,7 +865,7 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
             Icon(
               icon,
               size: 16,
-              color: isSelected ? AppColors.surface : AppColors.muted,
+              color: isSelected ? AppColors.onPrimary : AppColors.muted,
             ),
             const SizedBox(width: 6),
             Flexible(
@@ -943,8 +874,8 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppTypography.labelMedium.copyWith(
-                  color: isSelected ? AppColors.surface : AppColors.muted,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                  color: isSelected ? AppColors.onPrimary : AppColors.muted,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                 ),
               ),
             ),
@@ -1015,15 +946,6 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
           decoration: BoxDecoration(
             color: isSelected ? AppColors.primary : Colors.transparent,
             borderRadius: BorderRadius.circular(9),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.22),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1.5),
-                    ),
-                  ]
-                : null,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -1039,7 +961,7 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
               Text(
                 label,
                 style: AppTypography.labelSmall.copyWith(
-                  color: isSelected ? Colors.white : AppColors.muted,
+                  color: isSelected ? AppColors.onPrimary : AppColors.muted,
                   fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                   fontSize: 11,
                   letterSpacing: 0.3,
@@ -1263,35 +1185,21 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
 
   Widget _buildCustomerMenuCatalogBanner() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border, width: 1.2),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.border, width: 1.0),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(alpha: AppColors.isDark ? 0.25 : 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Row(
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.secondary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(
-              Icons.menu_book_rounded,
-              size: 24,
-              color: AppColors.secondary,
-            ),
-          ),
-          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1300,35 +1208,33 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
                   AppStrings.cafeCustomerMenuBannerTitle.tr,
                   style: AppTypography.titleSmall.copyWith(
                     color: AppColors.ink,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15.5,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 3),
                 Text(
                   AppStrings.cafeCustomerMenuBannerSubtitle.tr,
                   style: AppTypography.bodySmall.copyWith(
                     color: AppColors.muted,
-                    fontSize: 12,
+                    fontSize: 12.5,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           ElevatedButton.icon(
             onPressed: _showMenuCatalogSheet,
             icon: const Icon(Icons.arrow_forward_rounded, size: 16),
             label: Text(AppStrings.cafeCustomerMenuBannerButton.tr),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.surface,
+              foregroundColor: AppColors.onPrimary,
               elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               minimumSize: const Size(48, 44),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              shape: const StadiumBorder(),
             ),
           ),
         ],
@@ -1347,13 +1253,13 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
         CafeCashierSignVideoCard(
           cashierController: controller,
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 20),
         _buildCustomerReplyAlertBanner(),
         Obx(() => AutoOrderSlotTray(
           slot: controller.activeParsedSlot.value,
           onConfirm: controller.confirmParsedSlotToTicket,
         )),
-        const SizedBox(height: 14),
+        const SizedBox(height: 20),
         // Unified 3-Tab Interaction Deck: Bahasa Isyarat (default), 1-Tap, Mic
         CashierOrderDeckCard(
           controller: controller,
@@ -1373,9 +1279,9 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
           controller: controller,
           onOpenMenuCatalog: _showMenuCatalogSheet,
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 20),
         _buildCustomerMenuCatalogBanner(),
-        const SizedBox(height: 14),
+        const SizedBox(height: 20),
         _buildCustomerBillDisplay(),
         _buildCustomerQuickRepliesSection(),
         _buildCoffeeRecommendationWidget(),
@@ -1924,93 +1830,80 @@ class _CafeCashierCounterScreenState extends State<CafeCashierCounterScreen> {
           .toSet()
           .toList();
 
+      final Color statusColor = ticket.status == OrderStatus.completed
+          ? AppColors.matcha
+          : (ticket.status == OrderStatus.preparing
+              ? AppColors.amber
+              : AppColors.muted);
+
       return Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border, width: 1.5),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: AppColors.border, width: 1.0),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
+              color: Colors.black.withValues(
+                alpha: AppColors.isDark ? 0.28 : 0.04,
+              ),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Row: Title & Queue Pill
+            // Editorial Eyebrow: Status dot + label & loyalty star
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  width: 8,
+                  height: 8,
                   decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'Antrean ${ticket.queueNumber}',
-                    style: AppTypography.labelMedium.copyWith(
-                      color: AppColors.surface,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    shape: BoxShape.circle,
+                    color: statusColor,
                   ),
                 ),
                 const SizedBox(width: 8),
-                if (stamps > 0)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.amber.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: AppColors.amber.withValues(alpha: 0.5),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.military_tech_rounded,
-                            size: 14, color: AppColors.amber),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Sahabat Tuli ($stamps⭐)',
-                          style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.amber,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                const Spacer(),
-                // Status indicator
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: ticket.status == OrderStatus.completed
-                        ? AppColors.matcha.withValues(alpha: 0.15)
-                        : (ticket.status == OrderStatus.preparing
-                            ? AppColors.amber.withValues(alpha: 0.15)
-                            : AppColors.bgSurface),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    ticket.status.labelId,
-                    style: AppTypography.labelSmall.copyWith(
-                      color: ticket.status == OrderStatus.completed
-                          ? AppColors.matcha
-                          : (ticket.status == OrderStatus.preparing
-                              ? AppColors.amber
-                              : AppColors.muted),
-                      fontWeight: FontWeight.bold,
-                    ),
+                Text(
+                  ticket.status.labelId,
+                  style: AppTypography.labelMedium.copyWith(
+                    color: statusColor,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
+                const Spacer(),
+                if (stamps > 0)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.military_tech_rounded,
+                        size: 15,
+                        color: AppColors.amber,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Sahabat Tuli ($stamps⭐)',
+                        style: AppTypography.labelSmall.copyWith(
+                          color: AppColors.amber,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
               ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Antrean ${ticket.queueNumber}',
+              style: AppTypography.titleLarge.copyWith(
+                color: AppColors.ink,
+                fontWeight: FontWeight.w800,
+              ),
             ),
 
             if (ticket.customerName.isNotEmpty) ...[

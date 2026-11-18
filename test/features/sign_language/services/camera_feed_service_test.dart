@@ -97,5 +97,17 @@ void main() {
       expect(cameraService.isInitialized.value, isFalse);
       expect(cameraService.isCameraActive.value, isFalse);
     });
+
+    test('dispose and onClose detach frame listener to prevent memory leaks', () async {
+      expect(cameraService.onFrame, isNotNull);
+
+      controller.onClose();
+      expect(cameraService.onFrame, isNull);
+
+      cameraService.onFrame = (_) {};
+      await cameraService.dispose();
+      expect(cameraService.onFrame, isNull);
+      expect(cameraService.isCameraActive.value, isFalse);
+    });
   });
 }

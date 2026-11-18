@@ -21,6 +21,9 @@ class PaginationControlBar extends StatelessWidget {
   /// Jumlah item per halaman (default 12)
   final int itemsPerPage;
 
+  /// Tampilkan teks ringkasan jumlah kosakata ("Menampilkan X-Y dari Z kosakata")
+  final bool showItemCount;
+
   /// Callback ketika pengguna memilih halaman baru
   final ValueChanged<int> onPageChanged;
 
@@ -30,6 +33,7 @@ class PaginationControlBar extends StatelessWidget {
     required this.totalPages,
     required this.totalItems,
     this.itemsPerPage = 12,
+    this.showItemCount = true,
     required this.onPageChanged,
   });
 
@@ -63,27 +67,31 @@ class PaginationControlBar extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ── 1. Info Ringkasan Item ─────────────────────────────────────────
+          // ── 1. Info Ringkasan Halaman (dan opsional jumlah item) ───────────
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: showItemCount
+                ? MainAxisAlignment.spaceBetween
+                : MainAxisAlignment.center,
             children: [
-              Expanded(
-                child: Text(
-                  AppStrings.paginationShowing.trParams({
-                    'start': '$startItem',
-                    'end': '$endItem',
-                    'total': '$totalItems',
-                  }),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.bodySmall.copyWith(
-                    color: isDark ? AppColors.darkMuted : AppColors.muted,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
+              if (showItemCount) ...[
+                Expanded(
+                  child: Text(
+                    AppStrings.paginationShowing.trParams({
+                      'start': '$startItem',
+                      'end': '$endItem',
+                      'total': '$totalItems',
+                    }),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.bodySmall.copyWith(
+                      color: isDark ? AppColors.darkMuted : AppColors.muted,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
+                const SizedBox(width: 8),
+              ],
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
@@ -197,7 +205,7 @@ class PaginationControlBar extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (!isNext)
+                if (!isNext) ...[
                   Icon(
                     icon,
                     size: 20,
@@ -206,7 +214,20 @@ class PaginationControlBar extends StatelessWidget {
                         : (isDark ? AppColors.darkMuted : AppColors.muted)
                             .withValues(alpha: 0.4),
                   ),
-                if (isNext)
+                  const SizedBox(width: 4),
+                ],
+                Text(
+                  label,
+                  style: AppTypography.labelMedium.copyWith(
+                    color: enabled
+                        ? (isDark ? AppColors.darkPrimary : AppColors.ink)
+                        : (isDark ? AppColors.darkMuted : AppColors.muted)
+                            .withValues(alpha: 0.4),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                if (isNext) ...[
+                  const SizedBox(width: 4),
                   Icon(
                     icon,
                     size: 20,
@@ -215,6 +236,7 @@ class PaginationControlBar extends StatelessWidget {
                         : (isDark ? AppColors.darkMuted : AppColors.muted)
                             .withValues(alpha: 0.4),
                   ),
+                ],
               ],
             ),
           ),

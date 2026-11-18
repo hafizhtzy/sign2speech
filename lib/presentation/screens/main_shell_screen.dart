@@ -22,6 +22,8 @@ class MainShellScreen extends StatefulWidget {
 
 class _MainShellScreenState extends State<MainShellScreen> {
   int _currentIndex = 0;
+  String? _cachedDynamicKey;
+  List<Widget>? _cachedScreens;
 
   void _onTabSelected(int index) {
     if (_currentIndex != index) {
@@ -31,12 +33,19 @@ class _MainShellScreenState extends State<MainShellScreen> {
     }
   }
 
-  List<Widget> _getScreens(String dynamicKey) => [
-    HomeScreen(key: ValueKey('home_$dynamicKey')),
-    HistoryScreen(key: ValueKey('history_$dynamicKey')),
-    SignLibraryScreen(key: ValueKey('library_$dynamicKey')),
-    SettingsScreen(key: ValueKey('settings_$dynamicKey')),
-  ];
+  List<Widget> _getScreens(String dynamicKey) {
+    if (_cachedDynamicKey == dynamicKey && _cachedScreens != null) {
+      return _cachedScreens!;
+    }
+    _cachedDynamicKey = dynamicKey;
+    _cachedScreens = [
+      HomeScreen(key: ValueKey('home_$dynamicKey')),
+      HistoryScreen(key: ValueKey('history_$dynamicKey')),
+      SignLibraryScreen(key: ValueKey('library_$dynamicKey')),
+      SettingsScreen(key: ValueKey('settings_$dynamicKey')),
+    ];
+    return _cachedScreens!;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -238,9 +247,9 @@ class _MainShellScreenState extends State<MainShellScreen> {
   }
 }
 
-/// A high-performance, 60fps-optimized animated index switcher.
-/// Provides smooth cross-fade + micro-slide transitions while keeping
-/// inactive screens offstage to prevent redundant repaints and widget tree leaks.
+/// A high-performance, 60-120fps compositor-accelerated animated index switcher.
+/// Preserves identical widget ancestry for all children so screen States, scroll
+/// positions, and decoded textures are never destroyed/rebuilt on tab switches.
 class AnimatedIndexedStack extends StatefulWidget {
   final int index;
   final List<Widget> children;
@@ -250,7 +259,7 @@ class AnimatedIndexedStack extends StatefulWidget {
     super.key,
     required this.index,
     required this.children,
-    this.duration = const Duration(milliseconds: 280),
+    this.duration = const Duration(milliseconds: 220),
   });
 
   @override
@@ -259,8 +268,16 @@ class AnimatedIndexedStack extends StatefulWidget {
 
 class _AnimatedIndexedStackState extends State<AnimatedIndexedStack>
     with SingleTickerProviderStateMixin {
+  static const Animation<Offset> _zeroOffsetAnimation = AlwaysStoppedAnimation(
+    Offset.zero,
+  );
+
   late final AnimationController _controller;
-  late final Animation<double> _animation;
+  late final CurvedAnimation _curved;
+  late final Animation<double> _outOpacity;
+  late Animation<Offset> _inSlide;
+  late Animation<Offset> _outSlide;
+
   int _prevIndex = 0;
   int _currentIndex = 0;
 
@@ -270,11 +287,33 @@ class _AnimatedIndexedStackState extends State<AnimatedIndexedStack>
     _currentIndex = widget.index;
     _prevIndex = widget.index;
     _controller = AnimationController(vsync: this, duration: widget.duration);
-    _animation = CurvedAnimation(
+    _curved = CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeInOutCubic,
+      curve: Curves.easeOutCubic,
     );
+    _outOpacity = Tween<double>(begin: 1.0, end: 0.0).animate(_curved);
+    _updateSlideTweens(isForward: true);
+    _controller.addStatusListener(_onAnimationStatus);
     _controller.value = 1.0;
+  }
+
+  void _updateSlideTweens({required bool isForward}) {
+    final dx = isForward ? 0.025 : -0.025;
+    _inSlide = Tween<Offset>(
+      begin: Offset(dx, 0.0),
+      end: Offset.zero,
+    ).animate(_curved);
+    _outSlide = Tween<Offset>(
+      begin: Offset.zero,
+      end: Offset(-dx, 0.0),
+    ).animate(_curved);
+  }
+
+  void _onAnimationStatus(AnimationStatus status) {
+    if (status == AnimationStatus.completed && mounted) {
+      // Single rebuild at end of transition to put previous tab back offstage
+      setState(() {});
+    }
   }
 
   @override
@@ -283,65 +322,62 @@ class _AnimatedIndexedStackState extends State<AnimatedIndexedStack>
     if (widget.index != _currentIndex) {
       _prevIndex = _currentIndex;
       _currentIndex = widget.index;
+      _updateSlideTweens(isForward: _currentIndex >= _prevIndex);
       _controller.forward(from: 0.0);
     }
   }
 
   @override
   void dispose() {
+    _controller.removeStatusListener(_onAnimationStatus);
+    _curved.dispose();
     _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isForward = _currentIndex >= _prevIndex;
+    final isAnimating = _controller.isAnimating;
 
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, _) {
-        final isAnimating = _controller.isAnimating;
+    return Stack(
+      fit: StackFit.expand,
+      children: List.generate(widget.children.length, (i) {
+        final isCurrent = i == _currentIndex;
+        final isPrev = i == _prevIndex && _prevIndex != _currentIndex;
+        final shouldRender = isCurrent || (isAnimating && isPrev);
 
-        return Stack(
-          fit: StackFit.expand,
-          children: List.generate(widget.children.length, (i) {
-            final isCurrent = i == _currentIndex;
-            final isPrev = i == _prevIndex;
-            final shouldRenderActive = isCurrent || (isAnimating && isPrev);
+        final Animation<double> opacityAnim;
+        final Animation<Offset> slideAnim;
 
-            if (!shouldRenderActive) {
-              return Offstage(offstage: true, child: widget.children[i]);
-            }
+        if (isCurrent && isAnimating) {
+          opacityAnim = _curved;
+          slideAnim = _inSlide;
+        } else if (isPrev && isAnimating) {
+          opacityAnim = _outOpacity;
+          slideAnim = _outSlide;
+        } else {
+          opacityAnim = kAlwaysCompleteAnimation;
+          slideAnim = _zeroOffsetAnimation;
+        }
 
-            final double opacity = isCurrent
-                ? _animation.value
-                : (1.0 - _animation.value);
-
-            final double slideOffset = isCurrent
-                ? (isForward ? 0.04 : -0.04) * (1.0 - _animation.value)
-                : (isForward ? -0.04 : 0.04) * _animation.value;
-
-            return Offstage(
-              offstage: false,
-              child: IgnorePointer(
-                ignoring: !isCurrent,
+        // Identical widget ancestry across active & offstage states prevents
+        // Element unmounting/re-initialization jank when switching tabs.
+        return Offstage(
+          offstage: !shouldRender,
+          child: IgnorePointer(
+            ignoring: !isCurrent,
+            child: FadeTransition(
+              opacity: opacityAnim,
+              child: SlideTransition(
+                position: slideAnim,
                 child: RepaintBoundary(
-                  child: Opacity(
-                    opacity: opacity.clamp(0.0, 1.0),
-                    child: Transform.translate(
-                      offset: Offset(
-                        slideOffset * MediaQuery.sizeOf(context).width,
-                        0,
-                      ),
-                      child: widget.children[i],
-                    ),
-                  ),
+                  child: widget.children[i],
                 ),
               ),
-            );
-          }),
+            ),
+          ),
         );
-      },
+      }),
     );
   }
 }

@@ -109,21 +109,30 @@ class AppTypography {
       );
 
   /// Builds a cohesive TextTheme mapped directly to Material 3 text roles.
-  static TextTheme createTextTheme() {
+  /// Pass [isDark] explicitly when constructing ThemeData so darkTheme never
+  /// bakes in light-mode ink colors at startup.
+  static TextTheme createTextTheme({bool? isDark}) {
+    final bool useDark = isDark ?? AppColors.isDark;
+    final Color ink = useDark ? AppColors.darkInk : AppColors.lightInk;
+    final Color muted = useDark ? AppColors.darkMuted : AppColors.lightMuted;
+    final Color textMuted = useDark
+        ? AppColors.darkTextMuted
+        : AppColors.lightTextMuted;
+
     return TextTheme(
-      displayLarge: displayLarge,
-      displayMedium: displayMedium,
-      headlineLarge: headlineLarge,
-      headlineMedium: headlineMedium,
-      titleLarge: titleLarge,
-      titleMedium: titleMedium,
-      titleSmall: titleSmall,
-      bodyLarge: bodyLarge,
-      bodyMedium: bodyMedium,
-      bodySmall: bodySmall,
-      labelLarge: labelLarge,
-      labelMedium: labelMedium,
-      labelSmall: labelSmall,
+      displayLarge: displayLarge.copyWith(color: ink),
+      displayMedium: displayMedium.copyWith(color: ink),
+      headlineLarge: headlineLarge.copyWith(color: ink),
+      headlineMedium: headlineMedium.copyWith(color: ink),
+      titleLarge: titleLarge.copyWith(color: ink),
+      titleMedium: titleMedium.copyWith(color: ink),
+      titleSmall: titleSmall.copyWith(color: ink),
+      bodyLarge: bodyLarge.copyWith(color: ink),
+      bodyMedium: bodyMedium.copyWith(color: muted),
+      bodySmall: bodySmall.copyWith(color: muted),
+      labelLarge: labelLarge.copyWith(color: ink),
+      labelMedium: labelMedium.copyWith(color: ink),
+      labelSmall: labelSmall.copyWith(color: textMuted),
     );
   }
 }

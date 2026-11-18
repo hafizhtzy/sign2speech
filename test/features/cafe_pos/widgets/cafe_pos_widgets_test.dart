@@ -199,7 +199,7 @@ void main() {
 
       expect(find.text(item.nameId), findsOneWidget);
       expect(find.text('Rekomendasi ramah lambung.'), findsOneWidget);
-      expect(find.text('#maag'), findsOneWidget);
+      expect(find.text('#maag'), findsNothing);
 
       await tester.tap(find.text('Pilih & Kustomisasi'));
       expect(selected, isTrue);

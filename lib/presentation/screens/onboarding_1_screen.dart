@@ -9,39 +9,47 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/responsive_layout.dart';
 import '../../features/settings/controllers/settings_controller.dart';
+import '../../features/sign_language/controllers/sign_language_controller.dart';
+import '../../features/sign_language/services/bisindo_classifier_service.dart';
+import '../widgets/onboarding_selection_cards.dart';
 
-/// Redesigned Modern Onboarding Experience with zero dead space.
+/// Unified 5-Step Modern Onboarding Experience with zero dead space.
 /// Features:
 /// 1. Top Bar: Back / Language Toggle, Skip button, and an edge-to-edge
-///    3-segment progress bar filling in real time with finger gesture drag.
-/// 2. Slide 1: Large illustrated hero character without background, with
-///    ambient warm radial glow and floating accent pills.
-/// 3. Slide 2: Interactive Hero Showcase: Voice AI soundwave & 3D Camera
-///    real-time gesture-to-speech dialogue cards.
-/// 4. Slide 3: Interactive Hero Showcase: Artisanal cafe order ticket,
-///    coffee composition breakdown, and cashier assistant card.
-/// 5. Bottom Bar: Sleek full-width stadium pill button ('Lanjut →' / 'Mulai Sekarang →').
+///    5-segment progress bar filling in real time with finger gesture drag.
+/// 2. Slide 1: Large illustrated hero character with ambient warm radial glow.
+/// 3. Slide 2: Interactive Hero Showcase: Voice AI soundwave & 3D Camera.
+/// 4. Slide 3: Interactive Hero Showcase: Artisanal cafe order ticket & POS card.
+/// 5. Slide 4: Role Selection (Teman Tuli / Teman Dengar) with 3D Popout Cards.
+/// 6. Slide 5: Sign Language Selection (BISINDO / SIBI) with 3D Popout Cards.
+/// 7. Bottom Bar: Sticky full-width stadium pill button at the bottom.
 class Onboarding1Screen extends StatefulWidget {
   final int initialPage;
 
-  const Onboarding1Screen({
-    super.key,
-    this.initialPage = 0,
-  });
+  const Onboarding1Screen({super.key, this.initialPage = 0});
 
   @override
   State<Onboarding1Screen> createState() => _Onboarding1ScreenState();
 }
 
 class _Onboarding1ScreenState extends State<Onboarding1Screen> {
+  static const int _totalPages = 5;
+
   late PageController _pageController;
   late int _currentPage;
+  String _selectedRole = 'Teman Tuli';
+  String _selectedSignLanguage = 'BISINDO';
 
   @override
   void initState() {
     super.initState();
-    _currentPage = widget.initialPage;
-    _pageController = PageController(initialPage: widget.initialPage);
+    _currentPage = widget.initialPage.clamp(0, _totalPages - 1);
+    _pageController = PageController(initialPage: _currentPage);
+    if (Get.isRegistered<SettingsController>()) {
+      final settings = Get.find<SettingsController>();
+      _selectedRole = settings.selectedRole.value;
+      _selectedSignLanguage = settings.selectedSignLanguage.value;
+    }
   }
 
   @override
@@ -50,15 +58,33 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
     super.dispose();
   }
 
-  void _nextPage() {
+  Future<void> _finishOnboarding() async {
+    if (Get.isRegistered<SettingsController>()) {
+      final settings = Get.find<SettingsController>();
+      await settings.setRole(_selectedRole);
+      await settings.setSignLanguage(_selectedSignLanguage);
+      await settings.completeOnboarding();
+    }
+    if (Get.isRegistered<SignLanguageController>()) {
+      final signCtrl = Get.find<SignLanguageController>();
+      signCtrl.setModel(
+        _selectedSignLanguage == 'BISINDO'
+            ? SignLanguageModelType.bisindo
+            : SignLanguageModelType.sibi,
+      );
+    }
+    Get.offAllNamed(AppRoutes.mainShell);
+  }
+
+  Future<void> _nextPage() async {
     HapticFeedback.lightImpact();
-    if (_currentPage < 2) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 380),
-        curve: Curves.easeInOutCubic,
+    if (_currentPage < _totalPages - 1) {
+      await _pageController.nextPage(
+        duration: const Duration(milliseconds: 360),
+        curve: Curves.easeOutCubic,
       );
     } else {
-      Get.toNamed(AppRoutes.chooseRole);
+      await _finishOnboarding();
     }
   }
 
@@ -66,9 +92,23 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
     HapticFeedback.lightImpact();
     if (_currentPage > 0) {
       _pageController.previousPage(
-        duration: const Duration(milliseconds: 380),
-        curve: Curves.easeInOutCubic,
+        duration: const Duration(milliseconds: 360),
+        curve: Curves.easeOutCubic,
       );
+    }
+  }
+
+  Future<void> _handleSkip() async {
+    HapticFeedback.lightImpact();
+    if (_currentPage < 3) {
+      // Jump straight to quick personalization (Pilih Peran)
+      await _pageController.animateToPage(
+        3,
+        duration: const Duration(milliseconds: 380),
+        curve: Curves.easeOutCubic,
+      );
+    } else {
+      await _finishOnboarding();
     }
   }
 
@@ -106,11 +146,31 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                       visual: _buildSlide2Visual(isDark),
                       title: AppStrings.onboarding2Title.tr,
                       description: AppStrings.onboarding2Desc.tr,
+                      addTopBreathingRoom: true,
                     ),
                     _buildSlideContainer(
                       visual: _buildSlide3Visual(isDark),
                       title: AppStrings.onboarding3Title.tr,
                       description: AppStrings.onboarding3Desc.tr,
+                      addTopBreathingRoom: true,
+                    ),
+                    OnboardingRoleStepContent(
+                      selectedRole: _selectedRole,
+                      onSelectRole: (role) {
+                        setState(() => _selectedRole = role);
+                        if (Get.isRegistered<SettingsController>()) {
+                          Get.find<SettingsController>().setRole(role);
+                        }
+                      },
+                    ),
+                    OnboardingSignLanguageStepContent(
+                      selectedLanguage: _selectedSignLanguage,
+                      onSelectLanguage: (lang) {
+                        setState(() => _selectedSignLanguage = lang);
+                        if (Get.isRegistered<SettingsController>()) {
+                          Get.find<SettingsController>().setSignLanguage(lang);
+                        }
+                      },
                     ),
                   ],
                 ),
@@ -130,8 +190,8 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
     return AnimatedBuilder(
       animation: _pageController,
       builder: (context, _) {
-        final double page = _pageController.hasClients &&
-                _pageController.page != null
+        final double page =
+            _pageController.hasClients && _pageController.page != null
             ? _pageController.page!
             : _currentPage.toDouble();
 
@@ -155,8 +215,10 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                           size: 18,
                           color: AppColors.ink,
                         ),
-                        constraints:
-                            const BoxConstraints(minWidth: 44, minHeight: 44),
+                        constraints: const BoxConstraints(
+                          minWidth: 44,
+                          minHeight: 44,
+                        ),
                         padding: EdgeInsets.zero,
                         splashRadius: 22,
                         tooltip: 'Kembali',
@@ -168,10 +230,7 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
 
                     // "Lewati" (Skip) text button
                     TextButton(
-                      onPressed: () {
-                        HapticFeedback.lightImpact();
-                        Get.toNamed(AppRoutes.chooseRole);
-                      },
+                      onPressed: _handleSkip,
                       style: TextButton.styleFrom(
                         minimumSize: const Size(48, 44),
                         padding: const EdgeInsets.symmetric(
@@ -196,22 +255,17 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
 
             const SizedBox(height: 6),
 
-            // Edge-to-Edge 3-Segment Progress Track that fills in real time with gesture
+            // Edge-to-Edge 5-Segment Progress Track that fills in real time with gesture
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: SizedBox(
                 height: 4,
                 width: double.infinity,
                 child: Row(
-                  children: List.generate(3, (index) {
-                    double segmentFill = 0.0;
-                    if (index == 0) {
-                      segmentFill = 1.0;
-                    } else if (index == 1) {
-                      segmentFill = (page - 0.0).clamp(0.0, 1.0);
-                    } else if (index == 2) {
-                      segmentFill = (page - 1.0).clamp(0.0, 1.0);
-                    }
+                  children: List.generate(_totalPages, (index) {
+                    final double segmentFill = index == 0
+                        ? 1.0
+                        : (page - (index - 1)).clamp(0.0, 1.0);
 
                     return Expanded(
                       child: Container(
@@ -283,11 +337,7 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                 ),
               ),
               const SizedBox(width: 4),
-              Icon(
-                Icons.swap_horiz_rounded,
-                size: 14,
-                color: AppColors.muted,
-              ),
+              Icon(Icons.swap_horiz_rounded, size: 14, color: AppColors.muted),
             ],
           ),
         ),
@@ -300,16 +350,25 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
     required Widget visual,
     required String title,
     required String description,
+    bool addTopBreathingRoom = false,
   }) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final double topPadding = addTopBreathingRoom
+            ? (constraints.maxHeight * 0.07).clamp(24.0, 56.0)
+            : 4.0;
+        const double bottomPadding = 4.0;
+        final double minContentHeight =
+            (constraints.maxHeight - topPadding - bottomPadding).clamp(
+              0.0,
+              double.infinity,
+            );
+
         return SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+          padding: EdgeInsets.fromLTRB(24, topPadding, 24, bottomPadding),
           child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: constraints.maxHeight - 8,
-            ),
+            constraints: BoxConstraints(minHeight: minContentHeight),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -357,7 +416,11 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
 
   // ── Bottom Action Button: Full-width Dark Stadium Pill ─────────────────────
   Widget _buildBottomButton(bool isDark) {
-    final isLast = _currentPage >= 2;
+    final isLast = _currentPage >= _totalPages - 1;
+    final foregroundColor = isDark
+        ? AppColors.darkCanvas
+        : AppColors.textOnDark;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 6, 24, 18),
       child: SizedBox(
@@ -366,29 +429,32 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
         child: ElevatedButton(
           onPressed: _nextPage,
           style: ElevatedButton.styleFrom(
-            backgroundColor:
-                isDark ? AppColors.darkPrimary : AppColors.primary,
-            foregroundColor: isDark ? AppColors.darkCanvas : Colors.white,
+            backgroundColor: isDark ? AppColors.darkPrimary : AppColors.primary,
+            foregroundColor: foregroundColor,
             elevation: 0,
             shadowColor: Colors.transparent,
             shape: const StadiumBorder(),
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: .center,
             children: [
-              Text(
-                isLast ? AppStrings.startNow.tr : AppStrings.next.tr,
-                style: AppTypography.labelLarge.copyWith(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
-                  color: isDark ? AppColors.darkCanvas : Colors.white,
+              Flexible(
+                child: Text(
+                  isLast ? AppStrings.startUsingApp.tr : AppStrings.next.tr,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.labelLarge.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    color: foregroundColor,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
               Icon(
-                Icons.arrow_forward_rounded,
+                isLast ? Icons.check_rounded : Icons.arrow_forward_rounded,
                 size: 18,
-                color: isDark ? AppColors.darkCanvas : Colors.white,
+                color: foregroundColor,
               ),
             ],
           ),
@@ -419,8 +485,8 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                   gradient: RadialGradient(
                     colors: [
                       (isDark
-                              ? AppColors.secondary.withValues(alpha: 0.24)
-                              : AppColors.secondary.withValues(alpha: 0.12)),
+                          ? AppColors.secondary.withValues(alpha: 0.24)
+                          : AppColors.secondary.withValues(alpha: 0.12)),
                       Colors.transparent,
                     ],
                     stops: const [0.38, 1.0],
@@ -491,8 +557,8 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                   gradient: RadialGradient(
                     colors: [
                       (isDark
-                              ? AppColors.secondary.withValues(alpha: 0.22)
-                              : AppColors.secondary.withValues(alpha: 0.12)),
+                          ? AppColors.secondary.withValues(alpha: 0.22)
+                          : AppColors.secondary.withValues(alpha: 0.12)),
                       Colors.transparent,
                     ],
                     stops: const [0.38, 1.0],
@@ -524,8 +590,10 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                 top: visualHeight * 0.04,
                 child: Container(
                   width: cardMaxWidth,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 11,
+                  ),
                   decoration: BoxDecoration(
                     color: (isDark ? AppColors.darkSurface : AppColors.surface)
                         .withValues(alpha: 0.96),
@@ -541,8 +609,9 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black
-                            .withValues(alpha: isDark ? 0.35 : 0.07),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.35 : 0.07,
+                        ),
                         blurRadius: 18,
                         offset: const Offset(0, 5),
                       ),
@@ -555,10 +624,13 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 7, vertical: 2.5),
+                              horizontal: 7,
+                              vertical: 2.5,
+                            ),
                             decoration: BoxDecoration(
-                              color: AppColors.secondary
-                                  .withValues(alpha: isDark ? 0.25 : 0.15),
+                              color: AppColors.secondary.withValues(
+                                alpha: isDark ? 0.25 : 0.15,
+                              ),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Row(
@@ -589,8 +661,9 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                               return Container(
                                 width: 2.5,
                                 height: heights[i],
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 1.5),
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 1.5,
+                                ),
                                 decoration: BoxDecoration(
                                   color: AppColors.secondary,
                                   borderRadius: BorderRadius.circular(2),
@@ -637,8 +710,9 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.secondary
-                                .withValues(alpha: isDark ? 0.40 : 0.18),
+                            color: AppColors.secondary.withValues(
+                              alpha: isDark ? 0.40 : 0.18,
+                            ),
                             blurRadius: 28,
                             offset: const Offset(0, 10),
                           ),
@@ -664,17 +738,19 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                     // Live AI Gesture Recognition Pill
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 13, vertical: 6),
+                        horizontal: 13,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
-                        color: (isDark
-                                ? AppColors.darkPrimary
-                                : AppColors.primary)
-                            .withValues(alpha: isDark ? 0.92 : 0.96),
+                        color:
+                            (isDark ? AppColors.darkPrimary : AppColors.primary)
+                                .withValues(alpha: isDark ? 0.92 : 0.96),
                         borderRadius: BorderRadius.circular(18),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black
-                                .withValues(alpha: isDark ? 0.35 : 0.14),
+                            color: Colors.black.withValues(
+                              alpha: isDark ? 0.35 : 0.14,
+                            ),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),
@@ -694,8 +770,9 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                             style: AppTypography.labelSmall.copyWith(
                               fontWeight: FontWeight.w700,
                               fontSize: 11.5,
-                              color:
-                                  isDark ? AppColors.darkCanvas : Colors.white,
+                              color: isDark
+                                  ? AppColors.darkCanvas
+                                  : Colors.white,
                             ),
                           ),
                         ],
@@ -711,8 +788,10 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                 bottom: visualHeight * 0.03,
                 child: Container(
                   width: cardMaxWidth,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 11,
+                  ),
                   decoration: BoxDecoration(
                     color: (isDark ? AppColors.darkSurface : AppColors.surface)
                         .withValues(alpha: 0.96),
@@ -728,8 +807,9 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black
-                            .withValues(alpha: isDark ? 0.35 : 0.07),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.35 : 0.07,
+                        ),
                         blurRadius: 18,
                         offset: const Offset(0, 5),
                       ),
@@ -807,8 +887,8 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                   gradient: RadialGradient(
                     colors: [
                       (isDark
-                              ? AppColors.secondary.withValues(alpha: 0.22)
-                              : AppColors.secondary.withValues(alpha: 0.12)),
+                          ? AppColors.secondary.withValues(alpha: 0.22)
+                          : AppColors.secondary.withValues(alpha: 0.12)),
                       Colors.transparent,
                     ],
                     stops: const [0.38, 1.0],
@@ -840,8 +920,10 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                 top: visualHeight * 0.04,
                 child: Container(
                   width: cardMaxWidth,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 11,
+                  ),
                   decoration: BoxDecoration(
                     color: (isDark ? AppColors.darkSurface : AppColors.surface)
                         .withValues(alpha: 0.96),
@@ -852,8 +934,9 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black
-                            .withValues(alpha: isDark ? 0.35 : 0.07),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.35 : 0.07,
+                        ),
                         blurRadius: 18,
                         offset: const Offset(0, 5),
                       ),
@@ -886,10 +969,13 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 7, vertical: 2.5),
+                              horizontal: 7,
+                              vertical: 2.5,
+                            ),
                             decoration: BoxDecoration(
-                              color: AppColors.matcha
-                                  .withValues(alpha: isDark ? 0.25 : 0.15),
+                              color: AppColors.matcha.withValues(
+                                alpha: isDark ? 0.25 : 0.15,
+                              ),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -935,8 +1021,9 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black
-                            .withValues(alpha: isDark ? 0.35 : 0.08),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.35 : 0.08,
+                        ),
                         blurRadius: 22,
                         offset: const Offset(0, 7),
                       ),
@@ -952,8 +1039,9 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                             width: 42,
                             height: 42,
                             decoration: BoxDecoration(
-                              color: AppColors.secondary
-                                  .withValues(alpha: 0.16),
+                              color: AppColors.secondary.withValues(
+                                alpha: 0.16,
+                              ),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -978,7 +1066,9 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 Text(
-                                  AppStrings.onboardingSlide3CustomCoffeeDesc.tr,
+                                  AppStrings
+                                      .onboardingSlide3CustomCoffeeDesc
+                                      .tr,
                                   style: AppTypography.bodySmall.copyWith(
                                     color: AppColors.muted,
                                     fontSize: 11,
@@ -1014,18 +1104,19 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                 bottom: visualHeight * 0.03,
                 child: Container(
                   width: cardMaxWidth,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 11,
+                  ),
                   decoration: BoxDecoration(
-                    color: (isDark
-                            ? AppColors.darkPrimary
-                            : AppColors.primary)
+                    color: (isDark ? AppColors.darkPrimary : AppColors.primary)
                         .withValues(alpha: isDark ? 0.92 : 0.96),
                     borderRadius: BorderRadius.circular(22),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black
-                            .withValues(alpha: isDark ? 0.35 : 0.14),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.35 : 0.14,
+                        ),
                         blurRadius: 18,
                         offset: const Offset(0, 5),
                       ),
@@ -1066,10 +1157,11 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
                               AppStrings.onboardingSlide3CashierShortcutDesc.tr,
                               style: AppTypography.bodySmall.copyWith(
                                 fontSize: 10.5,
-                                color: (isDark
-                                        ? AppColors.darkCanvas
-                                        : Colors.white)
-                                    .withValues(alpha: 0.8),
+                                color:
+                                    (isDark
+                                            ? AppColors.darkCanvas
+                                            : Colors.white)
+                                        .withValues(alpha: 0.8),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -1105,12 +1197,14 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: (isDark ? AppColors.darkSurface : AppColors.surface)
-            .withValues(alpha: 0.92),
+        color: (isDark ? AppColors.darkSurface : AppColors.surface).withValues(
+          alpha: 0.92,
+        ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: (isDark ? AppColors.darkBorder : AppColors.border)
-              .withValues(alpha: 0.85),
+          color: (isDark ? AppColors.darkBorder : AppColors.border).withValues(
+            alpha: 0.85,
+          ),
           width: 1.1,
         ),
         boxShadow: [
@@ -1124,11 +1218,7 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 16,
-            color: AppColors.secondary,
-          ),
+          Icon(icon, size: 16, color: AppColors.secondary),
           const SizedBox(width: 6),
           Text(
             label,

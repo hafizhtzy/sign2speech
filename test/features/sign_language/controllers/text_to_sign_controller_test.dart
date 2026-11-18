@@ -128,6 +128,13 @@ void main() {
       controller.isLooping.value = true;
       controller.onVideoFinished();
       expect(controller.activeWordIndex.value, equals(0));
+
+      // Reaching the end stops at final word when loop is disabled
+      controller.isLooping.value = false;
+      controller.onVideoFinished();
+      expect(controller.activeWordIndex.value, equals(1));
+      controller.onVideoFinished();
+      expect(controller.activeWordIndex.value, equals(1));
     });
 
     test('Autocomplete suggestions filters candidate dictionary correctly', () {

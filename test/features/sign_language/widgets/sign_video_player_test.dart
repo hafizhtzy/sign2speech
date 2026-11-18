@@ -218,5 +218,49 @@ void main() {
       expect(find.byIcon(Icons.cloud_download_rounded), findsWidgets);
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
     });
+
+    testWidgets(
+      'accepts onVideoCompleted callback for sequential multi-word playlists',
+      (tester) async {
+        tester.view.physicalSize = const Size(800, 1200);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+
+        await tester.pumpWidget(
+          buildTestableWidget(
+            SignVideoPlayer(
+              playlist: const [
+                SignVideoEntry(
+                  id: 'pesan_v1',
+                  label: 'Pesan',
+                  aliases: ['pesan'],
+                  category: 'transaksi',
+                  assetPath: 'assets/video_offline/pesan.mp4',
+                  remoteUrl: '',
+                  source: SignVideoSource.asset,
+                ),
+                SignVideoEntry(
+                  id: 'kopi_v1',
+                  label: 'Kopi',
+                  aliases: ['kopi'],
+                  category: 'minuman',
+                  assetPath: 'assets/video_offline/kopi.mp4',
+                  remoteUrl: '',
+                  source: SignVideoSource.asset,
+                ),
+              ],
+              activeWordIndex: 0,
+              videoSource: 'assets/video_offline/pesan.mp4',
+              isLooping: true,
+              onVideoCompleted: () {},
+            ),
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
+
+        expect(find.text('Pesan'), findsWidgets);
+        expect(find.text('Kopi'), findsOneWidget);
+      },
+    );
   });
 }

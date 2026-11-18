@@ -21,6 +21,7 @@ class SignVideoPlayer extends StatefulWidget {
   final double playbackSpeed;
   final bool isLooping;
   final ValueChanged<int>? onWordSelected;
+  final VoidCallback? onVideoCompleted;
   final ValueChanged<double>? onSpeedChanged;
   final VoidCallback? onToggleLoop;
   final VoidCallback? onReplay;
@@ -45,6 +46,7 @@ class SignVideoPlayer extends StatefulWidget {
     this.playbackSpeed = 1.0,
     this.isLooping = true,
     this.onWordSelected,
+    this.onVideoCompleted,
     this.onSpeedChanged,
     this.onToggleLoop,
     this.onReplay,
@@ -63,8 +65,12 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
   bool _isInitialized = false;
   String? _playerError;
   bool _isPlaying = false;
+  bool _hasNotifiedCompletion = false;
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
+
+  bool get _shouldLoopSingleClip =>
+      widget.isLooping && widget.playlist.length <= 1;
 
   late final AnimationController _pulseController;
   late final Animation<double> _pulseScaleAnimation;
@@ -100,11 +106,32 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
     }
     final c = _controller;
     if (c == null || !_isInitialized) return;
+    if (oldWidget.activeWordIndex != widget.activeWordIndex) {
+      _restartCurrentController();
+      return;
+    }
     if (oldWidget.playbackSpeed != widget.playbackSpeed) {
       c.setPlaybackSpeed(widget.playbackSpeed);
     }
-    if (oldWidget.isLooping != widget.isLooping) {
-      c.setLooping(widget.isLooping);
+    final oldSingleLoop = oldWidget.isLooping && oldWidget.playlist.length <= 1;
+    if (oldSingleLoop != _shouldLoopSingleClip) {
+      c.setLooping(_shouldLoopSingleClip);
+    }
+  }
+
+  Future<void> _restartCurrentController() async {
+    final c = _controller;
+    if (c == null || !_isInitialized) return;
+    _hasNotifiedCompletion = false;
+    await c.setLooping(_shouldLoopSingleClip);
+    await c.setPlaybackSpeed(widget.playbackSpeed);
+    await c.seekTo(Duration.zero);
+    await c.play();
+    if (mounted) {
+      setState(() {
+        _isPlaying = true;
+        _position = Duration.zero;
+      });
     }
   }
 
@@ -114,6 +141,31 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
     final isPlaying = c.value.isPlaying;
     final pos = c.value.position;
     final dur = c.value.duration;
+
+    if (_hasNotifiedCompletion &&
+        dur > Duration.zero &&
+        pos < dur - const Duration(milliseconds: 200)) {
+      _hasNotifiedCompletion = false;
+    }
+
+    final bool reachedEnd =
+        c.value.isCompleted ||
+        (dur > Duration.zero &&
+            pos > Duration.zero &&
+            !isPlaying &&
+            pos >= dur - const Duration(milliseconds: 80));
+
+    if (!_shouldLoopSingleClip &&
+        reachedEnd &&
+        !_hasNotifiedCompletion &&
+        widget.onVideoCompleted != null) {
+      _hasNotifiedCompletion = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          widget.onVideoCompleted?.call();
+        }
+      });
+    }
 
     if (isPlaying != _isPlaying ||
         dur != _duration ||
@@ -137,6 +189,7 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
     _isInitialized = false;
     _playerError = null;
     _isPlaying = false;
+    _hasNotifiedCompletion = false;
     _position = Duration.zero;
     _duration = Duration.zero;
     await old?.dispose();
@@ -165,7 +218,7 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
         return;
       }
       await controller.setPlaybackSpeed(widget.playbackSpeed);
-      await controller.setLooping(widget.isLooping);
+      await controller.setLooping(_shouldLoopSingleClip);
       await controller.play();
 
       if (token != _initToken || !mounted) {
@@ -206,6 +259,7 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
       widget.onPlayPauseChanged?.call(false);
     } else {
       if (_position >= _duration && _duration > Duration.zero) {
+        _hasNotifiedCompletion = false;
         c.seekTo(Duration.zero);
       }
       c.play();
@@ -262,7 +316,7 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
             child: AspectRatio(
               aspectRatio: 16 / 10,
               child: Container(
-                color: AppColors.ink,
+                color: AppColors.cameraDark,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
@@ -290,10 +344,10 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
                               width: 56,
                               height: 56,
                               decoration: BoxDecoration(
-                                color: AppColors.ink.withValues(alpha: 0.65),
+                                color: Colors.black.withValues(alpha: 0.56),
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.5),
+                                  color: Colors.white.withValues(alpha: 0.45),
                                   width: 1.5,
                                 ),
                                 boxShadow: [
@@ -314,52 +368,7 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
                         ),
                       ),
 
-                    // Status Indicator Badge (Top-Left)
-                    if (_isInitialized && !widget.isDownloading)
-                      Positioned(
-                        top: 10,
-                        left: 10,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3.5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.ink.withValues(alpha: 0.70),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.25),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _isPlaying
-                                    ? Icons.play_circle_filled_rounded
-                                    : Icons.pause_circle_filled_rounded,
-                                size: 12,
-                                color: _isPlaying
-                                    ? AppColors.matcha
-                                    : AppColors.amber,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                _isPlaying
-                                    ? AppStrings.signVideoStatusPlaying.tr
-                                    : AppStrings.signVideoStatusPaused.tr,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                    // Offline / Cache / Online Source Badge (Top-Right)
+                    // Offline / Cache / Online Source Badge (Top-Right — Clean & Minimal)
                     Positioned(
                       top: 10,
                       right: 10,
@@ -705,6 +714,7 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
                       ),
                       padding: EdgeInsets.zero,
                       onPressed: () {
+                        _hasNotifiedCompletion = false;
                         _controller?.seekTo(Duration.zero);
                         _controller?.play();
                         setState(() => _isPlaying = true);
@@ -804,29 +814,33 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
       );
     }
     if (widget.errorMessage != null || _playerError != null) {
-      return Container(
+      return Center(
         key: const ValueKey('video_error_state'),
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.videocam_off_rounded,
-              size: 44,
-              color: AppColors.surface.withValues(alpha: 0.7),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              widget.errorMessage ?? _playerError!,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.surface,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                height: 1.4,
+        child: SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          child: Column(
+            mainAxisSize: .min,
+            mainAxisAlignment: .center,
+            children: [
+              Icon(
+                Icons.videocam_off_rounded,
+                size: 44,
+                color: AppColors.textOnDark.withValues(alpha: 0.7),
               ),
-            ),
-          ],
+              const SizedBox(height: 10),
+              Text(
+                widget.errorMessage ?? _playerError!,
+                textAlign: .center,
+                style: const TextStyle(
+                  color: AppColors.textOnDark,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -834,30 +848,35 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
       return Container(
         key: const ValueKey('video_loading_state'),
         alignment: Alignment.center,
-        child: CircularProgressIndicator(color: AppColors.surface),
+        child: const CircularProgressIndicator(color: AppColors.textOnDark),
       );
     }
-    return Container(
+    return Center(
       key: const ValueKey('video_placeholder_state'),
-      alignment: Alignment.center,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.sign_language_rounded,
-            size: 56,
-            color: AppColors.surface.withValues(alpha: 0.6),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            activeEntry?.label ?? 'Peragaan Isyarat',
-            style: TextStyle(
-              color: AppColors.surface.withValues(alpha: 0.8),
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Column(
+          mainAxisSize: .min,
+          mainAxisAlignment: .center,
+          children: [
+            Icon(
+              Icons.sign_language_rounded,
+              size: 52,
+              color: AppColors.textOnDark.withValues(alpha: 0.65),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Text(
+              activeEntry?.label ?? 'Peragaan Isyarat',
+              textAlign: .center,
+              style: TextStyle(
+                color: AppColors.textOnDark.withValues(alpha: 0.85),
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -875,7 +894,7 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
               margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               decoration: BoxDecoration(
-                color: AppColors.ink.withValues(alpha: 0.82),
+                color: AppColors.cameraDarkElevated.withValues(alpha: 0.92),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: AppColors.secondary.withValues(alpha: 0.40),

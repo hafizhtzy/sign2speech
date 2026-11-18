@@ -22,27 +22,20 @@ class AutoOrderSlotTray extends StatelessWidget {
   Widget build(BuildContext context) {
     if (slot == null) {
       return Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border, width: 1.2),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.border, width: 1.0),
         ),
         child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.paleMist,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.auto_awesome_outlined,
-                size: 22,
-                color: AppColors.secondary,
-              ),
+            Icon(
+              Icons.auto_awesome_outlined,
+              size: 20,
+              color: AppColors.secondary,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,7 +44,7 @@ class AutoOrderSlotTray extends StatelessWidget {
                     AppStrings.cafeAutoOrderTitle.tr,
                     style: AppTypography.titleSmall.copyWith(
                       color: AppColors.ink,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -72,14 +65,14 @@ class AutoOrderSlotTray extends StatelessWidget {
     final item = slot!;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.secondary, width: 1.5),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.secondary.withValues(alpha: 0.6), width: 1.3),
         boxShadow: [
           BoxShadow(
-            color: AppColors.secondary.withValues(alpha: 0.08),
+            color: Colors.black.withValues(alpha: AppColors.isDark ? 0.25 : 0.04),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -91,19 +84,6 @@ class AutoOrderSlotTray extends StatelessWidget {
           // Header
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.secondary.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.auto_awesome,
-                  size: 20,
-                  color: AppColors.secondary,
-                ),
-              ),
-              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,14 +92,15 @@ class AutoOrderSlotTray extends StatelessWidget {
                       AppStrings.cafeParsedSlotDetected.tr,
                       style: AppTypography.labelSmall.copyWith(
                         color: AppColors.secondary,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       item.drinkNameId,
                       style: AppTypography.titleMedium.copyWith(
                         color: AppColors.ink,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ],
@@ -128,19 +109,19 @@ class AutoOrderSlotTray extends StatelessWidget {
               Text(
                 formatRupiah(item.totalPrice),
                 style: AppTypography.titleMedium.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
+                  color: AppColors.ink,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
           // Chips of slot modifiers
           Wrap(
             spacing: 8,
-            runSpacing: 6,
+            runSpacing: 8,
             children: [
               _buildSlotChip(
                 label: item.temperature.name.toUpperCase(),
@@ -175,7 +156,7 @@ class AutoOrderSlotTray extends StatelessWidget {
 
           // Dietary Alert Badges (if any)
           if (item.dietaryAlerts.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             ...item.dietaryAlerts.map(
               (alert) => Padding(
                 padding: const EdgeInsets.only(bottom: 6),
@@ -184,28 +165,26 @@ class AutoOrderSlotTray extends StatelessWidget {
             ),
           ],
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 18),
 
-          // 1-Tap Confirm Button
+          // 1-Tap Confirm Button (Stadium Pill matching Speech to Sign)
           SizedBox(
             width: double.infinity,
-            height: 48,
+            height: 50,
             child: ElevatedButton.icon(
               onPressed: onConfirm,
-              icon: const Icon(Icons.add_shopping_cart, size: 20),
+              icon: const Icon(Icons.add_shopping_cart, size: 19),
               label: Text(
                 AppStrings.cafeConfirmToTicket.tr,
                 style: AppTypography.labelLarge.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.surface,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.onPrimary,
                 ),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.surface,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                foregroundColor: AppColors.onPrimary,
+                shape: const StadiumBorder(),
                 elevation: 0,
               ),
             ),

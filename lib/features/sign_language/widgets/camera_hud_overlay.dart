@@ -82,8 +82,8 @@ class CameraHudOverlay extends StatelessWidget {
                         const SizedBox(width: 6),
                         Text(
                           activeModel == SignLanguageModelType.bisindo
-                              ? 'BISINDO (47)'
-                              : 'SIBI (72)',
+                              ? 'BISINDO'
+                              : 'SIBI',
                           style: TextStyle(
                             color: AppColors.surface,
                             fontWeight: FontWeight.w700,

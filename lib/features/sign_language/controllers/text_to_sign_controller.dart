@@ -495,7 +495,7 @@ class TextToSignController extends GetxController {
         return;
       }
 
-      controller.setLooping(isLooping.value);
+      controller.setLooping(isLooping.value && playlist.length <= 1);
       controller.setPlaybackSpeed(playbackSpeed.value);
 
       controller.addListener(_videoPlayerListener);
@@ -527,9 +527,10 @@ class TextToSignController extends GetxController {
     isVideoPlaying.value = controller.value.isPlaying;
 
     // Periksa apakah video selesai diputar pada mode playlist
-    if (!isLooping.value &&
-        controller.value.position >= controller.value.duration &&
-        controller.value.duration > Duration.zero) {
+    if ((playlist.length > 1 || !isLooping.value) &&
+        (controller.value.isCompleted ||
+            (controller.value.position >= controller.value.duration &&
+                controller.value.duration > Duration.zero))) {
       onVideoFinished();
     }
   }
@@ -999,17 +1000,17 @@ class TextToSignController extends GetxController {
 
     if (activeWordIndex.value + 1 < playlist.length) {
       activeWordIndex.value++;
-      playEntry(playlist[activeWordIndex.value]);
+      playEntry(playlist[activeWordIndex.value], force: true);
     } else if (isLooping.value) {
       activeWordIndex.value = 0;
-      playEntry(playlist[0]);
+      playEntry(playlist[0], force: true);
     }
   }
 
   void selectWordIndex(int index) {
     if (index >= 0 && index < playlist.length) {
       activeWordIndex.value = index;
-      playEntry(playlist[index]);
+      playEntry(playlist[index], force: true);
     }
   }
 
@@ -1020,6 +1021,6 @@ class TextToSignController extends GetxController {
 
   void toggleLooping() {
     isLooping.value = !isLooping.value;
-    _playerController?.setLooping(isLooping.value);
+    _playerController?.setLooping(isLooping.value && playlist.length <= 1);
   }
 }

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../core/constants/app_routes.dart';
 import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/widgets/app_card.dart';
+import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/responsive_layout.dart';
 import '../../features/sign_language/controllers/text_to_sign_controller.dart';
@@ -171,13 +172,6 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
     }).toList();
   }
 
-  int _countByLanguage(String lang) {
-    if (lang == 'Semua') return repository.allCatalogEntries.length;
-    return repository.allCatalogEntries
-        .where((e) => e.signSystem.toLowerCase() == lang.toLowerCase())
-        .length;
-  }
-
   Future<void> _downloadFilteredPack() async {
     final targetEntries = _filteredEntries;
     if (targetEntries.isEmpty) {
@@ -261,10 +255,46 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
       appBar: AppBar(
         title: Text(
           AppStrings.libraryTitle.tr,
+          style: AppTypography.titleLarge.copyWith(
+            fontWeight: FontWeight.w800,
+            color: AppColors.ink,
+          ),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.canvas,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
-        centerTitle: false,
+        centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: _isDownloading
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          value: _downloadProgress > 0
+                              ? _downloadProgress
+                              : null,
+                          strokeWidth: 2.2,
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                    ),
+                  )
+                : IconButton(
+                    icon: Icon(
+                      Icons.download_for_offline_outlined,
+                      color: AppColors.muted,
+                      size: 22,
+                    ),
+                    tooltip: 'Unduh Filter Ini',
+                    onPressed: _downloadFilteredPack,
+                  ),
+          ),
+        ],
       ),
       body: SafeArea(
         bottom: false,
@@ -274,32 +304,38 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
             controller: _scrollController,
             physics: const BouncingScrollPhysics(),
             slivers: [
-              // ── 1. HEADER CONTROLS (SEARCH, FILTERS, DOWNLOAD BANNER) ────
+              // ── 1. MINIMALIST HEADER CONTROLS (SEARCH, LANGUAGE, CATEGORY) ──
               SliverToBoxAdapter(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: .start,
                   children: [
-                    // 1.1 Search Input
+                    // 1.1 Airy Search Input
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
                       child: TextField(
                         controller: _searchController,
                         onChanged: (_) => setState(() {
                           _currentPage = 1;
                         }),
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: AppColors.ink,
+                        ),
                         decoration: InputDecoration(
                           hintText: AppStrings.librarySearchPlaceholder.tr,
-                          hintStyle: TextStyle(
+                          hintStyle: AppTypography.bodyMedium.copyWith(
                             color: AppColors.textMuted,
-                            fontSize: 14,
                           ),
-                          prefixIcon:
-                              Icon(Icons.search, color: AppColors.textMuted),
+                          prefixIcon: Icon(
+                            Icons.search_rounded,
+                            color: AppColors.textMuted,
+                            size: 20,
+                          ),
                           suffixIcon: _searchController.text.isNotEmpty
                               ? IconButton(
                                   icon: Icon(
-                                    Icons.clear,
+                                    Icons.clear_rounded,
                                     color: AppColors.textMuted,
+                                    size: 18,
                                   ),
                                   onPressed: () {
                                     _searchController.clear();
@@ -326,61 +362,56 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
                             borderSide: BorderSide(
-                              color: AppColors.primary,
-                              width: 2,
+                              color: AppColors.secondary,
+                              width: 1.5,
                             ),
                           ),
                         ),
                       ),
                     ),
 
-                    // 1.2 Filter Sistem Isyarat (BISINDO / SIBI / SEMUA)
+                    // 1.2 Clean Language Segmented Switcher (Semua / BISINDO / SIBI)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: AppColors.bgSurface,
+                          color: AppColors.surface,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(color: AppColors.border),
                         ),
                         child: Row(
                           children: _languages.map((lang) {
                             final isSelected = _selectedLanguage == lang;
-                            final count = _countByLanguage(lang);
                             return Expanded(
                               child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
                                 onTap: () {
+                                  HapticFeedback.selectionClick();
                                   setState(() {
                                     _selectedLanguage = lang;
                                     _currentPage = 1;
                                   });
                                 },
                                 child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  duration: const Duration(milliseconds: 220),
+                                  curve: Curves.easeOutCubic,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 10,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? AppColors.primary
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(10),
-                                    boxShadow: isSelected
-                                        ? [
-                                            BoxShadow(
-                                              color: AppColors.primary.withValues(
-                                                alpha: 0.18,
-                                              ),
-                                              blurRadius: 6,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ]
-                                        : null,
                                   ),
                                   child: Center(
                                     child: Text(
-                                      '$lang ($count)',
-                                      style: TextStyle(
-                                        fontSize: 13,
+                                      lang,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: AppTypography.labelMedium.copyWith(
+                                        fontSize: 12.5,
                                         fontWeight: isSelected
                                             ? FontWeight.w700
                                             : FontWeight.w600,
@@ -397,9 +428,9 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 18),
 
-                    // 1.3 Filter Pill Kategori (Horizontal Scroll)
+                    // 1.3 Editorial Category Tiles (Inspired by Apple/Spotify Reference)
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -408,33 +439,40 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                         children: _categories.map((cat) {
                           final isSelected = _selectedCategory == cat;
                           return Padding(
-                            padding: const EdgeInsets.only(right: 8),
+                            padding: const EdgeInsets.only(right: 10),
                             child: ChoiceChip(
                               label: Text(cat),
                               selected: isSelected,
+                              showCheckmark: false,
                               onSelected: (_) {
+                                HapticFeedback.selectionClick();
                                 setState(() {
                                   _selectedCategory = cat;
                                   _currentPage = 1;
                                 });
                               },
-                              selectedColor: AppColors.secondary,
+                              selectedColor: AppColors.primary,
                               backgroundColor: AppColors.surface,
-                              labelStyle: TextStyle(
+                              labelPadding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              labelStyle: AppTypography.labelMedium.copyWith(
                                 color: isSelected
-                                    ? AppColors.textOnDark
+                                    ? AppColors.onPrimary
                                     : AppColors.ink,
                                 fontWeight: isSelected
-                                    ? FontWeight.w700
+                                    ? FontWeight.w800
                                     : FontWeight.w600,
-                                fontSize: 12.5,
+                                fontSize: 13,
                               ),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(14),
                                 side: BorderSide(
                                   color: isSelected
-                                      ? AppColors.secondary
+                                      ? AppColors.primary
                                       : AppColors.border,
+                                  width: 1.1,
                                 ),
                               ),
                             ),
@@ -442,98 +480,34 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                         }).toList(),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 24),
 
-                    // 1.4 Offline Download Banner
+                    // 1.4 Clean Editorial Section Header (No hardcoded/explicit vocab count)
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: AppCard(
-                        backgroundColor: AppColors.bgSurface,
-                        border: BorderSide(color: AppColors.border),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 10,
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 38,
-                              height: 38,
-                              decoration: BoxDecoration(
-                                color: AppColors.secondary,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.download_for_offline_rounded,
-                                color: AppColors.textOnDark,
-                                size: 22,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _isDownloading
-                                        ? 'Mengunduh... (${(_downloadProgress * 100).toInt()}%)'
-                                        : 'Unduh Filter Ini ($totalItems video)',
-                                    style: TextStyle(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.ink,
-                                    ),
-                                  ),
-                                  Text(
-                                    _isDownloading
-                                        ? 'Sedang menyimpan video ke memori lokal'
-                                        : 'Kategori $_selectedCategory • $_selectedLanguage',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.muted,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            TextButton(
-                              onPressed:
-                                  _isDownloading ? null : _downloadFilteredPack,
-                              style: TextButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              child: Text(
-                                _isDownloading ? 'Memproses' : 'Unduh',
-                                style: TextStyle(
-                                  color: AppColors.secondary,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                          ],
+                      padding: const EdgeInsets.fromLTRB(22, 0, 22, 10),
+                      child: Text(
+                        _selectedCategory,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.titleMedium.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.ink,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
                   ],
                 ),
               ),
 
-              // ── 2. VOCABULARY LIST OR EMPTY STATE ───────────────────────
+              // ── 2. VOCABULARY TRACKLIST OR EMPTY STATE ────────────────────
               if (totalItems == 0)
                 SliverFillRemaining(
                   hasScrollBody: false,
                   child: Padding(
-                    padding: const EdgeInsets.all(32),
+                    padding: const EdgeInsets.all(36),
                     child: Center(
                       child: Column(
-                        mainAxisSize: MainAxisSize.min,
+                        mainAxisSize: .min,
                         children: [
                           Icon(
                             Icons.search_off_rounded,
@@ -543,18 +517,16 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                           const SizedBox(height: 12),
                           Text(
                             'Tidak ada kosakata yang cocok',
-                            style: TextStyle(
+                            style: AppTypography.titleSmall.copyWith(
                               color: AppColors.ink,
                               fontWeight: FontWeight.w700,
-                              fontSize: 15,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             'Coba ubah kata kunci atau pilih kategori lain',
-                            style: TextStyle(
-                              color: AppColors.muted.withValues(alpha: 0.8),
-                              fontSize: 12.5,
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.muted,
                             ),
                           ),
                         ],
@@ -564,39 +536,45 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
                 )
               else if (context.isLargeScreen)
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
                   sliver: SliverGrid(
                     gridDelegate:
                         const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 460,
-                      mainAxisExtent: 84,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 10,
-                    ),
+                          maxCrossAxisExtent: 460,
+                          mainAxisExtent: 82,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 8,
+                        ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) =>
-                          _buildVocabularyCard(context, pagedEntries[index]),
+                          _buildVocabularyRow(context, pagedEntries[index]),
                       childCount: pagedEntries.length,
                     ),
                   ),
                 )
               else
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                  padding: const EdgeInsets.only(top: 2, bottom: 16),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         final itemIndex = index ~/ 2;
                         if (index.isOdd) {
-                          return const SizedBox(height: 8);
+                          return Divider(
+                            height: 1,
+                            indent: 88,
+                            endIndent: 20,
+                            color: AppColors.border.withValues(alpha: 0.45),
+                          );
                         }
-                        return _buildVocabularyCard(
+                        return _buildVocabularyRow(
                           context,
                           pagedEntries[itemIndex],
                         );
                       },
-                      childCount:
-                          pagedEntries.isEmpty ? 0 : pagedEntries.length * 2 - 1,
+                      childCount: pagedEntries.isEmpty
+                          ? 0
+                          : pagedEntries.length * 2 - 1,
                     ),
                   ),
                 ),
@@ -605,19 +583,20 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
               if (totalItems > 0 && totalPages > 1)
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 114),
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 128),
                     child: PaginationControlBar(
                       currentPage: safeCurrentPage,
                       totalPages: totalPages,
                       totalItems: totalItems,
                       itemsPerPage: _pageSize,
+                      showItemCount: false,
                       onPageChanged: (page) => _goToPage(page, totalPages),
                     ),
                   ),
                 )
               else if (totalItems > 0)
                 const SliverToBoxAdapter(
-                  child: SizedBox(height: 114),
+                  child: SizedBox(height: 128),
                 ),
             ],
           ),
@@ -626,13 +605,18 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
     );
   }
 
-  Widget _buildVocabularyCard(BuildContext context, SignVideoEntry entry) {
+  /// Minimalist borderless editorial vocabulary row inspired by clean tracklists.
+  /// Zero pill clutter, generous touch padding, and subtle right-aligned metadata.
+  Widget _buildVocabularyRow(BuildContext context, SignVideoEntry entry) {
     final isSibi = entry.signSystem.toLowerCase().trim() == 'sibi';
     final isBundled = entry.assetPath.isNotEmpty;
+    final subtitleText = entry.aliases.isNotEmpty
+        ? entry.aliases.join(', ')
+        : _formatCategoryDisplay(entry.category);
 
-    return AppCard(
-      padding: const EdgeInsets.all(12),
+    return InkWell(
       onTap: () async {
+        HapticFeedback.lightImpact();
         final ttsCtrl = Get.find<TextToSignController>();
         ttsCtrl.recognizedWords.value = entry.label;
         ttsCtrl.selectedLanguage.value = entry.signSystem.toLowerCase();
@@ -647,134 +631,88 @@ class _SignLibraryScreenState extends State<SignLibraryScreen> {
         );
         Get.toNamed(AppRoutes.speechToSignResult);
       },
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: AppColors.bgSurface,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.play_circle_fill_rounded,
-              color: AppColors.primary,
-              size: 26,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        entry.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 15.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.ink,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.bgSurface,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: AppColors.border,
-                          width: 0.8,
-                        ),
-                      ),
-                      child: Text(
-                        isSibi ? 'SIBI' : 'BISINDO',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.secondary,
-                        ),
-                      ),
-                    ),
-                  ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Row(
+          children: [
+            // Left Square Rounded Play Tile (Tracklist Thumbnail Style)
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: AppColors.border.withValues(alpha: 0.75),
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  entry.aliases.isNotEmpty
-                      ? 'Sinonim: ${entry.aliases.join(', ')}'
-                      : _formatCategoryDisplay(entry.category),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: AppColors.muted,
-                  ),
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.play_arrow_rounded,
+                  color: isSibi ? AppColors.secondary : AppColors.ink,
+                  size: 26,
                 ),
-              ],
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 96),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 7,
-                    vertical: 2.5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.bgSurface,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    _formatCategoryDisplay(entry.category),
+            const SizedBox(width: 16),
+
+            // Center: Bold Word + Clean Natural Subtitle
+            Expanded(
+              child: Column(
+                crossAxisAlignment: .start,
+                mainAxisAlignment: .center,
+                children: [
+                  Text(
+                    entry.label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.muted,
+                    style: AppTypography.titleSmall.copyWith(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
                     ),
                   ),
-                ),
-                const SizedBox(height: 4),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    isBundled
-                        ? Icons.check_circle_outline_rounded
-                        : Icons.cloud_outlined,
-                    size: 13,
-                    color: isBundled ? AppColors.matcha : AppColors.secondary,
-                  ),
-                  const SizedBox(width: 3),
+                  const SizedBox(height: 3),
                   Text(
-                    isBundled ? 'Offline' : 'Cloud',
-                    style: TextStyle(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w700,
-                      color: isBundled ? AppColors.matcha : AppColors.secondary,
+                    subtitleText,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.bodySmall.copyWith(
+                      fontSize: 12.5,
+                      color: AppColors.muted,
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
-          ),
-        ],
+            ),
+            const SizedBox(width: 14),
+
+            // Right: Clean Minimalist Metadata (Zero Pill Boxes!)
+            Row(
+              mainAxisSize: .min,
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isBundled ? AppColors.matcha : AppColors.secondary,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  isSibi ? 'SIBI' : 'BISINDO',
+                  style: AppTypography.labelSmall.copyWith(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.muted,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

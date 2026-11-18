@@ -50,13 +50,8 @@ class CafeOrderStageStepper extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       curve: Curves.easeInOut,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : AppColors.surface,
-        border: Border(
-          bottom: BorderSide(color: AppColors.border, width: 1),
-        ),
-      ),
+      padding: const EdgeInsets.fromLTRB(24, 6, 24, 10),
+      color: isDark ? AppColors.darkCanvas : AppColors.canvas,
       child: Row(
         children: [
           for (int i = 0; i < steps.length; i++) ...[
@@ -94,35 +89,35 @@ class CafeOrderStageStepper extends StatelessWidget {
       children: [
         AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          width: 32,
-          height: 32,
+          width: 28,
+          height: 28,
           decoration: BoxDecoration(
             color: isCompleted
-                ? AppColors.matcha.withValues(alpha: 0.15)
+                ? AppColors.matcha.withValues(alpha: 0.14)
                 : (isActive
                     ? AppColors.secondary.withValues(alpha: 0.12)
-                    : AppColors.border.withValues(alpha: 0.2)),
+                    : Colors.transparent),
             shape: BoxShape.circle,
             border: Border.all(
               color: dotColor,
-              width: isActive ? 2 : 1.5,
+              width: isActive ? 1.8 : 1.2,
             ),
           ),
           child: Center(
             child: isCompleted
-                ? Icon(Icons.check_rounded, size: 16, color: AppColors.matcha)
+                ? Icon(Icons.check_rounded, size: 15, color: AppColors.matcha)
                 : Text(
-                    step.number,
+                    '${step.index + 1}',
                     style: AppTypography.labelSmall.copyWith(
                       color: isActive ? AppColors.secondary : AppColors.muted,
                       fontWeight:
-                          isActive ? FontWeight.bold : FontWeight.normal,
-                      fontSize: 12,
+                          isActive ? FontWeight.w800 : FontWeight.w600,
+                      fontSize: 11.5,
                     ),
                   ),
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 5),
         Text(
           step.label,
           textAlign: TextAlign.center,
@@ -130,7 +125,7 @@ class CafeOrderStageStepper extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: AppTypography.labelSmall.copyWith(
             color: labelColor,
-            fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+            fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
             fontSize: 11,
           ),
         ),

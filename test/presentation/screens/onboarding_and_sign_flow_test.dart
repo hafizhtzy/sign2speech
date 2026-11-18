@@ -20,45 +20,68 @@ void main() {
   });
 
   group('Onboarding & Feature Flow Tests', () {
-    testWidgets('Onboarding 3-step PageView navigates through to Choose Role',
-        (tester) async {
-      await tester.pumpWidget(
-        GetMaterialApp(
-          theme: AppTheme.lightTheme,
-          initialBinding: AppBinding(),
-          initialRoute: AppRoutes.onboarding1,
-          getPages: AppPages.pages,
-          translations: AppTranslations(),
-          locale: const Locale('id', 'ID'),
-        ),
-      );
+    testWidgets(
+      'Unified 5-step Onboarding PageView integrates Role & Sign Language selection',
+      (tester) async {
+        await tester.pumpWidget(
+          GetMaterialApp(
+            theme: AppTheme.lightTheme,
+            initialBinding: AppBinding(),
+            initialRoute: AppRoutes.onboarding1,
+            getPages: AppPages.pages,
+            translations: AppTranslations(),
+            locale: const Locale('id', 'ID'),
+          ),
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      // Slide 1
-      expect(find.text('Komunikasi Lebih Mudah & Inklusif'), findsOneWidget);
-      expect(find.text('Lanjut'), findsOneWidget);
+        // Slide 1
+        expect(find.text('Komunikasi Lebih Mudah & Inklusif'), findsOneWidget);
+        expect(find.text('Lanjut'), findsOneWidget);
 
-      await tester.tap(find.text('Lanjut'));
-      await tester.pumpAndSettle();
+        await tester.tap(find.text('Lanjut'));
+        await tester.pumpAndSettle();
 
-      // Slide 2
-      expect(find.text('Deteksi Isyarat AI & Suara Lisan'), findsOneWidget);
-      expect(find.text('Lanjut'), findsOneWidget);
+        // Slide 2
+        expect(find.text('Deteksi Isyarat AI & Suara Lisan'), findsOneWidget);
+        expect(find.text('Lanjut'), findsOneWidget);
 
-      await tester.tap(find.text('Lanjut'));
-      await tester.pumpAndSettle();
+        await tester.tap(find.text('Lanjut'));
+        await tester.pumpAndSettle();
 
-      // Slide 3
-      expect(find.text('Pilih Peran & Mulai Terhubung'), findsOneWidget);
-      expect(find.text('Mulai Sekarang'), findsOneWidget);
+        // Slide 3
+        expect(find.text('Pilih Peran & Mulai Terhubung'), findsOneWidget);
+        expect(find.text('Lanjut'), findsOneWidget);
 
-      // Tap 'Mulai Sekarang' -> Navigates to Choose Role
-      await tester.tap(find.text('Mulai Sekarang'));
-      await tester.pumpAndSettle();
+        await tester.tap(find.text('Lanjut'));
+        await tester.pumpAndSettle();
 
-      expect(find.text('Pilih Peran'), findsOneWidget);
-    });
+        // Slide 4: Role Selection embedded directly in Onboarding
+        expect(find.text('Bagaimana Anda Berkomunikasi?'), findsOneWidget);
+        expect(find.text('Teman Tuli'), findsOneWidget);
+        expect(find.text('Teman Dengar'), findsOneWidget);
+
+        await tester.tap(find.text('Teman Dengar'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Lanjut'));
+        await tester.pumpAndSettle();
+
+        // Slide 5: Sign Language Selection embedded directly in Onboarding
+        expect(find.text('Sistem Isyarat Pilihan'), findsOneWidget);
+        expect(find.text('BISINDO'), findsOneWidget);
+        expect(find.text('SIBI'), findsOneWidget);
+        expect(find.text('Mulai Menggunakan Aplikasi'), findsOneWidget);
+
+        await tester.tap(find.text('SIBI'));
+        await tester.pumpAndSettle();
+
+        final settings = Get.find<SettingsController>();
+        expect(settings.selectedRole.value, 'Teman Dengar');
+        expect(settings.selectedSignLanguage.value, 'SIBI');
+      },
+    );
 
     testWidgets('Choose Role updates selected role in SettingsController', (
       tester,
