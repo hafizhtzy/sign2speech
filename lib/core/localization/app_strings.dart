@@ -671,6 +671,9 @@ class AppStrings {
 
   // ── Addendum V3: Admin Dashboard (13 Sections) ────────────────────────────
   static const String adminDashboardTitle = 'admin_dashboard_title';
+  static const String adminGroupOperations = 'admin_group_operations';
+  static const String adminGroupFinanceA11y = 'admin_group_finance_a11y';
+  static const String adminGroupManagement = 'admin_group_management';
   static const String adminNavOverview = 'admin_nav_overview';
   static const String adminNavProducts = 'admin_nav_products';
   static const String adminNavCategories = 'admin_nav_categories';

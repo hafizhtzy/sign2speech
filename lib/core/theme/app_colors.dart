@@ -8,6 +8,16 @@ import 'package:get/get.dart';
 class AppColors {
   AppColors._();
 
+  // ── Warm Coffeehouse Color-Block Bento Tokens (Admin Dashboard) ─────────
+  static const Color bentoBase = Color(0xFF1C1512); // Deep Roasted Espresso
+  static const Color bentoCardDark = Color(0xFF2A201B); // Warm Mocha
+  static const Color bentoCardLight = Color(0xFFF6F0E4); // Warm Oat Cream
+  static const Color bentoMatcha = Color(0xFFB8DC7E); // Warm Matcha Sage
+  static const Color bentoHoney = Color(0xFFF6C844); // Warm Honey Mustard
+  static const Color bentoTerracotta = Color(0xFFE95B2B); // Roasted Terracotta
+  static const Color bentoTextDark = Color(0xFF1C1512);
+  static const Color bentoTextLight = Color(0xFFFFFDF9);
+
   // ── Light Mode Token Constants ───────────────────────────────────────────
   static const Color lightCanvas = Color(0xFFFDFBF7);
   static const Color lightBgSurface = Color(0xFFF4EFE6);

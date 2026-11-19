@@ -8,6 +8,19 @@ BEGIN;
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
+-- Helper trigger function to update updated_at timestamp automatically
+CREATE OR REPLACE FUNCTION public.handle_updated_at()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$;
+
 -- =============================================================================
 -- 1. TABEL PROFILES & SERVER-AUTHORITATIVE RBAC HELPERS
 -- =============================================================================

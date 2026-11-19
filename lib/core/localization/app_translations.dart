@@ -760,6 +760,9 @@ class AppTranslations extends Translations {
 
     // Addendum V3: Admin Dashboard (13 Sections)
     AppStrings.adminDashboardTitle: 'Dashboard Admin Sign2Speech',
+    AppStrings.adminGroupOperations: 'Operasional Kafe',
+    AppStrings.adminGroupFinanceA11y: 'Keuangan & Aksesibilitas',
+    AppStrings.adminGroupManagement: 'Manajemen & Sistem',
     AppStrings.adminNavOverview: 'Ringkasan',
     AppStrings.adminNavProducts: 'Produk',
     AppStrings.adminNavCategories: 'Kategori',
@@ -1523,6 +1526,9 @@ class AppTranslations extends Translations {
 
     // Addendum V3: Admin Dashboard (13 Sections)
     AppStrings.adminDashboardTitle: 'Sign2Speech Admin Dashboard',
+    AppStrings.adminGroupOperations: 'Cafe Operations',
+    AppStrings.adminGroupFinanceA11y: 'Finance & Accessibility',
+    AppStrings.adminGroupManagement: 'Management & System',
     AppStrings.adminNavOverview: 'Overview',
     AppStrings.adminNavProducts: 'Products',
     AppStrings.adminNavCategories: 'Categories',
